@@ -1,3 +1,4 @@
+/* eslint-disable vue/multi-word-component-names */
 import "./css/style.css"
 import "primeflex/primeflex.css";
 //import "primevue/resources/themes/lara-light-blue/theme.css";
@@ -109,7 +110,10 @@ import TreeSelect from 'primevue/treeselect';
 import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 import VirtualScroller from 'primevue/virtualscroller';
-
+import axios from 'axios';
+import VueAxios from "vue-axios";
+//axios.defaults.baseURL = "http://192.168.1.74:3000"
+axios.defaults.baseURL = "http://localhost:3000/"
 
 const app = createApp(App);
 
@@ -118,6 +122,7 @@ app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
 app.use(router);
+app.use(VueAxios, axios);
 
 app.directive('tooltip', Tooltip);
 app.directive('badge', BadgeDirective);
@@ -208,6 +213,7 @@ app.component('Timeline', Timeline);
 app.component('Toast', Toast);
 app.component('Toolbar', Toolbar);
 app.component('ToggleButton', ToggleButton);
+// eslint-disable-next-line vue/multi-word-component-names
 app.component('Tree', Tree);
 app.component('TreeSelect', TreeSelect);
 app.component('TreeTable', TreeTable);
