@@ -113,7 +113,7 @@ app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
 app.use(router);
-app.use(VueAxios);
+
 
 app.directive('tooltip', Tooltip);
 app.directive('badge', BadgeDirective);
