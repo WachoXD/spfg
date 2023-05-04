@@ -6,15 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPFG</title>
     <link rel="stylesheet" href="./scss/custom.css">
+    <link rel="stylesheet" href="./scss/icons/font/bootstrap-icons.css">
     <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
 </head>
-<body>
-    <div id="app" onload="myFunction()">
-        
+<body onload="comprobarCookie()">
+    <div class="loader" id="loader">
+        <div class="spinner-border position-absolute top-50 start-50" style="width: 80px; height: 80px;" role="status">
+            <span class="sr-only"></span>
+        </div>
     </div>
+    <div id="app"></div> <!-- Aqui se encuentra todo lo de js-->
     <!--script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script-->
     <script src="./js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-    <script src="./scss/icons/font/bootstrap-icons.css"></script>
+    
+    <script src="./js/axios.min.js"></script>
     <script src="./js/index.js"></script>
 </body>
 </html>

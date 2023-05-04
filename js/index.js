@@ -1,63 +1,126 @@
-document.getElementById('app').innerHTML = "<div class='m-0 vh100 row justify-content-center align-items-center mt-5' >\
-                                                <div class='col-auto mt-5'>\
-                                                    <div class='card mt-5' style='width: 28rem; background: rgba(0, 0, 0, 0.3);'>\
-                                                        <img src='./img/logo_web.45818d48.png' class='card-img-top' alt='PFG'>\
-                                                        <div class='card-body'>\
-                                                        <form>\
-                                                            <div class='mb-3'>\
-                                                            <label for='exampleInputEmail1' class='form-label'>\Correo</label>\
-                                                            <div class='input-group mb-3'>\
-                                                                <input type='email' class='form-control' id='exampleFormControlInput1' placeholder='ejemplo@proveedorferretero.net'>\
-                                                                <span class='input-group-text ' id='basic-addon1'>\
-                                                                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-person' viewBox='0 0 16 16'>\
-                                                                        <path d='M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z'/>\
-                                                                    </svg>\
-                                                                </span>\
-                                                            </div>\
-                                                            </div>\
-                                                            <div class='mb-3'>\
-                                                                <label for='exampleInputPassword1' class='form-label'>\Password</label>\
-                                                                <div class='input-group mb-3'>\
-                                                                    <input type='password' class='form-control' id='exampleFormControlInput1' placeholder='*********'>\
-                                                                    <span class='input-group-text ' id='basic-addon1'>\
-                                                                        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-eye' viewBox='0 0 16 16'>\
-                                                                            <path d='M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z'/>\
-                                                                            <path d='M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z'/>\
-                                                                        </svg>\
-                                                                    </span>\
+/*
+Esta pagia esta lo de la librería de axios
+https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
+*/
+
+//Crear cookies 
+function crearCookie(clave, valor, diasexpiracion) {
+    var d = new Date();
+    d.setTime(d.getTime() + (diasexpiracion * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = clave + "=" + valor + "; " + expires;
+}
+//Obtener los datos de una cookie
+function obtenerCookie(clave) {
+    var name = clave + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+    }
+    return "";
+}
+//Comprobar si existe o fue creada la cookie
+function comprobarCookie() {
+    var clave = "email"
+    var clave = obtenerCookie(clave);
+    if (clave != "") {
+        // La cookie existe. 
+    } else {
+        // La cookie no existe. 
+        document.getElementById('app').innerHTML = "<div class='m-0 vh100 row justify-content-center align-items-center mt-5' >\
+                                                        <div class='col-auto mt-5'>\
+                                                            <div class='card mt-5' style='width: 28rem; background: rgba(0, 0, 0, 0.3);'>\
+                                                                <img src='./img/logo_web.45818d48.png' class='card-img-top' alt='PFG'>\
+                                                                <div class='card-body'>\
+                                                                    <div class='mb-3'>\
+                                                                    <label for='exampleInputEmail1' class='form-label'>\Correo</label>\
+                                                                    <div class='input-group mb-3'>\
+                                                                        <input type='email' class='form-control' id='inpEmail' placeholder='ejemplo@proveedorferretero.net'>\
+                                                                        <span class='input-group-text bi bi-person' id='basic-addon1'>\
+                                                                        </span>\
+                                                                    </div>\
+                                                                    </div>\
+                                                                    <div class='mb-3'>\
+                                                                        <label for='exampleInputPassword1' class='form-label'>\Password</label>\
+                                                                        <div class='input-group mb-3'>\
+                                                                            <input type='password' class='form-control' id='inpPass' placeholder='*********'>\
+                                                                            <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                            </span>\
+                                                                        </div>\
+                                                                    </div>\
+                                                                    <button onclick='iniciarSesion()' class='btn btn-primary '>\
+                                                                    <i class='bi bi-box-arrow-in-right'></i> Iniciar sesión</button>\
                                                                 </div>\
                                                             </div>\
-                                                            <button type='submit' class='btn btn-primary '>\
-                                                                <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-box-arrow-in-right' viewBox='0 0 16 19'>\
-                                                                    <path fill-rule='evenodd' d='M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z'/>\
-                                                                    <path fill-rule='evenodd' d='M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z'/>\
-                                                                </svg>\ &nbsp; Iniciar sesión</button>\
-                                                        </form>\
                                                         </div>\
-                                                    </div>\
-                                                </div>\
-                                            </div>";
-function checkCookie() {
-    document.getElementById('app').innerHTML = ''
-    let user = getCookie("username");
-    if (user != "") {
-        alert("Welcome again " + user);
-        dashboard(user)
-    } else {
-        alert("Welcome again ");
-        login()
-        
+                                                    </div>";
+        loading(2);
     }
 }
 
+//Funcion para mostrar el simbolo de carga 
+/*
+    1 = a cargando
+    2 = a listo
+*/
+function loading(carga){
+    /*
+    1 = a cargando
+    2 = a listo
+    */
+    if (carga == 1){
+        document.getElementById("loader").style.display = "block";
+    }else{
+        document.getElementById("loader").style.display = "none";
+    }
+}
 
-   
-function myFunction() {
-    console.log("function called...");
-  }
-
-
-
-function login(user){
+function iniciarSesion(){
+    var email = document.getElementById('inpEmail').value;
+    var pass  = document.getElementById('inpPass').value;
+    if(email.includes("@") && email.includes(".")){
+        if(pass != ''){
+            loading(1);
+            
+            console.log("email: ",email," pass: ",pass);
+            axios.get("http://192.168.1.74:5000/login", { //Se coloca la url de la api
+                //axios.get("http://localhost:5000/login", {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json',
+                },
+                data: {
+                    email: email.trim(),
+                    pass: pass.trim()
+                }
+                }).then(function(res) {
+                    if(res.status==200) {
+                        console.log(res.data);
+                    }
+                    loading(2);
+                })
+                .catch(function(err) {
+                    console.log(err);
+                })
+        }else{
+            alert("Todos los campos deben de ser llenados")
+        }
+    }else{
+        alert("Usuario o contraseña son incorrectos")
+    }
     
+    //Se llama a la api en get con axios
+    /*axios.get("https://pokeapi.co/api/v2/pokemon/ditto", { //Se coloca la url de la api
+        responseType: 'json' //Como lo va a regresar
+      }).then(function(res) {//Si responde la api
+        if(res.status==200) {//Verificamos que tenga codigo 200 de validacion
+            console.log(res.data);//Manejo de datos en .data
+        }
+        console.log(res);//Todos los datos que envía el api
+    })
+    .catch(function(err) {//Si hay error en la petición
+      console.log(err);//Manejo del error
+    })*/
 }
