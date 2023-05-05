@@ -62,8 +62,8 @@ function comprobarCookie() {
 
 //Funcion para mostrar el simbolo de carga 
 /*
-    1 = a cargando
-    2 = a listo
+    1 = cargando
+    2 = listo
 */
 function loading(carga){
     /*
