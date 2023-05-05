@@ -27,12 +27,12 @@ server.listen(3000, ()=>{
     console.log('Listening on *:3000');
 });*/
 
-const express = require('express');
-const app = express();
-var cors = require('cors');
-const morgan=require('morgan');
-var bodyParser = require('body-parser')
-
+var   express    = require('express');
+var   app        = express();
+const morgan     = require('morgan');
+var   bodyParser = require('body-parser')
+var   cors       = require('cors');
+var   router     = express.Router();
 
  
 //Configuraciones
@@ -41,18 +41,26 @@ app.set('json spaces', 2)
  
 //Middleware
 app.use(morgan('dev'));
-app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json())
+app.use('/api', router);
  
 var mysql = require('mysql');
+/**
 var conexion= mysql.createConnection({
     host : 'localhost',
     database : 'spfg',
     user : 'pfg',
     password : '(fEnebs[i_HIskp-',
+}); 
+*/
+var conexion= mysql.createConnection({
+    host : 'localhost',
+    database : 'spfg',
+    user : 'root',
+    password : '',
 });
 
 conexion.connect(function(err) {
@@ -71,27 +79,48 @@ app.get('/', (req, res) => {
         }
     );
 })
-app.get('/login', (req, res) => {   
-    conexion.query("SELECT * FROM users WHERE email =='",req.body.email,"' AND password == '",req.body.pass,"", function (error, results, fields) {
+router.post('/login', (req, res) => { 
+    let email = req.body.email;
+    let pass  = req.body.pass;
+    //console.log("email: "+email+" pass: "+ pass);
+    var resu = '';
+    conexion.query("SELECT * FROM users WHERE email = ? AND password = ?",[email, pass], function (error, results, fields) {
         if (error)
             throw error;
     
         results.forEach(result => {
             console.log(result);
-            res.json(
-                {
-                    "email":        result.email,
-                    "user_rol_id":  result.user_rol_id,
-                    "name":         result.name,
-                    "created_at":   result.create_at,
-                    "if_update":    result.if_update
-                }
-            );
+            res.json({
+                "id":           result.id,
+                "email":        result.email,
+                "user_rol_id":  result.user_rol_id,
+                "name":         result.name,
+                "created_at":   result.create_at,
+                "if_update":    result.if_update
+            });
         });
+        //res.send(results);
+    });   
+})
+
+router.post('/changePass', (req, res) => { 
+    let pass = req.body.newPass;
+    let id   = req.body.id;
+    let cambio = 1;
+    let flag = 1;
+    conexion.query("UPDATE `users` SET `password`= ?, `if_update`= ? WHERE `id`= ?" ,[pass, cambio, id], function (error, results, fields){
+        if (error){
+            flag = 0;
+            throw error;
+        }
+        res.json({
+            "status": '200',
+            'echo': flag
+        })
     });
     
-})
- 
+});
+
 //Iniciando el servidor
 app.listen(app.get('port'),()=>{
     console.log(`Server listening on port ${app.get('port')}`);

@@ -2,7 +2,7 @@
 Esta pagia esta lo de la librería de axios
 https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
 */
-
+var varGlobal = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -23,9 +23,11 @@ function obtenerCookie(clave) {
 }
 //Comprobar si existe o fue creada la cookie
 function comprobarCookie() {
+    document.getElementById('app').innerHTML = '';
     var clave = "email"
     var clave = obtenerCookie(clave);
     if (clave != "") {
+        varGlobal = 1;
         // La cookie existe. 
     } else {
         // La cookie no existe. 
@@ -59,7 +61,17 @@ function comprobarCookie() {
         loading(2);
     }
 }
-
+//Para reconocer el enter en el formulario
+window.addEventListener("keydown", (e) => {
+    if(e.keyCode===13){
+        switch(varGlobal){
+            case 0:
+                iniciarSesion();
+                break;
+        }
+        
+    }
+})
 //Funcion para mostrar el simbolo de carga 
 /*
     1 = cargando
@@ -77,50 +89,103 @@ function loading(carga){
     }
 }
 
+//Función de iniciar sesión al llenar los datos
 function iniciarSesion(){
-    var email = document.getElementById('inpEmail').value;
-    var pass  = document.getElementById('inpPass').value;
+    var email = document.getElementById('inpEmail').value.trim();
+    var pass  = document.getElementById('inpPass').value.trim();
     if(email.includes("@") && email.includes(".")){
         if(pass != ''){
             loading(1);
-            
+            let _datos = {
+                email: email,
+                pass: pass
+            }
             console.log("email: ",email," pass: ",pass);
-            axios.get("http://192.168.1.74:5000/login", { //Se coloca la url de la api
-                //axios.get("http://localhost:5000/login", {
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    email: email.trim(),
-                    pass: pass.trim()
+            fetch('http://localhost:5000/api/login', {
+                method: "POST",
+                body: JSON.stringify(_datos),
+                headers: {'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',}
+            })
+            .then(response => response.json()) 
+            .then(function(json) {
+                console.log(json);
+                if(json.if_update != 0){
+
+                }else{
+                    changePasswordView(1, json.id);
                 }
-                }).then(function(res) {
-                    if(res.status==200) {
-                        console.log(res.data);
-                    }
-                    loading(2);
-                })
-                .catch(function(err) {
-                    console.log(err);
-                })
+            })
+            .catch(err => console.log(err));
         }else{
             alert("Todos los campos deben de ser llenados")
         }
     }else{
         alert("Usuario o contraseña son incorrectos")
     }
-    
-    //Se llama a la api en get con axios
-    /*axios.get("https://pokeapi.co/api/v2/pokemon/ditto", { //Se coloca la url de la api
-        responseType: 'json' //Como lo va a regresar
-      }).then(function(res) {//Si responde la api
-        if(res.status==200) {//Verificamos que tenga codigo 200 de validacion
-            console.log(res.data);//Manejo de datos en .data
+}
+
+function changePasswordView(newU, id){
+    varGlobal = 2;
+    document.getElementById('app').innerHTML = '';
+    loading(2);
+    if(newU == 1){
+        alert("Por favor cambié su contraseña.")
+    }
+    document.getElementById('app').innerHTML = "<div class='m-0 vh100 row justify-content-center align-items-center mt-5' >\
+                                                    <div class='col-auto mt-5'>\
+                                                        <div class='card mt-5' style='width: 28rem; background: rgba(0, 0, 0, 0.3);'>\
+                                                            <img src='./img/logo_web.45818d48.png' class='card-img-top' alt='PFG'>\
+                                                            <div class='card-body'>\
+                                                                <div class='mb-3'>\
+                                                                    <label for='exampleInputPassword1' class='form-label'>Nueva contraseña</label>\
+                                                                    <div class='input-group mb-3'>\
+                                                                        <input type='password' class='form-control' id='newInpPass' placeholder='*********'>\
+                                                                        <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                        </span>\
+                                                                    </div>\
+                                                                </div>\
+                                                                <div class='mb-3'>\
+                                                                    <label for='exampleInputPassword1' class='form-label'>Repetir nueva contraseña</label>\
+                                                                    <div class='input-group mb-3'>\
+                                                                        <input type='password' class='form-control' id='newRInpPass' placeholder='*********'>\
+                                                                        <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                        </span>\
+                                                                    </div>\
+                                                                </div>\
+                                                                <button onclick='changePassword("+id+")' class='btn btn-primary '>\
+                                                                <i class='bi bi-arrow-repeat'></i> Cambiar contraseña</button>\
+                                                            </div>\
+                                                        </div>\
+                                                    </div>\
+                                                </div>";
+}
+
+function changePassword(id){
+    var newPass = document.getElementById('newInpPass').value.trim();
+    var rNePass = document.getElementById('newRInpPass').value.trim();
+
+    if (newPass == rNePass){
+        let _datos = {
+            newPass: newPass,
+            id: id
         }
-        console.log(res);//Todos los datos que envía el api
-    })
-    .catch(function(err) {//Si hay error en la petición
-      console.log(err);//Manejo del error
-    })*/
+        var res = fetch('http://localhost:5000/api/changePass', {
+            method: "POST",
+            body: JSON.stringify(_datos),
+            headers: {'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',}
+        })
+        .then(response => response.json()) 
+        .then(function(json) {
+            console.log(json);
+            if(json.if_update != 0){
+
+            }else{
+                changePasswordView(1)
+            }
+        }
+        )
+        .catch(err => console.log(err));
+    }
 }
