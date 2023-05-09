@@ -9,14 +9,85 @@
     <link rel="stylesheet" href="./scss/icons/font/bootstrap-icons.css">
     <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
 </head>
-<body onload="comprobarCookie()">
-    <div class="loader" id="loader">
+<!--body id="body" onload="comprobarCookie()"-->
+<body>
+    <!--div class="loader" id="loader">
         <div class="spinner-border position-absolute top-50 start-50" style="width: 80px; height: 80px;" role="status">
             <span class="sr-only"></span>
         </div>
-    </div>
-    <div id="app"></div> <!-- Aqui se encuentra todo lo de js-->
-    <!--script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script-->
+    </div-->
+    <div id="app">
+        
+        <!--Inicio Modal de asignar-->
+        <div class="modal fade" id="modalAsignar" tabindex="-1" aria-labelledby="modalAsignarLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalAsignarLabel">Pedido N°: </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>Seleccione un área</option>
+                            <option value="1">One</option>
+                            <option value="2">Two</option>
+                            <option value="3">Three</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">Reasignar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--FIN Modal de asignar-->
+        <!--Inicio Modal de rechazo-->
+        <div class="modal fade" id="modalRechazar" tabindex="-1" aria-labelledby="modalRechazarLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalRechazarLabel">Pedido N°: </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-floating">
+                            <textarea class="form-control" style="max-height:300px; min-height: 120px;" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+                            <label for="floatingTextarea">Comments</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Rechazar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--FIN Modal de Rechazo-->
+        <!--Inicio Modal de agregar pedido-->
+        <div class="modal fade" id="modalPermisoN" tabindex="-1" aria-labelledby="modalPermisoNLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalRechazarLabel">Nuevo permiso </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" placeholder="Nuevo permiso" aria-label="permiso" aria-describedby="basic-addon1">
+                            <label for="floatingTextarea">Nuevo permiso</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary">Rechazar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--FIN Modal de agregar pedido-->
+  
+
+    </div> <!-- Aqui se encuentra todo lo de ./js/index.js-->
     <script src="./js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="./js/axios.min.js"></script>
     <script src="./js/index.js"></script>

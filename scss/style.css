@@ -8,3 +8,15 @@
     background: rgb(249,249,249);
     opacity: .8;
 }
+
+#menuNav li a{
+    cursor: pointer;
+}
+
+#pills-tab li button{
+    color: black;
+}
+
+#dropPerfil li a{
+    cursor: pointer;
+}

@@ -85,20 +85,24 @@ router.post('/login', (req, res) => {
     //console.log("email: "+email+" pass: "+ pass);
     var resu = '';
     conexion.query("SELECT * FROM users WHERE email = ? AND password = ?",[email, pass], function (error, results, fields) {
-        if (error)
-            throw error;
-    
-        results.forEach(result => {
-            console.log(result);
+        
+        if(Object.keys(results).length === 0){
             res.json({
-                "id":           result.id,
-                "email":        result.email,
-                "user_rol_id":  result.user_rol_id,
-                "name":         result.name,
-                "created_at":   result.create_at,
-                "if_update":    result.if_update
+                "status": 400
             });
-        });
+        }else{
+            results.forEach(result => {
+                res.json({
+                    "status":       200,
+                    "id":           result.id,
+                    "email":        result.email,
+                    "user_rol_id":  result.user_rol_id,
+                    "name":         result.name,
+                    "created_at":   result.create_at,
+                    "if_update":    result.if_update
+                });
+            });
+        }
         //res.send(results);
     });   
 })
