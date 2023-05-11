@@ -125,6 +125,42 @@ router.post('/changePass', (req, res) => {
     
 });
 
+router.get('/solPedidos', (req,res) => {
+    conexion.query('SELECT * FROM orders', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        res.send(jsonData);
+    });
+});
+
+router.get('/usuarios', (req, res) => {
+    conexion.query('SELECT id, name, user_rol_id FROM users', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        res.send(jsonData);
+    });
+})
+
+router.get('/area', (req, res) => {
+    conexion.query('SELECT id, name FROM role', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        res.send(jsonData);
+    });
+})
+
 //Iniciando el servidor
 app.listen(app.get('port'),()=>{
     console.log(`Server listening on port ${app.get('port')}`);
