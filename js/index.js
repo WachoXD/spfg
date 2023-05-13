@@ -105,7 +105,7 @@ function iniciarSesion(){
                 email: email,
                 pass: pass
             }
-            console.log("email: ",email," pass: ",pass);
+            //console.log("email: ",email," pass: ",pass);
             fetch('http://localhost:5000/api/login', {
                 method: "POST",
                 body: JSON.stringify(_datos),
@@ -120,6 +120,7 @@ function iniciarSesion(){
                     alert("Usuario no existe");
                 }else{
                     if(json.if_update != 0){
+                        console.log(json);
                         home(json);
                     }else{
                         changePasswordView(1, json.id);
@@ -215,50 +216,130 @@ function changePasswordView(newU, id){
 }
 
 /*Funciones de solicitud de datos a APIs */
-
-function apiPedidos(){
-    fetch('http://localhost:5000/api/solPedidos', {
-        method: "GET",
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-        .then(response => response.json()) 
+async function apiPedidos(){
+       
+        const url = 'http://localhost:5000/api/solPedidos';
+        const headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        const options = {
+        method: 'GET',
+        mode: 'cors',
+        headers: headers,
+        };
+        var solPedidos = [];
+        solPedidos = await fetch(url, options)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error en la solicitud.');
+            }
+        })
         .then(function(json) {
+            // Hacer algo con los datos recibidos
             return json;
         })
-        .catch(err => console.log(err));
+        .catch(error => {
+            console.error(error);
+        });
+        return solPedidos;
 }
 
-function apiUsuarios(){
-    fetch('http://localhost:5000/api/usuarios', {
-                method: "GET",
-                headers: {'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',}
-            })
-            .then(response => response.json()) 
-            .then(function(json) {
-                return json;
-            })
-            .catch(err => console.log(err));
+async function apiUsuarios(){
+    const url = 'http://localhost:5000/api/usuarios';
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solUsuaros = [];
+    solUsuaros = await fetch(url, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solUsuaros;
 }
 
-function apiArea(){
-    fetch('http://localhost:5000/api/area', {
-                method: "GET",
-                headers: {'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',}
-            })
-            .then(response => response.json()) 
-            .then(function(json) {
-                return json;
-            })
-            .catch(err => console.log(err));
+async function apiArea(){
+
+    const url = 'http://localhost:5000/api/area';
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solArea = [];
+    solArea = await fetch(url, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solArea;
 }
 
-function home(jUsuario){
-    var jPedidos    = apiPedidos();
-    var jUsuarios   = apiUsuarios();
-    var jArea       = apiArea();
+async function apiHistorial(orderNum){
+    const url = 'http://localhost:5000/api/historial?ordernum=' + orderNum;
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solHistorial = [];
+    solHistorial = await fetch(url, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solHistorial;
+}
+
+async function home(jUsuario){
+    let jPedidos    = await apiPedidos();
+    let jUsuarios   = await apiUsuarios();
+    let jArea       = await apiArea();
+    console.log("jPedidos");
+    console.log(jPedidos);
+    console.log("jUsuarios");
+    console.log(jUsuarios);
+    console.log("jArea");
+    console.log(jArea);
     let contadorObjetos = 0;
 
     Object.keys(jPedidos).forEach((clave) => {
@@ -271,6 +352,14 @@ function home(jUsuario){
     Object.keys(jUsuarios).forEach((clave) => {
     if (typeof jUsuarios[clave] === "object") {
         contUsuarios++;
+    }
+    });
+
+    let contArea = 0;
+
+    Object.keys(jArea).forEach((clave) => {
+    if (typeof jArea[clave] === "object") {
+        contArea++;
     }
     });
     document.getElementById('app').innerHTML = '';
@@ -348,7 +437,7 @@ function home(jUsuario){
                                                     <th scope="col">Área</th>
                                                 </tr>
                                             </thead>
-                                            <tbody class="table-group-divider" id="tablaTodos">`
+                                            <tbody class="table-group-divider" id="tablaTodos">`;
 
     if(contadorObjetos > 0){
         let responsable = '';
@@ -356,15 +445,15 @@ function home(jUsuario){
         for(i=0; i < contadorObjetos; i++){
             if(jPedidos[i].who_id_created == jUsuario.id ){
                 for(j = 0; j < contUsuarios; j++){
-                    if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                    if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
                 }
-                for(j = 0; j < contUsuarios; j++){
-                    if(jArea[j].id == jPedidos[i].area_id) area = jArea[j].name;
+                for(k = 0; k < contArea; k++){
+                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                 }
                 sVentana = sVentana + `<tr>
                                                     <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                     <td>`+jPedidos[i].status+`</td>
-                                                    <td>`+jPedidos[i].startdate+`</td>
+                                                    <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
                                                     <td>`+responsable+`</td>
                                                     <td>`+area+`</td>
                                                 </tr>`
@@ -389,7 +478,8 @@ function home(jUsuario){
                                             <th scope="col">Área</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="table-group-divider" id="tablaActivos>`
+                                    
+                                    <tbody class="table-group-divider" id="tablaActivos><tr><th scope="row"></th></tr>`
 
     if(contadorObjetos > 0){
         let responsable = '';
@@ -400,13 +490,13 @@ function home(jUsuario){
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jArea[j].id == jPedidos[i].area_id) area = jArea[j].name;
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate+`</td>
+                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -442,13 +532,13 @@ function home(jUsuario){
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jArea[j].id == jPedidos[i].area_id) area = jArea[j].name;
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate+`</td>
+                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -484,13 +574,13 @@ function home(jUsuario){
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jArea[j].id == jPedidos[i].area_id) area = jArea[j].name;
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate+`</td>
+                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -516,208 +606,96 @@ function home(jUsuario){
                                                             <th scope="col">Funciones</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="table-group-divider" id="tablaAceptador">`
-    document.getElementById('app').innerHTML = `
-                            <tr>
-                                <th scope="row ">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                                <td>Ventas</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">2</th>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>@fat</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">3</th>
-                                <td colspan="2">Larry the Bird</td>
-                                <td>@twitter</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Fin de la tabla Finalizados-->
-                <!-- Inicio de la tabla Aceptados-->
-                <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">
-                    <table class="table table-hover border border-info">
-                        <thead>
-                            <tr>
-                                <th scope="col">N° pedido</th>
-                                <th scope="col">Estatus</th>
-                                <th scope="col">Fecha de creación</th>
-                                <th scope="col">Responsable</th>
-                                <th scope="col">Área</th>
-                                <th scope="col">Funciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-group-divider" id="tablaAceptador">
-                            <tr>
-                                <th scope="row ">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>Ignacio</td>
-                                <td>Ventas</td>
-                                <td>
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar">
-                                        <i class="bi bi-arrow-left-right"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">2</th>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>Ignacio</td>
-                                <td>Ventas</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">3</th>
-                                <td >Larry the Bird</td>
-                                <td>Ignacio</td>
-                                <td>Ventas</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Fin de la tabla Aceptados-->
-                <!-- Inicio de la tabla por Aceptar-->
-                <div class="tab-pane fade" id="pills-aceptar" role="tabpanel" aria-labelledby="pills-aceptar-tab" tabindex="0">
-                    <table class="table table-hover border border-black">
-                        <thead>
-                            <tr>
-                                <th scope="col">N° pedido</th>
-                                <th scope="col">Estatus</th>
-                                <th scope="col">Fecha de creación</th>
-                                <th scope="col">Responsable</th>
-                                <th scope="col">Área</th>
-                                <th scope="col">Funciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-group-divider">
-                            <tr>
-                                <th scope="row ">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                                <td>Ventas</td>
-                                <td>
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">2</th>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>@fat</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">3</th>
-                                <td colspan="2">Larry the Bird</td>
-                                <td>@twitter</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Fin de la tabla por Por Aceptar-->
-            </div>
-        </div>
-    </div>
-    <div class="tab-pane fade" id="permisos-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
-        <div class="container">   
-            <center>
-                <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
-                    Agergar nuevo permiso
-                  </button>
-                <table class="table mt-4 border table-hover table-sm" style="max-width: 600px;">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Permiso</th>
-                            <th scope="col col-sm-6">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <tr>
-                            <th scope="row">1</th>
-                            <td>Mark</td>
-                            <td>
-                                <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
-                                <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </center>
-        </div>
-    </div>
-    <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
-        <div class="container">   
-            <center>
-                <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
-                    Agergar nuevo Rol
-                  </button>
-                <table class="table mt-4 border table-hover table-sm" style="max-width: 600px;">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Permiso</th>
-                            <th scope="col col-sm-6">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <tr>
-                            <th scope="row">1</th>
-                            <td>Mark</td>
-                            <td>
-                                <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
-                                <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </center>
-        </div>
-    </div>
-    <div class="tab-pane fade" id="disabled-tab-pane" role="tabpanel" aria-labelledby="disabled-tab" tabindex="0">
-        <div class="container">   
+                                                    <tbody class="table-group-divider" id="tablaAceptado">`;
+    if(contadorObjetos > 0){
+        let responsable = '';
+        let area = '';
+        for(i=0; i < contadorObjetos; i++){
+            if(jPedidos[i].user_id == jUsuario.id && jPedidos[i].acepted == 1){
+                if(jPedidos[i].acepted == 1){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                    }
+                    for(k = 0; j < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar">
+                                                                <i class="bi bi-arrow-left-right"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>`
+                }
+            }
+        }
+    }
 
-            <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
-                Agergar nuevo usuario
-                </button>
-            <table class="table mt-4 border table-hover table-sm" >
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col col-sm-6">Correo</th>
-                        <th scope="col col-sm-6">Funciones</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Mark</td>
-                        <td>desarrollo.pfg@proveedorferretero.net</td>
-                        <td>
-                            <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
-                            <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    sVentana = sVentana + `</tbody>
+                                                    </table>
+                                                </div>
+                                                <!-- Fin de la tabla Aceptados-->
+                                                <!-- Inicio de la tabla por Aceptar-->
+                                                <div class="tab-pane fade" id="pills-aceptar" role="tabpanel" aria-labelledby="pills-aceptar-tab" tabindex="0">
+                                                    <table class="table table-hover border border-black">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">N° pedido</th>
+                                                                <th scope="col">Estatus</th>
+                                                                <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Responsable</th>
+                                                                <th scope="col">Área</th>
+                                                                <th scope="col">Funciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="table-group-divider" id="tablaAceptar">`;
 
-        </div>
-    </div>
+if(contadorObjetos > 0){
+    let responsable = '';
+    let area = '';
+    for(i=0; i < contadorObjetos; i++){
+        if(jPedidos[i].area_id == jUsuario.user_rol_id && jPedidos[i].acepted == 0){
+            if(jPedidos[i].acepted == 0){
+                for(j = 0; j < contUsuarios; j++){
+                    if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                }
+                for(k = 0; k < contArea; k++){
+                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                }
+                sVentana = sVentana + `<tr>
+                                                    <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                    <td>`+jPedidos[i].status+`</td>
+                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].ordernumber+`, 1)'>`+jPedidos[i].startdate.slice(0, 10)+`</button></td>
+                                                    <td>`+responsable+`</td>
+                                                    <td>`+area+`</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
+                                                            <i class="bi bi-check-lg"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>`
+            }
+        }
+    }
+}
 
-</div>`;
+    sVentana = sVentana + `</tbody>
+                                        </table>
+
+                                    </div>
+                                    </div>
+
+                                    </div>`;
+    document.getElementById('app').innerHTML = sVentana;
+    loading(2);
 }
 
 function changePassword(id){
@@ -740,7 +718,8 @@ function changePassword(id){
             .then(response => response.json()) 
             .then(function(json) {
                 loading(2);
-                home(id);
+                alert("Por favor Inicie sesión con la nueva contraseña");
+                iniciarSesion();
             }
             )
             .catch(err => console.log(err));
@@ -750,4 +729,15 @@ function changePassword(id){
     }else{
         alert("Por favor llene los campos");
     }
+}
+
+async function modalView(numOrder, opc){
+    //El numOrder es el numéro de orden que manda
+    /*El opc es la opción a elegir:
+    las opciones son; 
+    1: historial
+    2: Rechazar pedido
+    3: Agregar pedido
+    */
+
 }

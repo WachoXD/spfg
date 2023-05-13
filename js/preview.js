@@ -184,6 +184,206 @@
                             </tr>
                         </thead>
                         <tbody class="table-group-divider" id="tablaFinalizado">
+                        <tr>
+                                <th scope="row ">1</th>
+                                <td>Mark</td>
+                                <td>Otto</td>
+                                <td>@mdo</td>
+                                <td>Ventas</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">2</th>
+                                <td>Jacob</td>
+                                <td>Thornton</td>
+                                <td>@fat</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">3</th>
+                                <td colspan="2">Larry the Bird</td>
+                                <td>@twitter</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Fin de la tabla Finalizados-->
+                <!-- Inicio de la tabla Aceptados-->
+                <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">
+                    <table class="table table-hover border border-info">
+                        <thead>
+                            <tr>
+                                <th scope="col">N° pedido</th>
+                                <th scope="col">Estatus</th>
+                                <th scope="col">Fecha de creación</th>
+                                <th scope="col">Responsable</th>
+                                <th scope="col">Área</th>
+                                <th scope="col">Funciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider" id="tablaAceptador">
+                            <tr>
+                                <th scope="row ">1</th>
+                                <td>Mark</td>
+                                <td>Otto</td>
+                                <td>Ignacio</td>
+                                <td>Ventas</td>
+                                <td>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar">
+                                        <i class="bi bi-arrow-left-right"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">2</th>
+                                <td>Jacob</td>
+                                <td>Thornton</td>
+                                <td>Ignacio</td>
+                                <td>Ventas</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">3</th>
+                                <td >Larry the Bird</td>
+                                <td>Ignacio</td>
+                                <td>Ventas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Fin de la tabla Aceptados-->
+                <!-- Inicio de la tabla por Aceptar-->
+                <div class="tab-pane fade" id="pills-aceptar" role="tabpanel" aria-labelledby="pills-aceptar-tab" tabindex="0">
+                    <table class="table table-hover border border-black">
+                        <thead>
+                            <tr>
+                                <th scope="col">N° pedido</th>
+                                <th scope="col">Estatus</th>
+                                <th scope="col">Fecha de creación</th>
+                                <th scope="col">Responsable</th>
+                                <th scope="col">Área</th>
+                                <th scope="col">Funciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider" id="tablaAceptar">
+                            <tr>
+                                <th scope="row ">1</th>
+                                <td>Mark</td>
+                                <td>Otto</td>
+                                <td>@mdo</td>
+                                <td>Ventas</td>
+                                <td>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">2</th>
+                                <td>Jacob</td>
+                                <td>Thornton</td>
+                                <td>@fat</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">3</th>
+                                <td colspan="2">Larry the Bird</td>
+                                <td>@twitter</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Fin de la tabla por Por Aceptar-->
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="permisos-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+        <div class="container">   
+            <center>
+                <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
+                    Agergar nuevo permiso
+                  </button>
+                <table class="table mt-4 border table-hover table-sm" style="max-width: 600px;">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Permiso</th>
+                            <th scope="col col-sm-6">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>Mark</td>
+                            <td>
+                                <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
+                                <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </center>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+        <div class="container">   
+            <center>
+                <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
+                    Agergar nuevo Rol
+                  </button>
+                <table class="table mt-4 border table-hover table-sm" style="max-width: 600px;">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Permiso</th>
+                            <th scope="col col-sm-6">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>Mark</td>
+                            <td>
+                                <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
+                                <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </center>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="disabled-tab-pane" role="tabpanel" aria-labelledby="disabled-tab" tabindex="0">
+        <div class="container">   
+
+            <button type="button" class="btn btn-primary mt-5" data-bs-toggle="modal" data-bs-target="#modalPermisoN">
+                Agergar nuevo usuario
+                </button>
+            <table class="table mt-4 border table-hover table-sm" >
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col col-sm-6">Correo</th>
+                        <th scope="col col-sm-6">Funciones</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Mark</td>
+                        <td>desarrollo.pfg@proveedorferretero.net</td>
+                        <td>
+                            <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
+                            <button type="button" class="btn btn-danger"><i class="bi bi-trash3"></i> Danger</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>`
 
 
 */

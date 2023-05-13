@@ -125,6 +125,8 @@ router.post('/changePass', (req, res) => {
     
 });
 
+router.get('/historial')//Seguir esta madre
+
 router.get('/solPedidos', (req,res) => {
     conexion.query('SELECT * FROM orders', (error, results, fields) => {
         if (error) {
@@ -133,6 +135,7 @@ router.get('/solPedidos', (req,res) => {
         }
         // Convertir los resultados en formato JSON
         const jsonData = JSON.stringify(results);
+        console.log(jsonData);
         res.send(jsonData);
     });
 });
