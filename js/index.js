@@ -2,9 +2,10 @@
 Esta pagia esta lo de la librería de axios
 https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
 */
-var varGlobal = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
-var idGlobal = 0;
-var today = new Date(); // Iniciamos la fecha actual
+var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
+var idGlobal    = 0;
+var today       = new Date(); // Iniciamos la fecha actual
+var arGlobal    = 0;
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -63,6 +64,9 @@ function comprobarCookie() {
         loading(2);
     }
 }
+
+
+
 //Para reconocer el enter en el formulario
 window.addEventListener("keydown", (e) => {
     if(e.keyCode===13){
@@ -158,9 +162,9 @@ function iniciarSesion(){
             notificacion(jNotificacion);
     }
 }
-
+//Notificaciones, que al chile no se si jalan y los puse el 4 de mayo
 function notificacion(jNotifi){
-    document.getElementById('body').innerHTML = `<div class="toast-container position-fixed bottom-0 end-0 p-3" id="notificacion" style="background: rgba(`+jNotifi.color.r+`, `+jNotifi.color.g+`, `+jNotifi.color.b+`, 0.3);">
+    document.getElementById('app').innerHTML = `<div class="toast-container position-fixed bottom-0 end-0 p-3" id="notificacion" style="background: rgba(`+jNotifi.color.r+`, `+jNotifi.color.g+`, `+jNotifi.color.b+`, 0.3);">
                 <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
                     <strong class="me-auto">`+jNotifi.type+`</strong>
@@ -177,6 +181,7 @@ function notificacion(jNotifi){
         document.getElementById("notificacion").remove();
     },3000);
 }
+//Función para cambiar la contraseña al iniciar sesión y no se ha cambiado la contraseña 
 function changePasswordView(newU, id){
     varGlobal = 2;
     idGlobal  = id;
@@ -302,8 +307,16 @@ async function apiArea(){
     return solArea;
 }
 
-async function apiHistorial(orderNum){
-    const url = 'http://localhost:5000/api/historial?ordernum=' + orderNum;
+async function apiHistorial(orderId){
+    const url = 'http://localhost:5000/api/historial';
+    const data = {
+        orderid: orderId,
+    };
+
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
+    //console.log(apiUrl)
+
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
@@ -312,7 +325,7 @@ async function apiHistorial(orderNum){
     headers: headers,
     };
     var solHistorial = [];
-    solHistorial = await fetch(url, options)
+    solHistorial = await fetch(apiUrl, options)
     .then(response => {
         if (response.ok) {
             return response.json();
@@ -330,37 +343,71 @@ async function apiHistorial(orderNum){
     return solHistorial;
 }
 
+async function apiUsuario(id){
+    const url = 'http://localhost:5000/api/perfil';
+    const data = {
+        id: id,
+    };
+
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
+    //console.log(apiUrl)
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solHistorial = [];
+    solHistorial = await fetch(apiUrl, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solHistorial;
+}
+
+let jArea;
+let jUsuarios;
 async function home(jUsuario){
-    let jPedidos    = await apiPedidos();
-    let jUsuarios   = await apiUsuarios();
-    let jArea       = await apiArea();
-    console.log("jPedidos");
-    console.log(jPedidos);
-    console.log("jUsuarios");
-    console.log(jUsuarios);
-    console.log("jArea");
-    console.log(jArea);
+    let jPedidos        = await apiPedidos();
+    let GlojArea        = await apiArea();
+    let GlojUsuarios    = await apiUsuarios();
+    jArea               = GlojArea;
+    jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
 
     Object.keys(jPedidos).forEach((clave) => {
-    if (typeof jPedidos[clave] === "object") {
-        contadorObjetos++;
-    }
+        if (typeof jPedidos[clave] === "object") {
+            contadorObjetos++;
+        }
     });
     let contUsuarios = 0;
 
     Object.keys(jUsuarios).forEach((clave) => {
-    if (typeof jUsuarios[clave] === "object") {
-        contUsuarios++;
-    }
+        if (typeof jUsuarios[clave] === "object") {
+            contUsuarios++;
+        }
     });
 
     let contArea = 0;
 
     Object.keys(jArea).forEach((clave) => {
-    if (typeof jArea[clave] === "object") {
-        contArea++;
-    }
+        if (typeof jArea[clave] === "object") {
+            contArea++;
+        }
     });
     document.getElementById('app').innerHTML = '';
 
@@ -374,6 +421,7 @@ async function home(jUsuario){
                                 <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Pedidos</button>
                                 </li>`;
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+        arGlobal = jUsuario.user_rol_id;
         sVentana = sVentana + `<li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
@@ -391,7 +439,7 @@ async function home(jUsuario){
                                         <i class="bi bi-person-circle"></i>  `+jUsuario.name+`
                                     </button>
                                     <ul class="dropdown-menu" id="dropPerfil">
-                                        <li><a class="dropdown-item" > <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
+                                        <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
                                         <li><a class="dropdown-item" ><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
                                     </ul>
                                 </div>
@@ -419,8 +467,13 @@ async function home(jUsuario){
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="pills-aceptar-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptar" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false"><i class="bi bi-bell"></i> Por aceptar</button>
-                                </li>
-                            </ul>
+                                </li>`;
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 3){
+        sVentana = sVentana + `<li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTotal" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='modalView(0,0, 3)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
+                                </li>`;
+    }
+    sVentana = sVentana + `</ul>
                             <!--Fin del menu de los pedidos-->
                             <!--Inicio de tablas-->
                             <div class="container-xxl">
@@ -453,7 +506,7 @@ async function home(jUsuario){
                 sVentana = sVentana + `<tr>
                                                     <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                     <td>`+jPedidos[i].status+`</td>
-                                                    <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                     <td>`+responsable+`</td>
                                                     <td>`+area+`</td>
                                                 </tr>`
@@ -496,7 +549,7 @@ async function home(jUsuario){
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -538,7 +591,7 @@ async function home(jUsuario){
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -580,7 +633,7 @@ async function home(jUsuario){
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                     </tr>`
@@ -622,11 +675,11 @@ async function home(jUsuario){
                     sVentana = sVentana + `<tr>
                                                         <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
-                                                        <td>`+jPedidos[i].startdate.slice(0, 10)+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar">
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
                                                             </button>
                                                         </td>
@@ -670,14 +723,14 @@ if(contadorObjetos > 0){
                 sVentana = sVentana + `<tr>
                                                     <th scope="row">`+jPedidos[i].ordernumber+`</th>
                                                     <td>`+jPedidos[i].status+`</td>
-                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].ordernumber+`, 1)'>`+jPedidos[i].startdate.slice(0, 10)+`</button></td>
+                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                     <td>`+responsable+`</td>
                                                     <td>`+area+`</td>
                                                     <td>
                                                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
                                                             <i class="bi bi-check-lg"></i>
                                                         </button>
-                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 2)'>
                                                             <i class="bi bi-x-lg"></i>
                                                         </button>
                                                     </td>
@@ -697,7 +750,27 @@ if(contadorObjetos > 0){
     document.getElementById('app').innerHTML = sVentana;
     loading(2);
 }
-
+let tModal = 0;
+function tamanomodal(vswitch){
+    //vswitch en 0 significa que es para que regerse a su tamaño real
+    //vSwitch en 1 significa que sigue en nuevo pedido sin cambiar tamaño 
+    if(vswitch == 1) tModal = 0;
+    if(vswitch == 0) tModal = 1;
+    if(tModal != 1){
+        document.getElementById('modalClass').classList.remove('modal-xl');
+        tModal = 1;
+    }else{
+        document.getElementById('modalClass').classList.add('modal-xl');
+        tModal = 0;
+    }
+    /*
+    document.getElementById("btnModanNuevoP")
+    .addEventListener("click", function(event) {
+        alert("Submit button is clicked!");
+        event.preventDefault();
+    });
+    */
+}
 function changePassword(id){
     var newPass = document.getElementById('newInpPass').value.trim();
     var rNePass = document.getElementById('newRInpPass').value.trim();
@@ -719,25 +792,282 @@ function changePassword(id){
             .then(function(json) {
                 loading(2);
                 alert("Por favor Inicie sesión con la nueva contraseña");
-                iniciarSesion();
+                varGlobal = 0;
+                comprobarCookie();
             }
             )
             .catch(err => console.log(err));
         }else{
-            alert("Las contraseñas deben cincidir");
+            alert("Las contraseñas deben coincidir");
         }
     }else{
         alert("Por favor llene los campos");
     }
 }
 
-async function modalView(numOrder, opc){
+async function modalView(idOrder, orderNumber, opc){
     //El numOrder es el numéro de orden que manda
     /*El opc es la opción a elegir:
     las opciones son; 
     1: historial
     2: Rechazar pedido
     3: Agregar pedido
+    4: Perfil
     */
+    document.getElementById('modalInfo').innerHTML = '';
+   var sModalVentana = '';
+   let contArea = 0;
 
+            Object.keys(jArea).forEach((clave) => {
+                if (typeof jArea[clave] === "object") {
+                    contArea++;
+                }
+            });
+    switch(opc){
+        case 1: //Modal de historial de pedidos 
+            tamanomodal(0);
+            let jHistorial = await apiHistorial(idOrder);
+            let contHistorial = 0;
+
+            Object.keys(jHistorial).forEach((clave) => {
+                if (typeof jHistorial[clave] === "object") {
+                    contHistorial++;
+                }
+            });
+
+            let contUsuarios = 0;
+
+            Object.keys(jUsuarios).forEach((clave) => {
+                if (typeof jUsuarios[clave] === "object") {
+                    contUsuarios++;
+                }
+            });
+
+            
+
+            sModalVentana = `<div class="modal-header" >
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Historial del pedido: <strong>`+orderNumber+`</strong> <span class="ms-5 fs-6">Movimientos: `+contHistorial+`</span></h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Fecha de operación</th>
+                                            <th scope="col">Área</th>
+                                            <th scope="col">Responsable</th>
+                                            <th scope="col">Operacion</th>
+                                            <th scope="col">Comentario</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+            if(contHistorial > 0){
+                let responsable = '';
+                let area        = '';
+                let acepted     = '';
+                let canceled    = '';
+                let asigned     = '';
+
+                for(i=0; i < contHistorial; i++){ 
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jHistorial[i].user_id)        responsable = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].acepted_by)     acepted     = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].canceled_by)    canceled    = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].asigned_id)     asigned     = jUsuarios[j].name;
+                    }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jHistorial[i].area_id) area = jArea[k].name;
+                    }  
+                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
+                        else if(jHistorial[i].status == 'Parcial') sModalVentana = sModalVentana + `<tr class="table-warning">`; //Si es parcial se pone en naranja
+                            else if(jHistorial[i].status == 'Finalizado') sModalVentana = sModalVentana + `<tr class="table-success">`; //Si es finalizado se pone en verde
+                            else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
+                    sModalVentana = sModalVentana + `<td scope="row">`+new Date(jHistorial[i].changed_date).toLocaleString()+`</td>
+                                            <td>`+area+`</td>
+                                            <td>`+responsable+`</td>`;
+                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+canceled+`</strong></td>`;
+                    else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;
+                        else if(jHistorial[i].asigned_by != null) sModalVentana = sModalVentana + `<td>Asignado a: <strong>`+asigned+`</strong></td>`;
+                            else sModalVentana = sModalVentana + `<td>None</td>`;
+                    if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;
+                    else sModalVentana = sModalVentana + `<td>Sin comentarios</td>`;
+                    sModalVentana = sModalVentana + `</tr>`;                     
+                }
+            }                     
+                                    
+            sModalVentana = sModalVentana + `
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                            </div>`;
+
+            
+            break;
+        case 2: // Modal para rechazo
+            tamanomodal(0);
+            sModalVentana = sModalVentana + `
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Rechazar pedido: <strong>`+orderNumber+`</strong></h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="text-center fs-3 mb-4">¿Desea cancelar el pedido <strong>`+orderNumber+`</strong>?</p>
+                                                <div class="mb-3">
+                                                    <label for="exampleFormControlTextarea1" class="form-label">Comentario del rechazo</label>
+                                                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" style="min-height: 100px; max-height: 400px;"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                            </div>`;
+            break;
+        case 3://Modal para nuevo pedido
+            tamanomodal(1);
+            sModalVentana = sModalVentana + `
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Agregar nuevo pedido</h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="containerModal">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
+                                                        <input type="text" class="form-control" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
+                                                    </div>
+                                                </div>
+                                          
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                            </div>`;
+            break;
+        
+        case 4: //Modal para perfil
+            tamanomodal(0);
+            //Aquí el idOrder recibe un json del usuario y ahí se usará con ese nombre
+            let jUser = await apiUsuario(idOrder);
+            console.log(jUser[0].name);
+            let area        = '';
+            for(k = 0; k < contArea; k++){
+                if(jArea[k].id == jUser[0].user_rol_id) area = jArea[k].name;
+            } 
+            sModalVentana = sModalVentana + `<div class="modal-header" >
+                                                <h1 class="modal-title fs-5" id="exampleModalLabel">Perfil: <strong>`+jUser[0].name+`</h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="container">
+                                                    <img src="`+jUser[0].urlPic+`" class="rounded mx-auto d-block mb-3" alt="..." style="max-width: 300px;">
+                                                    <div class="row g-0 ">
+                                                        <div class="col-sm-6 col-md-6">
+                                                            <div class="input-group mb-3 me-2">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default">Nombre</span>
+                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].name+`">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-6">
+                                                            <div class="input-group mb-3 me-2">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default">Correo</span>
+                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].email+`">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="container">
+                                                    <div class="row g-0 ">
+                                                        <div class="col-sm-6 col-md-6">
+                                                            <div class="input-group mb-3 me-2">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default">Área</span>
+                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+area+`">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-6">
+                                                            <div class="input-group mb-3 me-2">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default">Fecha de creación</span>
+                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+new Date(jUser[0].updated_at).toLocaleDateString()+`">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                                            </div>`;
+            break;
+
+        case 5:
+            sModalVentana = sModalVentana + `
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">`;
+            if(arGlobal == 0 || arGlobal == 2 || arGlobal == 1){
+                sModalVentana = sModalVentana +`<div class="container">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                                                        <label class="form-check-label" for="flexSwitchCheckDefault">¿Se regresará a ventas?</label>
+                                                    </div>
+                                                    <div class="container" id="reasignarVentas"></div>
+                                                </div>`;
+            }else{
+                sModalVentana = sModalVentana + asignarModalOpc(2);
+            }
+            sModalVentana = sModalVentana +`</div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                            </div>`;
+            break;
+    }
+
+    document.getElementById('modalInfo').innerHTML = sModalVentana;
+
+}
+
+function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area del usuario en el modal de asignar
+    //opc 1: regreso a ventas
+    //opc 2: seguir el proceso
+    let contUsuarios = 0;
+    Object.keys(jUsuarios).forEach((clave) => {
+        if (typeof jUsuarios[clave] === "object") {
+            contUsuarios++;
+        }
+    }); 
+    let contArea = 0;
+    Object.keys(jArea).forEach((clave) => {
+        if (typeof jArea[clave] === "object") {
+            contArea++;
+        }
+    }); 
+    let sModalVentana = '';
+    switch(opc){
+        case 1:
+            sModalVentana = sModalVentana + `<select class="form-select" aria-label="Default select example">
+                                        <option selected>Seleccione una área</option>`
+            for(i = 0; i < contUsuarios; i++){
+                if(jUsuarios[i].user_rol_id == 3){
+                    sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
+                }
+            }
+            sModalVentana = sModalVentana +`</select>`;
+            break;
+        case 2:
+            sModalVentana = sModalVentana + `<select class="form-select" aria-label="Default select example">
+                                        <option selected>Seleccione una área</option>`
+            for(i = 0; i < contArea; i++){
+                sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
+            }
+            sModalVentana = sModalVentana +`</select>`;
+            
+            break;
+        
+    }
+
+    return sModalVentana;
+    
 }

@@ -125,7 +125,35 @@ router.post('/changePass', (req, res) => {
     
 });
 
-router.get('/historial')//Seguir esta madre
+router.get('/perfil', (req, res) => {
+    let id   = req.query.id;
+    conexion.query('SELECT id, name, user_rol_id, email, created_at, updated_at, if_update, urlPic FROM users WHERE  id = '+id+'', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+    
+});
+router.get('/historial', (req, res) => {
+    let orderid   = req.query.orderid;
+    console.log("El order es: ",orderid);
+    conexion.query('SELECT * FROM order_record WHERE  order_id = '+orderid+'', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+    
+});//Seguir esta madre
 
 router.get('/solPedidos', (req,res) => {
     conexion.query('SELECT * FROM orders', (error, results, fields) => {
@@ -135,7 +163,7 @@ router.get('/solPedidos', (req,res) => {
         }
         // Convertir los resultados en formato JSON
         const jsonData = JSON.stringify(results);
-        console.log(jsonData);
+        //console.log(jsonData);
         res.send(jsonData);
     });
 });
