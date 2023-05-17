@@ -1040,10 +1040,10 @@ async function modalView(idOrder, orderNumber, opc){
                                                     <span>¿El pedido <strong>`+orderNumber+`</strong> se ira de regreso a ventas?</span>
                                                     <ul class="nav nav-pills mb-3 mt-3" id="pills-tab" role="tablist">
                                                         <li class="nav-item" role="presentation">
-                                                            <button class="nav-link active" onclick="segPedido(0,1,0,0)" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-no" type="button" role="tab" aria-controls="pills-home" aria-selected="true">No</button>
+                                                            <button class="nav-link active" onclick="segPedido(1,0,0)" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-no" type="button" role="tab" aria-controls="pills-home" aria-selected="true">No</button>
                                                         </li>
                                                         <li class="nav-item" role="presentation">
-                                                            <button class="nav-link" onclick="segPedido(0,2,0,0)" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-si" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Si</button>
+                                                            <button class="nav-link" onclick="segPedido(2,0,0)" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-si" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Si</button>
                                                         </li>
                                                     </ul>
                                                     <div class="tab-content" id="pills-tabContent">
@@ -1066,7 +1066,7 @@ async function modalView(idOrder, orderNumber, opc){
             sModalVentana = sModalVentana +`</div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                                <button type="button" class="btn btn-primary" onclick="segPedido(0,`+orderNumber+`,`+jUserS[0].id+`)">Aceptar</button>
                                             </div>`;
             break;
     }
@@ -1075,11 +1075,11 @@ async function modalView(idOrder, orderNumber, opc){
 
 }
 
-function segPedido(opc, opcM, numOrder, idUser){
+function segPedido(opcM, numOrder, idUser){
     
     if(opcM != 0) modMenu = opcM
     else{
-        if(opc == 1){
+        if(modMenu == 1){
             let selectArea = document.getElementById('selectedArea');
             let datos = {
                 area : selectArea,
