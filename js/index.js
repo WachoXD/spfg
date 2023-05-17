@@ -6,6 +6,7 @@ var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
 var idGlobal    = 0;
 var today       = new Date(); // Iniciamos la fecha actual
 var arGlobal    = 0;
+var modMenu = 1;
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -221,6 +222,40 @@ function changePasswordView(newU, id){
 }
 
 /*Funciones de solicitud de datos a APIs */
+function changePassword(id){
+    var newPass = document.getElementById('newInpPass').value.trim();
+    var rNePass = document.getElementById('newRInpPass').value.trim();
+    
+    if(newPass != '' && rNePass != ''){
+        if (newPass == rNePass){
+            loading(1);
+            let _datos = {
+                newPass: newPass,
+                id: id
+            }
+            var res = fetch('http://localhost:5000/api/changePass', {
+                method: "POST",
+                body: JSON.stringify(_datos),
+                headers: {'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',}
+            })
+            .then(response => response.json()) 
+            .then(function(json) {
+                loading(2);
+                alert("Por favor Inicie sesión con la nueva contraseña");
+                varGlobal = 0;
+                comprobarCookie();
+            }
+            )
+            .catch(err => console.log(err));
+        }else{
+            alert("Las contraseñas deben coincidir");
+        }
+    }else{
+        alert("Por favor llene los campos");
+    }
+}
+
 async function apiPedidos(){
        
         const url = 'http://localhost:5000/api/solPedidos';
@@ -377,6 +412,29 @@ async function apiUsuario(id){
         console.error(error);
     });
     return solHistorial;
+}
+
+async function apiAvanzaPedido(){
+    loading(1);
+    let _datos = {
+        newPass: newPass,
+        id: id
+    }
+    var res = fetch('http://localhost:5000/api/changePass', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        loading(2);
+        alert("Por favor Inicie sesión con la nueva contraseña");
+        varGlobal = 0;
+        comprobarCookie();
+    }
+    )
+    .catch(err => console.log(err));
 }
 
 let jArea;
@@ -679,7 +737,7 @@ async function home(jUsuario){
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jUsuario.id+`,`+jPedidos[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
                                                             </button>
                                                         </td>
@@ -771,39 +829,7 @@ function tamanomodal(vswitch){
     });
     */
 }
-function changePassword(id){
-    var newPass = document.getElementById('newInpPass').value.trim();
-    var rNePass = document.getElementById('newRInpPass').value.trim();
-    
-    if(newPass != '' && rNePass != ''){
-        if (newPass == rNePass){
-            loading(1);
-            let _datos = {
-                newPass: newPass,
-                id: id
-            }
-            var res = fetch('http://localhost:5000/api/changePass', {
-                method: "POST",
-                body: JSON.stringify(_datos),
-                headers: {'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',}
-            })
-            .then(response => response.json()) 
-            .then(function(json) {
-                loading(2);
-                alert("Por favor Inicie sesión con la nueva contraseña");
-                varGlobal = 0;
-                comprobarCookie();
-            }
-            )
-            .catch(err => console.log(err));
-        }else{
-            alert("Las contraseñas deben coincidir");
-        }
-    }else{
-        alert("Por favor llene los campos");
-    }
-}
+
 
 async function modalView(idOrder, orderNumber, opc){
     //El numOrder es el numéro de orden que manda
@@ -1000,6 +1026,9 @@ async function modalView(idOrder, orderNumber, opc){
             break;
 
         case 5:
+            let jUserS = await apiUsuario(idOrder);
+            console.log(jUserS[0].name);
+            let areaS        = '';
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
@@ -1008,11 +1037,28 @@ async function modalView(idOrder, orderNumber, opc){
                                             <div class="modal-body">`;
             if(arGlobal == 0 || arGlobal == 2 || arGlobal == 1){
                 sModalVentana = sModalVentana +`<div class="container">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                                                        <label class="form-check-label" for="flexSwitchCheckDefault">¿Se regresará a ventas?</label>
+                                                    <span>¿El pedido <strong>`+orderNumber+`</strong> se ira de regreso a ventas?</span>
+                                                    <ul class="nav nav-pills mb-3 mt-3" id="pills-tab" role="tablist">
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link active" onclick="segPedido(0,1,0,0)" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-no" type="button" role="tab" aria-controls="pills-home" aria-selected="true">No</button>
+                                                        </li>
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link" onclick="segPedido(0,2,0,0)" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-si" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Si</button>
+                                                        </li>
+                                                    </ul>
+                                                    <div class="tab-content" id="pills-tabContent">
+                                                    <div class="tab-pane fade show active" id="pills-no" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">`;
+                                                    sModalVentana = sModalVentana + asignarModalOpc(2);
+                                                    sModalVentana = sModalVentana + `                                          
                                                     </div>
-                                                    <div class="container" id="reasignarVentas"></div>
+                                                    <div class="tab-pane fade" id="pills-si" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">`;
+                                                    sModalVentana = sModalVentana + asignarModalOpc(1);
+                                                    sModalVentana = sModalVentana + `
+                                                    <label for="floatingTextarea" class="mt-3">Comentarios</label>  
+                                                    <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="floatingTextarea"></textarea>
+                                                       
+                                                    </div>
+                                                    </div>
                                                 </div>`;
             }else{
                 sModalVentana = sModalVentana + asignarModalOpc(2);
@@ -1027,6 +1073,21 @@ async function modalView(idOrder, orderNumber, opc){
 
     document.getElementById('modalInfo').innerHTML = sModalVentana;
 
+}
+
+function segPedido(opc, opcM, numOrder, idUser){
+    
+    if(opcM != 0) modMenu = opcM
+    else{
+        if(opc == 1){
+            let selectArea = document.getElementById('selectedArea');
+            let datos = {
+                area : selectArea,
+                numOrder: numOrder,
+                idUser : idUser
+            }
+        }
+    }
 }
 
 function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area del usuario en el modal de asignar
@@ -1047,8 +1108,8 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     let sModalVentana = '';
     switch(opc){
         case 1:
-            sModalVentana = sModalVentana + `<select class="form-select" aria-label="Default select example">
-                                        <option selected>Seleccione una área</option>`
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
+                                        <option selected>Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
                 if(jUsuarios[i].user_rol_id == 3){
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
