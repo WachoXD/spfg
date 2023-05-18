@@ -8,7 +8,7 @@ var today       = new Date(); // Iniciamos la fecha actual
 var arGlobal    = 0;
 var modMenu     = 1;
 var usuIdGlobal = 0;
-var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
+var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
