@@ -70,7 +70,10 @@ conexion.connect(function(err) {
     }
     console.log('Conectado con el identificador ' + conexion.threadId);
 });
-
+async function timeNow(){
+    var today = new Date();
+    return today;
+}
 //Nuestro primer WS Get
 app.get('/', (req, res) => {    
     res.json(
@@ -79,6 +82,7 @@ app.get('/', (req, res) => {
         }
     );
 })
+
 router.post('/login', (req, res) => { 
     let email = req.body.email;
     let pass  = req.body.pass;
@@ -127,7 +131,8 @@ router.post('/changePass', (req, res) => {
 
 router.get('/perfil', (req, res) => {
     let id   = req.query.id;
-    conexion.query('SELECT id, name, user_rol_id, email, created_at, updated_at, if_update, urlPic FROM users WHERE  id = '+id+'', (error, results, fields) => {
+    //conexion.query('SELECT id, name, user_rol_id, email, created_at, updated_at, if_update, urlPic FROM users WHERE  id = '+id+'', (error, results, fields) => {
+    conexion.query('SELECT * FROM users WHERE  id = '+id+'', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -190,6 +195,97 @@ router.get('/area', (req, res) => {
         const jsonData = JSON.stringify(results);
         res.send(jsonData);
     });
+})
+router.post('/actualizarPedido',(req, res)=>{
+    let area        = req.body.area;
+    let numOrder    = req.body.numOrder;
+    let idUser      = req.body.idUser;
+    let isOrder     = req.body.isOrder;
+    //console.log("email: "+email+" pass: "+ pass);
+    var resu = '';
+    var time = timeNow();
+    conexion.query(`UPDATE orders SET acepted='0',area_id=?,updated_at=? WHERE id = ?`,[ area, idUser, isOrder], function (error, results, fields) {
+        if(Object.keys(results).length === 0){
+            res.json({
+                "status": 500
+            });
+        }else{
+            results.forEach(result => {
+                res.json({
+                    "status":       200,
+                });
+            });
+        }
+        //res.send(results);
+    }); 
+})
+router.post('/rechazarPedido',(req, res)=>{
+    let area        = req.body.area;
+    let numOrder    = req.body.numOrder;
+    let idUser      = req.body.idUser;
+    let isOrder     = req.body.isOrder;
+    //console.log("email: "+email+" pass: "+ pass);
+    var resu = '';
+    var time = timeNow();
+    conexion.query(`UPDATE orders SET acepted='1',area_id=?,updated_at=? WHERE id = ?`,[area, idUser, isOrder], function (error, results, fields) {
+        if(Object.keys(results).length === 0){
+            res.json({
+                "status": 500
+            });
+        }else{
+            results.forEach(result => {
+                res.json({
+                    "status":       200,
+                });
+            });
+        }
+        //res.send(results);
+    }); 
+})
+router.post('/avanzaPed', (req, res) => { 
+    let area        = req.body.area;
+    let numOrder    = req.body.numOrder;
+    let idUser      = req.body.idUser;
+    let isOrder     = req.body.isOrder;
+    //console.log("email: "+email+" pass: "+ pass);
+    var resu = '';
+    var time = timeNow();
+    conexion.query(`INSERT INTO order_record(changed_date ,area_id, user_id, order_id) VALUES (?,?,?,?,)`,[time, area, idUser, isOrder], function (error, results, fields) {
+        if(Object.keys(results).length === 0){
+            res.json({
+                "status": 500
+            });
+        }else{
+            results.forEach(result => {
+                res.json({
+                    "status": 200,
+                });
+            });
+        }
+        //res.send(results);
+    });   
+})
+
+router.post('/agregarPed', (req, res) => {
+    let today       =  timeNow();
+    let area        = req.body.area;
+    let idUser      = req.body.idUser;
+    let numOrder    = req.body.numOrder;
+    conexion.query(`INSERT INTO orders(ordernumber, status, acepted, startdate, area_id, user_id, created_at, updated_at, who_id_created, before_area) 
+    VALUES (?,'Activo','1',?,?,?,?,?,?,?)`,[numOrder, today, area, idUser, today, today, today, idUser,area], function (error, results, fields) {
+        if(Object.keys(results).length === 0){
+            res.json({
+                "status": 500
+            });
+        }else{
+            results.forEach(result => {
+                res.json({
+                    "status":       200,
+                });
+            });
+        }
+        //res.send(results); 
+    }); 
 })
 
 //Iniciando el servidor

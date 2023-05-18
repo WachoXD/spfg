@@ -6,7 +6,9 @@ var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
 var idGlobal    = 0;
 var today       = new Date(); // Iniciamos la fecha actual
 var arGlobal    = 0;
-var modMenu = 1;
+var modMenu     = 1;
+var usuIdGlobal = 0;
+var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -111,7 +113,7 @@ function iniciarSesion(){
                 pass: pass
             }
             //console.log("email: ",email," pass: ",pass);
-            fetch('http://localhost:5000/api/login', {
+            fetch(urlBase+'login', {
                 method: "POST",
                 body: JSON.stringify(_datos),
                 headers: {'Access-Control-Allow-Origin': '*',
@@ -233,7 +235,7 @@ function changePassword(id){
                 newPass: newPass,
                 id: id
             }
-            var res = fetch('http://localhost:5000/api/changePass', {
+            var res = fetch(urlBase+'changePass', {
                 method: "POST",
                 body: JSON.stringify(_datos),
                 headers: {'Access-Control-Allow-Origin': '*',
@@ -258,7 +260,7 @@ function changePassword(id){
 
 async function apiPedidos(){
        
-        const url = 'http://localhost:5000/api/solPedidos';
+        const url = urlBase+'solPedidos';
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const options = {
@@ -286,7 +288,7 @@ async function apiPedidos(){
 }
 
 async function apiUsuarios(){
-    const url = 'http://localhost:5000/api/usuarios';
+    const url = urlBase+'usuarios';
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
@@ -315,7 +317,7 @@ async function apiUsuarios(){
 
 async function apiArea(){
 
-    const url = 'http://localhost:5000/api/area';
+    const url = urlBase+'area';
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
@@ -343,7 +345,7 @@ async function apiArea(){
 }
 
 async function apiHistorial(orderId){
-    const url = 'http://localhost:5000/api/historial';
+    const url = urlBase+'historial';
     const data = {
         orderid: orderId,
     };
@@ -379,7 +381,7 @@ async function apiHistorial(orderId){
 }
 
 async function apiUsuario(id){
-    const url = 'http://localhost:5000/api/perfil';
+    const url = urlBase+'perfil';
     const data = {
         id: id,
     };
@@ -414,13 +416,14 @@ async function apiUsuario(id){
     return solHistorial;
 }
 
-async function apiAvanzaPedido(){
-    loading(1);
+async function apiActualizarPedido(reqDatos){
     let _datos = {
-        newPass: newPass,
-        id: id
+        area    : reqDatos.area,
+        numOrder: reqDatos.numOrder,
+        idUser  : reqDatos.idUser,
+        idOrder : reqDatosidOrder
     }
-    var res = fetch('http://localhost:5000/api/changePass', {
+    var res = fetch(urlBase+'actualizarPedido', {
         method: "POST",
         body: JSON.stringify(_datos),
         headers: {'Access-Control-Allow-Origin': '*',
@@ -428,17 +431,80 @@ async function apiAvanzaPedido(){
     })
     .then(response => response.json()) 
     .then(function(json) {
-        loading(2);
-        alert("Por favor Inicie sesión con la nueva contraseña");
-        varGlobal = 0;
-        comprobarCookie();
-    }
-    )
+        return json;
+    })
     .catch(err => console.log(err));
+
+    return res;
+}
+
+async function apiAgregarPed(reqDatos){
+
+    let _datos = {
+        area    : reqDatos.area,
+        idUser  : reqDatos.idUser,
+        numOrder: reqDatos.numOrder
+    }
+    var res = fetch(urlBase+'agregarPed', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
+
+    return res;
+
+}
+
+async function apiAvanzaPedido(reqDatos){
+    loading(1);
+    let _datos = {
+        area    : reqDatos.area,
+        numOrder: reqDatos.numOrder,
+        idUser  : reqDatos.idUser,
+        idOrder : reqDatosidOrder
+    }
+    let resActu = await apiActualizarPedido(_datos);
+    if(resActu[0].status == 200){
+        var res2 = fetch(urlBase+'avanzaPed', {
+            method: "POST",
+            body: JSON.stringify(_datos),
+            headers: {'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',}
+        })
+        .then(response => response.json()) 
+        .then(function(json) {
+            loading(2);
+            document.querySelector('#cerrarMoAsig').click();
+        })
+        .catch(err => console.log(err));
+    }else{
+        loading(2);
+        alert("Ocurrió un error al asignar")
+    }
+}
+
+async function apiRegAVentas(reqDatos){
+    
+}
+
+async function recargar(){
+    console.log(userIdGlobal);
+    let jUserHome = await apiUsuario(userIdGlobal);
+    console.log(jUserHome);
+    if(jUserHome != null){
+        home(jUserHome[0]);
+    }
 }
 
 let jArea;
 let jUsuarios;
+let userIdGlobal;
 async function home(jUsuario){
     let jPedidos        = await apiPedidos();
     let GlojArea        = await apiArea();
@@ -446,6 +512,7 @@ async function home(jUsuario){
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
+    userIdGlobal        = jUsuario.id;
 
     Object.keys(jPedidos).forEach((clave) => {
         if (typeof jPedidos[clave] === "object") {
@@ -531,7 +598,10 @@ async function home(jUsuario){
                                     <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTotal" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='modalView(0,0, 3)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
                                 </li>`;
     }
-    sVentana = sVentana + `</ul>
+    sVentana = sVentana + `     <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnModanNuevoP" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='recargar()'><i class="bi bi-arrow-clockwise"></i> Actualizar</button>
+                                </li>
+                            </ul>
                             <!--Fin del menu de los pedidos-->
                             <!--Inicio de tablas-->
                             <div class="container-xxl">
@@ -591,7 +661,7 @@ async function home(jUsuario){
                                     </thead>
                                     
                                     <tbody class="table-group-divider" id="tablaActivos><tr><th scope="row"></th></tr>`
-
+    usuIdGlobal = jUsuario.id;
     if(contadorObjetos > 0){
         let responsable = '';
         let area = '';
@@ -737,7 +807,7 @@ async function home(jUsuario){
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jUsuario.id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
                                                             </button>
                                                         </td>
@@ -766,37 +836,37 @@ async function home(jUsuario){
                                                         </thead>
                                                         <tbody class="table-group-divider" id="tablaAceptar">`;
 
-if(contadorObjetos > 0){
-    let responsable = '';
-    let area = '';
-    for(i=0; i < contadorObjetos; i++){
-        if(jPedidos[i].area_id == jUsuario.user_rol_id && jPedidos[i].acepted == 0){
-            if(jPedidos[i].acepted == 0){
-                for(j = 0; j < contUsuarios; j++){
-                    if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+    if(contadorObjetos > 0){
+        let responsable = '';
+        let area = '';
+        for(i=0; i < contadorObjetos; i++){
+            if(jPedidos[i].area_id == jUsuario.user_rol_id && jPedidos[i].acepted == 0){
+                if(jPedidos[i].acepted == 0){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                    }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
+                                                                <i class="bi bi-check-lg"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 2)'>
+                                                                <i class="bi bi-x-lg"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>`
                 }
-                for(k = 0; k < contArea; k++){
-                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                }
-                sVentana = sVentana + `<tr>
-                                                    <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                    <td>`+jPedidos[i].status+`</td>
-                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                    <td>`+responsable+`</td>
-                                                    <td>`+area+`</td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
-                                                            <i class="bi bi-check-lg"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 2)'>
-                                                            <i class="bi bi-x-lg"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>`
             }
         }
     }
-}
 
     sVentana = sVentana + `</tbody>
                                         </table>
@@ -952,23 +1022,25 @@ async function modalView(idOrder, orderNumber, opc){
             break;
         case 3://Modal para nuevo pedido
             tamanomodal(1);
+            let jUserP = await apiUsuario(usuIdGlobal);
+            console.log(jUserP[0].name);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Agregar nuevo pedido</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarMoNuevo"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="containerModal">
                                                     <div class="input-group mb-3">
                                                         <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
-                                                        <input type="text" class="form-control" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
+                                                        <input type="int" class="form-control" id="nuevoPedidoInput" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
                                                     </div>
                                                 </div>
                                           
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                                <button type="button" class="btn btn-primary" onclick="nuevoPed(`+jUserP[0].user_rol_id+`,`+jUserP[0].id+`)">Aceptar</button>
                                             </div>`;
             break;
         
@@ -1026,13 +1098,13 @@ async function modalView(idOrder, orderNumber, opc){
             break;
 
         case 5:
-            let jUserS = await apiUsuario(idOrder);
+            let jUserS = await apiUsuario(usuIdGlobal);
             console.log(jUserS[0].name);
             let areaS        = '';
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarMoAsig"></button>
                                             </div>
                                             <div class="modal-body">`;
             if(arGlobal == 0 || arGlobal == 2 || arGlobal == 1){
@@ -1055,7 +1127,7 @@ async function modalView(idOrder, orderNumber, opc){
                                                     sModalVentana = sModalVentana + asignarModalOpc(1);
                                                     sModalVentana = sModalVentana + `
                                                     <label for="floatingTextarea" class="mt-3">Comentarios</label>  
-                                                    <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="floatingTextarea"></textarea>
+                                                    <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="msgRegVentas"></textarea>
                                                        
                                                     </div>
                                                     </div>
@@ -1066,7 +1138,7 @@ async function modalView(idOrder, orderNumber, opc){
             sModalVentana = sModalVentana +`</div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="button" class="btn btn-primary" onclick="segPedido(0,`+orderNumber+`,`+jUserS[0].id+`)">Aceptar</button>
+                                                <button type="button" class="btn btn-primary" onclick="segPedido(0,`+orderNumber+`,`+jUserS[0].id+`,`+idOrder+`)">Aceptar</button>
                                             </div>`;
             break;
     }
@@ -1075,16 +1147,55 @@ async function modalView(idOrder, orderNumber, opc){
 
 }
 
-function segPedido(opcM, numOrder, idUser){
+async function nuevoPed(area, userId){
+
+    loading(1);
+    let datosP = {
+        area    : area,
+        userId  : userId,
+        numOrder : document.getElementById('nuevoPedidoInput').value
+    }
+    let resulP = await apiAgregarPed(datosP);
+    if(resulP[0].status == 200){
+        recargar();
+        loading(2);
+        document.querySelector('#cerrarMoNuevo').click();
+    }else{
+        loading(2);
+        alert("No se pudo agregar el nuevo pedido")
+    }
+}
+
+async function segPedido(opcM, numOrder, idUser, idOrder){
     
     if(opcM != 0) modMenu = opcM
     else{
         if(modMenu == 1){
             let selectArea = document.getElementById('selectedArea');
             let datos = {
-                area : selectArea,
+                area    : selectArea,
                 numOrder: numOrder,
-                idUser : idUser
+                idUser  : idUser,
+                idOrder : idOrder
+            }
+            let result = await apiAvanzaPedido(datos);
+            if(result[0].status == 200){
+                recargar();
+            }
+        }
+        if(modMenu == 2){
+            let selectVendedor = document.getElementById('selectedVendedor');
+            let msgRegVentas   = document.getElementById('msgRegVentas');
+            let datos = {
+                vendedor: selectVendedor,
+                msg     : msgRegVentas,
+                numOrder: numOrder,
+                idUser  : idUser,
+                idOrder : idOrder
+            }
+            let result = await apiRegAVentas(datos);
+            if(result[0].status == 200){
+                recargar();
             }
         }
     }
@@ -1118,7 +1229,7 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
             sModalVentana = sModalVentana +`</select>`;
             break;
         case 2:
-            sModalVentana = sModalVentana + `<select class="form-select" aria-label="Default select example">
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
                                         <option selected>Seleccione una área</option>`
             for(i = 0; i < contArea; i++){
                 sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
