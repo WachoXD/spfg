@@ -48,20 +48,20 @@ app.use(bodyParser.json())
 app.use('/api', router);
  
 var mysql = require('mysql');
-/**
+
 var conexion= mysql.createConnection({
     host : 'localhost',
     database : 'spfg',
     user : 'pfg',
     password : '(fEnebs[i_HIskp-',
 }); 
-*/
-var conexion= mysql.createConnection({
+
+/*var conexion= mysql.createConnection({
     host : 'localhost',
     database : 'spfg',
     user : 'root',
     password : '',
-});
+});*/
 
 conexion.connect(function(err) {
     if (err) {
