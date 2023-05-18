@@ -2,13 +2,24 @@
 Esta pagia esta lo de la librería de axios
 https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
 */
+var URLactual = window.location;
+alert(URLactual);
 var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
 var idGlobal    = 0;
 var today       = new Date(); // Iniciamos la fecha actual
 var arGlobal    = 0;
 var modMenu     = 1;
 var usuIdGlobal = 0;
-var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
+//var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
+if(URLactual == 'http://192.168.1.74:81/spfg/'){
+    var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
+}
+if(URLactual == 'http://localhost/spfg/'){
+    var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
+}
+if(URLactual == 'http://187.188.181.242:81/spfg/'){
+    var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
+}
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -258,9 +269,15 @@ function changePassword(id){
     }
 }
 
-async function apiPedidos(){
+async function apiPedidos(id){
        
         const url = urlBase+'solPedidos';
+        const data = {
+            id: id,
+        };
+        const params = new URLSearchParams(data);
+        const apiUrl = url + '?' + params;
+
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const options = {
@@ -269,7 +286,7 @@ async function apiPedidos(){
         headers: headers,
         };
         var solPedidos = [];
-        solPedidos = await fetch(url, options)
+        solPedidos = await fetch(apiUrl, options)
         .then(response => {
             if (response.ok) {
                 return response.json();
@@ -439,12 +456,13 @@ async function apiActualizarPedido(reqDatos){
 }
 
 async function apiAgregarPed(reqDatos){
-
+    console.log(reqDatos);
     let _datos = {
         area    : reqDatos.area,
-        idUser  : reqDatos.idUser,
+        idUser  : reqDatos.userId,
         numOrder: reqDatos.numOrder
     }
+    console.log(_datos);
     var res = fetch(urlBase+'agregarPed', {
         method: "POST",
         body: JSON.stringify(_datos),
@@ -461,13 +479,16 @@ async function apiAgregarPed(reqDatos){
 
 }
 
-async function apiAvanzaPedido(reqDatos){
-    loading(1);
+async function apiActuaHistorial(reqDatos){
     let _datos = {
-        area    : reqDatos.area,
-        numOrder: reqDatos.numOrder,
-        idUser  : reqDatos.idUser,
-        idOrder : reqDatosidOrder
+        status       : reqDatos.status,
+        area         : reqDatos.area,
+        orderId      : reqDatos.orderId,
+        idUser       : reqDatos.idUser,
+        canceled     : reqDatos.canceled,
+        acepted      : reqDatos.acepted,
+        changeStatus : reqDatos.acepted,
+        msg          : reqDatos.msg,
     }
     let resActu = await apiActualizarPedido(_datos);
     if(resActu[0].status == 200){
@@ -479,14 +500,15 @@ async function apiAvanzaPedido(reqDatos){
         })
         .then(response => response.json()) 
         .then(function(json) {
-            loading(2);
-            document.querySelector('#cerrarMoAsig').click();
+            return json;
         })
         .catch(err => console.log(err));
     }else{
         loading(2);
         alert("Ocurrió un error al asignar")
     }
+
+    return res2;
 }
 
 async function apiRegAVentas(reqDatos){
@@ -506,7 +528,7 @@ let jArea;
 let jUsuarios;
 let userIdGlobal;
 async function home(jUsuario){
-    let jPedidos        = await apiPedidos();
+    let jPedidos        = await apiPedidos(jUsruaio.id);
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
     jArea               = GlojArea;
@@ -1156,7 +1178,7 @@ async function nuevoPed(area, userId){
         numOrder : document.getElementById('nuevoPedidoInput').value
     }
     let resulP = await apiAgregarPed(datosP);
-    if(resulP[0].status == 200){
+    if(resulP.status == 200){
         recargar();
         loading(2);
         document.querySelector('#cerrarMoNuevo').click();
