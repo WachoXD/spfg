@@ -22,6 +22,8 @@ if(URLactual == 'http://187.188.181.242:81/spfg/'){
 }
 console.log(urlBase);
 //Crear cookies 
+const {Apis} = require("./libs/apis");
+const api =  new Apis();
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
     d.setTime(d.getTime() + (diasexpiracion * 24 * 60 * 60 * 1000));
@@ -512,11 +514,47 @@ async function apiActuaHistorial(reqDatos){
     return res2;
 }
 
+async function apiAceptados(id){
+       
+    const url = urlBase+'solAceptados';
+    const data = {
+        id: id,
+    };
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solPedidos = [];
+    solPedidos = await fetch(apiUrl, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solPedidos;
+}
+
 async function apiRegAVentas(reqDatos){
     
 }
 
 async function recargar(){
+    console.log(("La suma es: "+api.sum(3,5)));
     console.log(userIdGlobal);
     let jUserHome = await apiUsuario(userIdGlobal);
     console.log(jUserHome);
@@ -532,6 +570,7 @@ async function home(jUsuario){
     let jPedidos        = await apiPedidos(jUsuario.id);
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
+    let jAceptados      = await apiAceptados(jUsuario.id)
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
