@@ -174,6 +174,34 @@ router.get('/solPedidos', (req,res) => {
     });
 });
 
+router.get('/solAceptados', (req,res) => { //Trae los que son solo aceptados por el usuario
+    let id   = req.query.id;
+    conexion.query('SELECT * FROM orders WHERE acepted = 1 AND user_id  = '+id+'', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.get('/solAceptar', (req,res) => { //Solo muestra los que le van a mandar
+    let area   = req.query.area;
+    conexion.query('SELECT * FROM orders WHERE acepted = 0 AND area_id  = '+area+'', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
 router.get('/usuarios', (req, res) => {
     conexion.query('SELECT id, name, user_rol_id FROM users', (error, results, fields) => {
         if (error) {
@@ -238,11 +266,12 @@ router.post('/rechazarPedido',(req, res)=>{
     }); 
 })
 
-async function actHistorial(reqDatos){
+function actHistorial(reqDatos){
     let area        = reqDatos.area;
     let orderId     = reqDatos.idOrder;
     let idUser      = reqDatos.idUser;
     let aceptado    = reqDatos.acepted;
+    let numOrder    = reqDatos.numOrder;
 
     var resu;
     conexion.query('SELECT id FROM orders WHERE ordernumber = ?',[numOrder], (error, results, fields) => {
@@ -293,18 +322,12 @@ async function actHistorial(reqDatos){
     }
 
     let res = conexion.query(sqlCon, function (error, results, fields) {
-        if(Object.keys(results).length === 0){
-            res.json({
-                "status": 500
-            });
-        }else{
-            res.json({
-                "status": 200,
-            });
+        if(error){
+            throw error;
         }
-        //res.send(results);
+        return 200;
     }); 
-    return res[0].status;
+    return res;
 }
 
 router.post('/agregarPed', (req, res) => {
@@ -322,22 +345,24 @@ router.post('/agregarPed', (req, res) => {
             return;
           }
       
-          const id = results.insertId; // Obtener el ID del nuevo dato agregado
-          let _datosHistorial = {
+        const id = results.insertId; // Obtener el ID del nuevo dato agregado
+        let _datosHistorial = {
             opc      : 1,
             idOrder  : id,
             area     : area,
             idUser   : idUser,
             numOrder : numOrder,
+            aceptado : 1
         }
         let resu = actHistorial(_datosHistorial);
-        if(resu.status==200){
-            res.json({
-                "status":       200,
-            });
+        console.log(resu);
+        if(resu==200){
+            
         }
           console.log('Dato agregado con éxito. ID:', id);
-          res.json({ id }); // Enviar el ID como respuesta en formato JSON
+          res.json({ 
+            "status":       200,
+           }); // Enviar el ID como respuesta en formato JSON
         
         /*
         if(Object.keys(results).length === 0){

@@ -22,8 +22,6 @@ if(URLactual == 'http://187.188.181.242:81/spfg/'){
 }
 console.log(urlBase);
 //Crear cookies 
-const {Apis} = require("./libs/apis");
-const api =  new Apis();
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
     d.setTime(d.getTime() + (diasexpiracion * 24 * 60 * 60 * 1000));
@@ -514,11 +512,44 @@ async function apiActuaHistorial(reqDatos){
     return res2;
 }
 
-async function apiAceptados(id){
-       
+async function apiAceptados(id){  
     const url = urlBase+'solAceptados';
     const data = {
         id: id,
+    };
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solPedidos = [];
+    solPedidos = await fetch(apiUrl, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solPedidos;
+}
+
+async function apiAceptar(area){  
+    const url = urlBase+'solAceptar';
+    const data = {
+        area: area,
     };
     const params = new URLSearchParams(data);
     const apiUrl = url + '?' + params;
@@ -554,7 +585,6 @@ async function apiRegAVentas(reqDatos){
 }
 
 async function recargar(){
-    console.log(("La suma es: "+api.sum(3,5)));
     console.log(userIdGlobal);
     let jUserHome = await apiUsuario(userIdGlobal);
     console.log(jUserHome);
@@ -570,7 +600,9 @@ async function home(jUsuario){
     let jPedidos        = await apiPedidos(jUsuario.id);
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
-    let jAceptados      = await apiAceptados(jUsuario.id)
+    let jAceptados      = await apiAceptados(jUsuario.id);
+    let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
+    console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
@@ -596,6 +628,22 @@ async function home(jUsuario){
             contArea++;
         }
     });
+    let contAceptados = 0;
+
+    Object.keys(jAceptados).forEach((clave) => {
+        if (typeof jPedidos[clave] === "object") {
+            contAceptados++;
+        }
+    });
+
+    let contAceptar = 0;
+
+    Object.keys(jAceptar).forEach((clave) => {
+        if (typeof jPedidos[clave] === "object") {
+            contAceptar++;
+        }
+    });
+
     document.getElementById('app').innerHTML = '';
 
     var sVentana = `<nav class="navbar bg-body-tertiary"> <!--Inicio del nav-->
@@ -651,10 +699,16 @@ async function home(jUsuario){
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="pills-aceptados-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptados" type="button" role="tab" aria-controls="pills-aceptados" aria-selected="false"><i class="bi bi-check2-circle"></i> Aceptados</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="pills-aceptar-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptar" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false"><i class="bi bi-bell"></i> Por aceptar</button>
                                 </li>`;
+    if(jAceptar > 0 ){
+        sVentana = sVentana + ` <li class="nav-item" role="presentation" >
+                                    <button class="nav-link" style="background: red" id="pills-aceptar-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptar" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false"><i class="bi bi-bell"></i> Por aceptar</button>
+                                </li>`;   
+    }else{
+        sVentana = sVentana + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="pills-aceptar-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptar" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false"><i class="bi bi-bell"></i> Por aceptar</button>
+                                </li>`;  
+    }
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 3){
         sVentana = sVentana + `<li class="nav-item" role="presentation">
                                     <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTotal" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='modalView(0,0, 3)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
@@ -850,26 +904,26 @@ async function home(jUsuario){
                                                         </tr>
                                                     </thead>
                                                     <tbody class="table-group-divider" id="tablaAceptado">`;
-    if(contadorObjetos > 0){
+    if(contAceptados > 0){
         let responsable = '';
         let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].user_id == jUsuario.id && jPedidos[i].acepted == 1){
-                if(jPedidos[i].acepted == 1){
+        for(i=0; i < contAceptados; i++){
+            if(jAceptados[i].user_id == jUsuario.id && jAceptados[i].acepted == 1){
+                if(jAceptados[i].acepted == 1){
                     for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jAceptados[i].user_id) responsable = jUsuarios[j].name;
                     }
                     for(k = 0; j < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                        if(jArea[k].id == jAceptados[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <th scope="row">`+jAceptados[i].ordernumber+`</th>
+                                                        <td>`+jAceptados[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 1)'>`+new Date(jAceptados[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
                                                             </button>
                                                         </td>
@@ -898,29 +952,30 @@ async function home(jUsuario){
                                                         </thead>
                                                         <tbody class="table-group-divider" id="tablaAceptar">`;
 
-    if(contadorObjetos > 0){
+    if(contAceptar > 0){
+        
         let responsable = '';
         let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].area_id == jUsuario.user_rol_id && jPedidos[i].acepted == 0){
-                if(jPedidos[i].acepted == 0){
+        for(i=0; i < contAceptar; i++){
+            if(jAceptar[i].area_id == jUsuario.user_rol_id && jAceptar[i].acepted == 0){
+                if(jAceptar[i].acepted == 0){
                     for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jAceptar[i].user_id) responsable = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                        if(jArea[k].id == jAceptar[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <th scope="row">`+jAceptar[i].ordernumber+`</th>
+                                                        <td>`+jAceptar[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 1)'>`+new Date(jAceptar[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
                                                             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
                                                                 <i class="bi bi-check-lg"></i>
                                                             </button>
-                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 2)'>
+                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 2)'>
                                                                 <i class="bi bi-x-lg"></i>
                                                             </button>
                                                         </td>
@@ -1043,12 +1098,12 @@ async function modalView(idOrder, orderNumber, opc){
                     sModalVentana = sModalVentana + `<td scope="row">`+new Date(jHistorial[i].changed_date).toLocaleString()+`</td>
                                             <td>`+area+`</td>
                                             <td>`+responsable+`</td>`;
-                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+canceled+`</strong></td>`;
-                    else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;
-                        else if(jHistorial[i].asigned_by != null) sModalVentana = sModalVentana + `<td>Asignado a: <strong>`+asigned+`</strong></td>`;
-                            else sModalVentana = sModalVentana + `<td>None</td>`;
-                    if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;
-                    else sModalVentana = sModalVentana + `<td>Sin comentarios</td>`;
+                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+canceled+`</strong></td>`;//Valida si esta cancelado
+                    else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;//Valida si esta Aceptado
+                        else if(jHistorial[i].asigned_by != null) sModalVentana = sModalVentana + `<td>Asignado a: <strong>`+asigned+`</strong></td>`;//Valida si esta Asignado
+                            else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                    if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
+                    else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
                 }
             }                     
@@ -1218,6 +1273,8 @@ async function nuevoPed(area, userId){
         numOrder : document.getElementById('nuevoPedidoInput').value
     }
     let resulP = await apiAgregarPed(datosP);
+    console.log("El resultado es: ");
+    console.log(resulP.status);
     if(resulP.status == 200){
         recargar();
         loading(2);
