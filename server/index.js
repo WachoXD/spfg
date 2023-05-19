@@ -162,7 +162,7 @@ router.get('/historial', (req, res) => {
 
 router.get('/solPedidos', (req,res) => {
     let id   = req.query.id;
-    conexion.query('SELECT * FROM orders WHERE wo_id_created = '+id+'', (error, results, fields) => {
+    conexion.query('SELECT * FROM orders WHERE who_id_created = '+id+'', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;

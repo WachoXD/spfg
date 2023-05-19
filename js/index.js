@@ -3,7 +3,7 @@ Esta pagia esta lo de la librería de axios
 https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
 */
 var URLactual = window.location;
-alert(URLactual);
+//alert(URLactual);
 var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
 var idGlobal    = 0;
 var today       = new Date(); // Iniciamos la fecha actual
@@ -20,6 +20,7 @@ if(URLactual == 'http://localhost/spfg/'){
 if(URLactual == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
+console.log(urlBase);
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -528,7 +529,7 @@ let jArea;
 let jUsuarios;
 let userIdGlobal;
 async function home(jUsuario){
-    let jPedidos        = await apiPedidos(jUsruaio.id);
+    let jPedidos        = await apiPedidos(jUsuario.id);
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
     jArea               = GlojArea;
