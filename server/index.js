@@ -76,11 +76,20 @@ async function timeNow(){
 }
 //Nuestro primer WS Get
 app.get('/', (req, res) => {    
-    res.json(
-        {
-            "Title": "Hola mundo"
-        }
-    );
+    res.send(`
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>¿?</title>
+    </head>
+    <body>
+    <br><br><br>
+        <center><h1>¿Que haces aquí?</h1><br><img src="https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg" width="900px" alt="Miloco"></center>
+    </body>
+</html>`);
 })
 
 router.post('/login', (req, res) => { 
@@ -245,35 +254,145 @@ router.post('/actualizarPedido',(req, res)=>{
         //res.send(results);
     }); 
 })
-router.post('/rechazarPedido',(req, res)=>{
+
+router.post('/aceptarPed', (req, res) => {
+    let userId      = req.body.userId;
+    let orderId     = req.body.orderId;
+    let acepted     = userId;
+    var resu = '';
+    conexion.query("UPDATE orders SET `acepted` = '1', `user_id` = '"+userId+"', `updated_at` = NOW(), `before_area` = `area_id`,  `before_user` = '"+userId+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
+        if (error) {
+            throw error;
+        }
+        //console.log(results);  
+        conexion.query('SELECT id, ordernumber, user_id, area_id, acepted FROM orders WHERE id = ?',[orderId], (error, results, fields) => {
+            if (error) {
+              console.error('Error al ejecutar la consulta: ', error);
+              throw error;
+            }
+            // Convertir los resultados en formato JSON
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            let datosRes = {
+                opc         : 3,
+                area        : resul[0].area_id,
+                orderId     : resul[0].id,
+                idUser      : resul[0].user_id,
+                acepted     : acepted,
+                numOrder    : resul[0].ordernumber,
+            }
+            //console.log("DatosRes");
+            //console.log(datosRes);
+            //resu = jsonData.id;
+            let resultado = actHistorial(datosRes);
+            console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        });
+        //const id = results.insertId; // Obtener el ID del nuevo dato agregado
+        //res.send(results);
+    });
+})
+
+router.post('/asignarPed', (req, res) => {
     let area        = req.body.area;
-    let numOrder    = req.body.numOrder;
-    let idUser      = req.body.idUser;
-    let isOrder     = req.body.isOrder;
+    let orderId     = req.body.idOrder;
+    let acepted     = req.body.idUser;
+    console.log("El area es: ", area);
+    var resu = '';
+    conexion.query("UPDATE orders SET `acepted` = '0', `updated_at` = NOW(), `area_id` = '"+area+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
+        if (error) {
+            throw error;
+        }
+        //console.log(results);  
+        conexion.query('SELECT id, ordernumber, user_id, area_id, acepted FROM orders WHERE id = ?',[orderId], (error, results, fields) => {
+            if (error) {
+              console.error('Error al ejecutar la consulta: ', error);
+              throw error;
+            }
+            // Convertir los resultados en formato JSON
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            let datosRes = {
+                opc         : 3,
+                area        : resul[0].area_id,
+                orderId     : resul[0].id,
+                idUser      : resul[0].user_id,
+                acepted     : acepted,
+                numOrder    : resul[0].ordernumber,
+            }
+            //console.log("DatosRes");
+            //console.log(datosRes);
+            //resu = jsonData.id;
+            let resultado = actHistorial(datosRes);
+            console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        });
+        //const id = results.insertId; // Obtener el ID del nuevo dato agregado
+        //res.send(results);
+    });
+})
+
+router.post('/rechazarPed',(req, res)=>{
+    let acepted     = req.body.acepted;
+    let orderId     = req.body.orderId;
+    let msg         = req.body.msg;
     //console.log("email: "+email+" pass: "+ pass);
     var resu = '';
-    conexion.query(`UPDATE orders SET acepted='1',area_id=?,updated_at=? WHERE id = ?`,[area, idUser, isOrder], function (error, results, fields) {
-        if(Object.keys(results).length === 0){
-            res.json({
-                "status": 500
-            });
-        }else{
-            res.json({
-                "status": 200,
-            });
+    conexion.query("UPDATE orders SET `acepted` = '1', `area_id` = `before_area`, `user_id` = `before_user`, `updated_at` = NOW() WHERE id = '"+orderId+"'", function (error, results, fields) {
+        if (error) {
+            throw error;
         }
+        //console.log(results);  
+        conexion.query('SELECT id, ordernumber, user_id, area_id, acepted FROM orders WHERE id = ?',[orderId], (error, results, fields) => {
+            if (error) {
+              console.error('Error al ejecutar la consulta: ', error);
+              throw error;
+            }
+            // Convertir los resultados en formato JSON
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            let datosRes = {
+                opc         : 4,
+                area        : resul[0].area_id,
+                orderId     : resul[0].id,
+                idUser      : resul[0].user_id,
+                acepted     : acepted,
+                numOrder    : resul[0].ordernumber,
+                msg         : msg,
+            }
+            console.log("DatosRes");
+            console.log(datosRes);
+            //resu = jsonData.id;
+            let resultado = actHistorial(datosRes);
+            console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        });
+        //const id = results.insertId; // Obtener el ID del nuevo dato agregado
         //res.send(results);
     }); 
 })
 
 function actHistorial(reqDatos){
+
     let area        = reqDatos.area;
-    let orderId     = reqDatos.idOrder;
+    let orderId     = reqDatos.orderId;
     let idUser      = reqDatos.idUser;
     let aceptado    = reqDatos.acepted;
     let numOrder    = reqDatos.numOrder;
-
     var resu;
+    /*
     conexion.query('SELECT id FROM orders WHERE ordernumber = ?',[numOrder], (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
@@ -281,10 +400,13 @@ function actHistorial(reqDatos){
         }
         // Convertir los resultados en formato JSON
         const jsonData = JSON.stringify(results);
+        let resJson = JSON.parse(jsonData);
         //console.log(jsonData);
-        resu = jsonData.id;
+        resu = resJson;
     });
+    */
     let sqlCon = '';
+    console.log(reqDatos);
     switch(reqDatos.opc){
         /*
         1: Nuevo
@@ -307,8 +429,8 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',NOW())`;
             break;
         case 4: 
-            let msg    = reqDatos.acepted;
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, acepted_by, cancellation_details, created_at) 
+            let msg    = reqDatos.msg;
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, rejected_by, cancellation_details, created_at) 
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`', NOW())`;
             break;
         case 5:
@@ -323,11 +445,14 @@ function actHistorial(reqDatos){
 
     let res = conexion.query(sqlCon, function (error, results, fields) {
         if(error){
+            console.log("error");
             throw error;
+            return 500;
         }
+        console.log("No error");
         return 200;
     }); 
-    return res;
+    return 200;
 }
 
 router.post('/agregarPed', (req, res) => {

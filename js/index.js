@@ -20,7 +20,7 @@ if(URLactual == 'http://localhost/spfg/'){
 if(URLactual == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
-console.log(urlBase);
+//console.log(urlBase);
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -133,13 +133,13 @@ function iniciarSesion(){
             })
             .then(response => response.json()) 
             .then(function(json) {
-                console.log(json.status);
+                //console.log(json.status);
                 if(json.status == 400){
                     loading(2);
                     alert("Usuario no existe");
                 }else{
                     if(json.if_update != 0){
-                        console.log(json);
+                        //console.log(json);
                         home(json);
                     }else{
                         changePasswordView(1, json.id);
@@ -457,13 +457,13 @@ async function apiActualizarPedido(reqDatos){
 }
 
 async function apiAgregarPed(reqDatos){
-    console.log(reqDatos);
+    //console.log(reqDatos);
     let _datos = {
         area    : reqDatos.area,
         idUser  : reqDatos.userId,
         numOrder: reqDatos.numOrder
     }
-    console.log(_datos);
+    //console.log(_datos);
     var res = fetch(urlBase+'agregarPed', {
         method: "POST",
         body: JSON.stringify(_datos),
@@ -477,7 +477,69 @@ async function apiAgregarPed(reqDatos){
     .catch(err => console.log(err));
 
     return res;
+}
+async function apiRechazarPed(reqDatos){
+    let _datos = {
+        acepted  : reqDatos.acepted,
+        orderId  : reqDatos.orderId,
+        msg: reqDatos.msg
+    }
+    var res = fetch(urlBase+'rechazarPed', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
 
+    return res;
+}
+
+async function apiAvanzaPedido(reqDatos){
+    let _datos = {
+        area    : reqDatos.area,
+        numOrder: reqDatos.numOrder,
+        idUser  : reqDatos.idUser,
+        idOrder : reqDatos.idOrder
+    }
+    var res = await fetch(urlBase+'asignarPed', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
+
+    return res;
+}
+
+async function apiAceptarPed(reqDatos){
+    let _datos = {
+        orderId     : reqDatos.orderId,
+        orderNumber : reqDatos.orderNumber,
+        userId      : reqDatos.userId
+    }
+    var res = await fetch(urlBase+'aceptarPed', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
+
+    return res;
 }
 
 async function apiActuaHistorial(reqDatos){
@@ -585,9 +647,9 @@ async function apiRegAVentas(reqDatos){
 }
 
 async function recargar(){
-    console.log(userIdGlobal);
+    //console.log(userIdGlobal);
     let jUserHome = await apiUsuario(userIdGlobal);
-    console.log(jUserHome);
+    //console.log(jUserHome);
     if(jUserHome != null){
         home(jUserHome[0]);
     }
@@ -602,7 +664,7 @@ async function home(jUsuario){
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
     let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
-    console.log(jAceptar);
+    //console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
@@ -972,10 +1034,10 @@ async function home(jUsuario){
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAsignar" >
+                                                            <button type="button" class="btn btn-outline-primary" onclick='aceptar(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`,`+jUsuario.id+`) '>
                                                                 <i class="bi bi-check-lg"></i>
                                                             </button>
-                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 2)'>
+                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 2,`+jUsuario.id+`)'>
                                                                 <i class="bi bi-x-lg"></i>
                                                             </button>
                                                         </td>
@@ -1017,8 +1079,24 @@ function tamanomodal(vswitch){
     */
 }
 
+async function aceptar(orderId, orderNumber, userId){
+    let datos = {
+        orderId     : orderId,
+        orderNumber : orderNumber,
+        userId      : userId
+    }
+    let resulP = await apiAceptarPed(datos);
+    console.log(resulP);
+    if(resulP.status == 200){
+        loading(2);
+    }else{
+        loading(2);
+        alert("No se pudo agregar el nuevo pedido")
+    }
+    recargar();
+}
 
-async function modalView(idOrder, orderNumber, opc){
+async function modalView(idOrder, orderNumber, opc, userId){
     //El numOrder es el numéro de orden que manda
     /*El opc es la opción a elegir:
     las opciones son; 
@@ -1080,6 +1158,7 @@ async function modalView(idOrder, orderNumber, opc){
                 let acepted     = '';
                 let canceled    = '';
                 let asigned     = '';
+                let rechazado   = '';
 
                 for(i=0; i < contHistorial; i++){ 
                     for(j = 0; j < contUsuarios; j++){
@@ -1087,21 +1166,24 @@ async function modalView(idOrder, orderNumber, opc){
                         if(jUsuarios[j].id == jHistorial[i].acepted_by)     acepted     = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].canceled_by)    canceled    = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].asigned_id)     asigned     = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].rejected_by)    rechazado   = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jHistorial[i].area_id) area = jArea[k].name;
                     }  
-                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
+                    if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
                         else if(jHistorial[i].status == 'Parcial') sModalVentana = sModalVentana + `<tr class="table-warning">`; //Si es parcial se pone en naranja
                             else if(jHistorial[i].status == 'Finalizado') sModalVentana = sModalVentana + `<tr class="table-success">`; //Si es finalizado se pone en verde
-                            else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
+                                else if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
+                                    else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
                     sModalVentana = sModalVentana + `<td scope="row">`+new Date(jHistorial[i].changed_date).toLocaleString()+`</td>
                                             <td>`+area+`</td>
                                             <td>`+responsable+`</td>`;
-                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+canceled+`</strong></td>`;//Valida si esta cancelado
+                    if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Cancelado por: <strong>`+canceled+`</strong></td>`;//Valida si esta cancelado
                     else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;//Valida si esta Aceptado
                         else if(jHistorial[i].asigned_by != null) sModalVentana = sModalVentana + `<td>Asignado a: <strong>`+asigned+`</strong></td>`;//Valida si esta Asignado
-                            else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                            else if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+rechazado+`</strong></td>`;//Valida si esta Asignado
+                                else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                     if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
                     else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
@@ -1123,24 +1205,24 @@ async function modalView(idOrder, orderNumber, opc){
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Rechazar pedido: <strong>`+orderNumber+`</strong></h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" id="cerrarModal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <p class="text-center fs-3 mb-4">¿Desea cancelar el pedido <strong>`+orderNumber+`</strong>?</p>
                                                 <div class="mb-3">
                                                     <label for="exampleFormControlTextarea1" class="form-label">Comentario del rechazo</label>
-                                                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" style="min-height: 100px; max-height: 400px;"></textarea>
+                                                    <textarea class="form-control" id="msmRechazo" rows="3" style="min-height: 100px; max-height: 400px;"></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="button" class="btn btn-primary">Aceptar</button>
+                                                <button type="button" class="btn btn-primary" onclick="rechazar(`+idOrder+`,`+userId+`)">Aceptar</button>
                                             </div>`;
             break;
         case 3://Modal para nuevo pedido
             tamanomodal(1);
             let jUserP = await apiUsuario(usuIdGlobal);
-            console.log(jUserP[0].name);
+            //console.log(jUserP[0].name);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Agregar nuevo pedido</h1>
@@ -1165,7 +1247,7 @@ async function modalView(idOrder, orderNumber, opc){
             tamanomodal(0);
             //Aquí el idOrder recibe un json del usuario y ahí se usará con ese nombre
             let jUser = await apiUsuario(idOrder);
-            console.log(jUser[0].name);
+            //console.log(jUser[0].name);
             let area        = '';
             for(k = 0; k < contArea; k++){
                 if(jArea[k].id == jUser[0].user_rol_id) area = jArea[k].name;
@@ -1216,12 +1298,12 @@ async function modalView(idOrder, orderNumber, opc){
 
         case 5:
             let jUserS = await apiUsuario(usuIdGlobal);
-            console.log(jUserS[0].name);
+            //console.log(jUserS[0].name);
             let areaS        = '';
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarMoAsig"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarModal"></button>
                                             </div>
                                             <div class="modal-body">`;
             if(arGlobal == 0 || arGlobal == 2 || arGlobal == 1){
@@ -1273,8 +1355,7 @@ async function nuevoPed(area, userId){
         numOrder : document.getElementById('nuevoPedidoInput').value
     }
     let resulP = await apiAgregarPed(datosP);
-    console.log("El resultado es: ");
-    console.log(resulP.status);
+    
     if(resulP.status == 200){
         recargar();
         loading(2);
@@ -1284,13 +1365,32 @@ async function nuevoPed(area, userId){
         alert("No se pudo agregar el nuevo pedido")
     }
 }
+async function rechazar(orderId, acepted){
+    //console.log("Lo rechaza ",acepted);
+    let datosP = {
+        acepted  : acepted,
+        orderId  : orderId,
+        msg      : document.getElementById('msmRechazo').value
+    }
+    let resulP = await apiRechazarPed(datosP);
+    if(resulP.status == 200){
+        recargar();
+        loading(2);
+        document.querySelector('#cerrarModal').click();
+    }else{
+        loading(2);
+        recargar();
+        alert("No se pudo agregar el nuevo pedido")
+    }
+}
 
 async function segPedido(opcM, numOrder, idUser, idOrder){
     
     if(opcM != 0) modMenu = opcM
     else{
         if(modMenu == 1){
-            let selectArea = document.getElementById('selectedArea');
+            let selectArea = document.getElementById('selectedArea').value;
+            console.log(selectArea);
             let datos = {
                 area    : selectArea,
                 numOrder: numOrder,
@@ -1298,8 +1398,9 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
                 idOrder : idOrder
             }
             let result = await apiAvanzaPedido(datos);
-            if(result[0].status == 200){
+            if(result.status == 200){
                 recargar();
+                document.querySelector('#cerrarModal').click();
             }
         }
         if(modMenu == 2){
@@ -1313,8 +1414,9 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
                 idOrder : idOrder
             }
             let result = await apiRegAVentas(datos);
-            if(result[0].status == 200){
+            if(result.status == 200){
                 recargar();
+                document.querySelector('#cerrarModal').click();
             }
         }
     }
@@ -1339,7 +1441,7 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     switch(opc){
         case 1:
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
-                                        <option selected>Seleccione a un vendedor</option>`
+                                        <option >Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
                 if(jUsuarios[i].user_rol_id == 3){
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
@@ -1349,9 +1451,9 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
             break;
         case 2:
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
-                                        <option selected>Seleccione una área</option>`
+                                        <option >Seleccione una área</option>`
             for(i = 0; i < contArea; i++){
-                sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
+                if(jArea[i].id != 3 && jArea[i].id != 0) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
             }
             sModalVentana = sModalVentana +`</select>`;
             
