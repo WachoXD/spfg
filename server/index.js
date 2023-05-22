@@ -95,7 +95,7 @@ app.get('/', (req, res) => {
 router.post('/login', (req, res) => { 
     let email = req.body.email;
     let pass  = req.body.pass;
-    //console.log("email: "+email+" pass: "+ pass);
+    console.log("email: "+email+" pass: "+ pass);
     var resu = '';
     conexion.query("SELECT * FROM users WHERE email = ? AND password = ?",[email, pass], function (error, results, fields) {
         
@@ -155,7 +155,7 @@ router.get('/perfil', (req, res) => {
 });
 router.get('/historial', (req, res) => {
     let orderid   = req.query.orderid;
-    console.log("El order es: ",orderid);
+    //console.log("El order es: ",orderid);
     conexion.query('SELECT * FROM order_record WHERE  order_id = '+orderid+'', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
@@ -199,7 +199,7 @@ router.get('/solAceptados', (req,res) => { //Trae los que son solo aceptados por
 
 router.get('/solAceptar', (req,res) => { //Solo muestra los que le van a mandar
     let area   = req.query.area;
-    conexion.query('SELECT * FROM orders WHERE acepted = 0 AND area_id  = '+area+'', (error, results, fields) => {
+    conexion.query("SELECT * FROM orders WHERE `acepted` = '0' AND `area_id`  = '"+area+"'", (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -285,7 +285,7 @@ router.post('/aceptarPed', (req, res) => {
             //console.log(datosRes);
             //resu = jsonData.id;
             let resultado = actHistorial(datosRes);
-            console.log(resultado);
+            //console.log(resultado);
             if( resultado == 200){
                 res.json({ 
                     "status":       200,
@@ -301,7 +301,7 @@ router.post('/asignarPed', (req, res) => {
     let area        = req.body.area;
     let orderId     = req.body.idOrder;
     let acepted     = req.body.idUser;
-    console.log("El area es: ", area);
+    //console.log("El area es: ", area);
     var resu = '';
     conexion.query("UPDATE orders SET `acepted` = '0', `updated_at` = NOW(), `area_id` = '"+area+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
@@ -317,7 +317,7 @@ router.post('/asignarPed', (req, res) => {
             const jsonData = JSON.stringify(results);
             let resul = JSON.parse(jsonData);
             let datosRes = {
-                opc         : 3,
+                opc         : 2,
                 area        : resul[0].area_id,
                 orderId     : resul[0].id,
                 idUser      : resul[0].user_id,
@@ -328,7 +328,7 @@ router.post('/asignarPed', (req, res) => {
             //console.log(datosRes);
             //resu = jsonData.id;
             let resultado = actHistorial(datosRes);
-            console.log(resultado);
+            //console.log(resultado);
             if( resultado == 200){
                 res.json({ 
                     "status":       200,
@@ -368,11 +368,11 @@ router.post('/rechazarPed',(req, res)=>{
                 numOrder    : resul[0].ordernumber,
                 msg         : msg,
             }
-            console.log("DatosRes");
-            console.log(datosRes);
+            //console.log("DatosRes");
+            //console.log(datosRes);
             //resu = jsonData.id;
             let resultado = actHistorial(datosRes);
-            console.log(resultado);
+            //console.log(resultado);
             if( resultado == 200){
                 res.json({ 
                     "status":       200,
@@ -406,7 +406,7 @@ function actHistorial(reqDatos){
     });
     */
     let sqlCon = '';
-    console.log(reqDatos);
+    //console.log(reqDatos);
     switch(reqDatos.opc){
         /*
         1: Nuevo
@@ -421,8 +421,8 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`',NOW())`;
             break;
         case 2:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, created_at) 
-            VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`',NOW())`;
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, asigned_to, order_id, created_at) 
+            VALUES ('Activo', NOW(),'`+area+`','`+idUser+`', '0','`+orderId+`',NOW())`;
             break;
         case 3:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, acepted_by, created_at) 
@@ -459,10 +459,10 @@ router.post('/agregarPed', (req, res) => {
     let area        = req.body.area;
     let idUser      = req.body.idUser;
     let numOrder    = req.body.numOrder;
-    console.log("Area: ",area);
-    console.log("IdUser: ",idUser);
-    console.log("numOrder ",numOrder);
-    
+   //console.log("Area: ",area);
+   //console.log("IdUser: ",idUser);
+   //console.log("numOrder ",numOrder);
+   //
     conexion.query(`INSERT INTO orders (ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
         if (error) {
             console.error('Error al agregar el dato: ' + error.stack);
@@ -480,11 +480,11 @@ router.post('/agregarPed', (req, res) => {
             aceptado : 1
         }
         let resu = actHistorial(_datosHistorial);
-        console.log(resu);
+        //console.log(resu);
         if(resu==200){
             
         }
-          console.log('Dato agregado con éxito. ID:', id);
+          //console.log('Dato agregado con éxito. ID:', id);
           res.json({ 
             "status":       200,
            }); // Enviar el ID como respuesta en formato JSON

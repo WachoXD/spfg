@@ -20,7 +20,7 @@ if(URLactual == 'http://localhost/spfg/'){
 if(URLactual == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
-//console.log(urlBase);
+//alert(urlBase)
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -80,6 +80,9 @@ function comprobarCookie() {
     }
 }
 
+function cerrarSesion(){
+    window.location.reload();
+}
 
 
 //Para reconocer el enter en el formulario
@@ -609,6 +612,7 @@ async function apiAceptados(id){
 }
 
 async function apiAceptar(area){  
+    loading(1);
     const url = urlBase+'solAceptar';
     const data = {
         area: area,
@@ -627,6 +631,7 @@ async function apiAceptar(area){
     solPedidos = await fetch(apiUrl, options)
     .then(response => {
         if (response.ok) {
+            loading(2);
             return response.json();
         } else {
             throw new Error('Error en la solicitud.');
@@ -693,7 +698,7 @@ async function home(jUsuario){
     let contAceptados = 0;
 
     Object.keys(jAceptados).forEach((clave) => {
-        if (typeof jPedidos[clave] === "object") {
+        if (typeof jAceptados[clave] === "object") {
             contAceptados++;
         }
     });
@@ -701,7 +706,7 @@ async function home(jUsuario){
     let contAceptar = 0;
 
     Object.keys(jAceptar).forEach((clave) => {
-        if (typeof jPedidos[clave] === "object") {
+        if (typeof jAceptar[clave] === "object") {
             contAceptar++;
         }
     });
@@ -717,8 +722,9 @@ async function home(jUsuario){
                                 <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Pedidos</button>
                                 </li>`;
+    arGlobal = jUsuario.user_rol_id;
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-        arGlobal = jUsuario.user_rol_id;
+        
         sVentana = sVentana + `<li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
@@ -737,7 +743,7 @@ async function home(jUsuario){
                                     </button>
                                     <ul class="dropdown-menu" id="dropPerfil">
                                         <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
-                                        <li><a class="dropdown-item" ><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -746,8 +752,9 @@ async function home(jUsuario){
                         <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <!--Inicio del menu de los pedidos-->
-                            <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">
-                                <li class="nav-item" role="presentation">
+                            <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+        sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="pills-Todos-tab" data-bs-toggle="pill" data-bs-target="#pills-Todos" type="button" role="tab" aria-controls="pills-Todos" aria-selected="true"><i class="bi bi-list-nested"></i> Todos</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -758,10 +765,18 @@ async function home(jUsuario){
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="pills-finalizados-tab" data-bs-toggle="pill" data-bs-target="#pills-finalizados" type="button" role="tab" aria-controls="pills-finalizados" aria-selected="false"><i class="bi bi-emoji-smile"></i> Finalizados</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
+                                </li>`
+    }
+    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0){
+        sVentana = sVentana +`  <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="pills-aceptados-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptados" type="button" role="tab" aria-controls="pills-aceptados" aria-selected="false"><i class="bi bi-check2-circle"></i> Aceptados</button>
+                                </li>`;
+    }else{
+        sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="pills-aceptados-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptados" type="button" role="tab" aria-controls="pills-aceptados" aria-selected="false"><i class="bi bi-check2-circle"></i> Aceptados</button>
                                 </li>`;
+    }
+
     if(jAceptar > 0 ){
         sVentana = sVentana + ` <li class="nav-item" role="presentation" >
                                     <button class="nav-link" style="background: red" id="pills-aceptar-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptar" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false"><i class="bi bi-bell"></i> Por aceptar</button>
@@ -782,72 +797,31 @@ async function home(jUsuario){
                             </ul>
                             <!--Fin del menu de los pedidos-->
                             <!--Inicio de tablas-->
-                            <div class="container-xxl">
-                                <div class="tab-content" id="pills-tabContent">
-                                    <!--Inicio de tabla de Todos-->
-                                    <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
-                                        <table class="table table-hover border">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">N° pedido</th>
-                                                    <th scope="col">Estatus</th>
-                                                    <th scope="col">Fecha de creación</th>
-                                                    <th scope="col">Responsable</th>
-                                                    <th scope="col">Área</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="table-group-divider" id="tablaTodos">`;
+                                <div class="container-xxl">
+                                    <div class="tab-content" id="pills-tabContent">`
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+        sVentana = sVentana + `
+                                        <!--Inicio de tabla de Todos-->
+                                        <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
+                                            <table class="table table-hover border">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">N° pedido</th>
+                                                        <th scope="col">Estatus</th>
+                                                        <th scope="col">Fecha de creación</th>
+                                                        <th scope="col">Responsable</th>
+                                                        <th scope="col">Área</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="table-group-divider" id="tablaTodos">`;
 
-    if(contadorObjetos > 0){
-        let responsable = '';
-        let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].who_id_created == jUsuario.id ){
-                for(j = 0; j < contUsuarios; j++){
-                    if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
-                }
-                for(k = 0; k < contArea; k++){
-                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                }
-                sVentana = sVentana + `<tr>
-                                                    <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                    <td>`+jPedidos[i].status+`</td>
-                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                    <td>`+responsable+`</td>
-                                                    <td>`+area+`</td>
-                                                </tr>`
-            }
-        }
-    }
-    
-
-    sVentana = sVentana + `</tbody>
-                                </table>
-                            </div>
-                            <!--Fin de tabla de Todos-->
-                            <!--Inicio de tabla de Activos-->
-                            <div class="tab-pane fade" id="pills-activos" role="tabpanel" aria-labelledby="pills-activos-tab" tabindex="0">
-                                <table class="table table-hover border border-success">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">N° pedido</th>
-                                            <th scope="col">Estatus</th>
-                                            <th scope="col">Fecha de creación</th>
-                                            <th scope="col">Responsable</th>
-                                            <th scope="col">Área</th>
-                                        </tr>
-                                    </thead>
-                                    
-                                    <tbody class="table-group-divider" id="tablaActivos><tr><th scope="row"></th></tr>`
-    usuIdGlobal = jUsuario.id;
-    if(contadorObjetos > 0){
-        let responsable = '';
-        let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].who_id_created == jUsuario.id ){
-                if(jPedidos[i].status == 'Activo'){
+        if(contadorObjetos > 0){
+            let responsable = '';
+            let area = '';
+            for(i=0; i < contadorObjetos; i++){
+                if(jPedidos[i].who_id_created == jUsuario.id ){
                     for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
@@ -862,99 +836,150 @@ async function home(jUsuario){
                 }
             }
         }
-    }
-
-    sVentana = sVentana + `</tbody>
-                                                </table>
-                                            </div>
-                                            <!--Fin de tabla de Activos-->
-                                            <!-- Inicio de la tabla Parciales-->
-                                            <div class="tab-pane fade" id="pills-parciales" role="tabpanel" aria-labelledby="pills-parciales-tab" tabindex="0">
-                                                <table class="table table-hover border border-warning">
-                                                    <thead>
-                                                        <tr>
-                                                            <th scope="col">N° pedido</th>
-                                                            <th scope="col">Estatus</th>
-                                                            <th scope="col">Fecha de creación</th>
-                                                            <th scope="col">Responsable</th>
-                                                            <th scope="col">Área</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="table-group-divider" id="tablaParciales">`
-    
-    if(contadorObjetos > 0){
-        let responsable = '';
-        let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].who_id_created == jUsuario.id ){
-                if(jPedidos[i].status == 'Parcial'){
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+        
+        
+        sVentana = sVentana + `</tbody>
+                                    </table>
+                                </div>
+                                <!--Fin de tabla de Todos-->
+                                <!--Inicio de tabla de Activos-->
+                                <div class="tab-pane fade" id="pills-activos" role="tabpanel" aria-labelledby="pills-activos-tab" tabindex="0">
+                                    <table class="table table-hover border border-success">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">N° pedido</th>
+                                                <th scope="col">Estatus</th>
+                                                <th scope="col">Fecha de creación</th>
+                                                <th scope="col">Responsable</th>
+                                                <th scope="col">Área</th>
+                                            </tr>
+                                        </thead>
+                                        
+                                        <tbody class="table-group-divider" id="tablaActivos><tr><th scope="row"></th></tr>`
+        usuIdGlobal = jUsuario.id;
+        if(contadorObjetos > 0){
+            let responsable = '';
+            let area = '';
+            for(i=0; i < contadorObjetos; i++){
+                if(jPedidos[i].who_id_created == jUsuario.id ){
+                    if(jPedidos[i].status == 'Activo'){
+                        for(j = 0; j < contUsuarios; j++){
+                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        }
+                        for(k = 0; k < contArea; k++){
+                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                        }
+                        sVentana = sVentana + `<tr>
+                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                            <td>`+jPedidos[i].status+`</td>
+                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                            <td>`+responsable+`</td>
+                                                            <td>`+area+`</td>
+                                                        </tr>`
                     }
-                    for(k = 0; k < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                    }
-                    sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                        <td>`+responsable+`</td>
-                                                        <td>`+area+`</td>
-                                                    </tr>`
                 }
             }
         }
-    }
 
-    sVentana = sVentana + `</tbody>
-                                                </table>
-                                            </div>
-                                            <!-- Fin de la tabla Parciales-->
-                                            <!-- Inicio de la tabla Finalizados-->
-                                            <div class="tab-pane fade" id="pills-finalizados" role="tabpanel" aria-labelledby="pills-finalizados-tab" tabindex="0">
-                                                <table class="table table-hover border border-danger">
-                                                    <thead>
-                                                        <tr>
-                                                            <th scope="col">N° pedido</th>
-                                                            <th scope="col">Estatus</th>
-                                                            <th scope="col">Fecha de creación</th>
-                                                            <th scope="col">Responsable</th>
-                                                            <th scope="col">Área</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="table-group-divider" id="tablaFinalizado">`
-
-    if(contadorObjetos > 0){
-        let responsable = '';
-        let area = '';
-        for(i=0; i < contadorObjetos; i++){
-            if(jPedidos[i].who_id_created == jUsuario.id ){
-                if(jPedidos[i].status == 'Finalizado'){
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+        sVentana = sVentana + `</tbody>
+                                                    </table>
+                                                </div>
+                                                <!--Fin de tabla de Activos-->
+                                                <!-- Inicio de la tabla Parciales-->
+                                                <div class="tab-pane fade" id="pills-parciales" role="tabpanel" aria-labelledby="pills-parciales-tab" tabindex="0">
+                                                    <table class="table table-hover border border-warning">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">N° pedido</th>
+                                                                <th scope="col">Estatus</th>
+                                                                <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Responsable</th>
+                                                                <th scope="col">Área</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="table-group-divider" id="tablaParciales">`
+        
+        if(contadorObjetos > 0){
+            let responsable = '';
+            let area = '';
+            for(i=0; i < contadorObjetos; i++){
+                if(jPedidos[i].who_id_created == jUsuario.id ){
+                    if(jPedidos[i].status == 'Parcial'){
+                        for(j = 0; j < contUsuarios; j++){
+                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        }
+                        for(k = 0; k < contArea; k++){
+                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                        }
+                        sVentana = sVentana + `<tr>
+                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                            <td>`+jPedidos[i].status+`</td>
+                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                            <td>`+responsable+`</td>
+                                                            <td>`+area+`</td>
+                                                        </tr>`
                     }
-                    for(k = 0; k < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                    }
-                    sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                        <td>`+responsable+`</td>
-                                                        <td>`+area+`</td>
-                                                    </tr>`
                 }
             }
         }
-    }
 
-    sVentana = sVentana + `</tbody>
-                                                </table>
-                                            </div>
-                                            <!-- Fin de la tabla Finalizados-->
+        sVentana = sVentana + `</tbody>
+                                                    </table>
+                                                </div>
+                                                <!-- Fin de la tabla Parciales-->
+                                                <!-- Inicio de la tabla Finalizados-->
+                                                <div class="tab-pane fade" id="pills-finalizados" role="tabpanel" aria-labelledby="pills-finalizados-tab" tabindex="0">
+                                                    <table class="table table-hover border border-danger">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">N° pedido</th>
+                                                                <th scope="col">Estatus</th>
+                                                                <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Responsable</th>
+                                                                <th scope="col">Área</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="table-group-divider" id="tablaFinalizado">`
+
+        if(contadorObjetos > 0){
+            let responsable = '';
+            let area = '';
+            for(i=0; i < contadorObjetos; i++){
+                if(jPedidos[i].who_id_created == jUsuario.id ){
+                    if(jPedidos[i].status == 'Finalizado'){
+                        for(j = 0; j < contUsuarios; j++){
+                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
+                        }
+                        for(k = 0; k < contArea; k++){
+                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                        }
+                        sVentana = sVentana + `<tr>
+                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                            <td>`+jPedidos[i].status+`</td>
+                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                            <td>`+responsable+`</td>
+                                                            <td>`+area+`</td>
+                                                        </tr>`
+                    }
+                }
+            }
+        }
+
+        sVentana = sVentana + `</tbody>
+                                                    </table>
+                                                </div>
+                                                <!-- Fin de la tabla Finalizados-->`
+    }
+    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0){
+                 sVentana = sVentana + `
                                             <!-- Inicio de la tabla Aceptados-->
-                                            <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">
-                                                <table class="table table-hover border border-info">
+                                            <div class="tab-pane fade show active" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">`;
+    }else{
+        sVentana = sVentana + `
+                                            <!-- Inicio de la tabla Aceptados-->
+                                            <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">`
+    }
+        sVentana = sVentana + `             <table class="table table-hover border border-info">
                                                     <thead>
                                                         <tr>
                                                             <th scope="col">N° pedido</th>
@@ -1015,9 +1040,9 @@ async function home(jUsuario){
                                                         <tbody class="table-group-divider" id="tablaAceptar">`;
 
     if(contAceptar > 0){
-        
         let responsable = '';
         let area = '';
+        //console.log(jAceptar);
         for(i=0; i < contAceptar; i++){
             if(jAceptar[i].area_id == jUsuario.user_rol_id && jAceptar[i].acepted == 0){
                 if(jAceptar[i].acepted == 0){
@@ -1086,7 +1111,7 @@ async function aceptar(orderId, orderNumber, userId){
         userId      : userId
     }
     let resulP = await apiAceptarPed(datos);
-    console.log(resulP);
+    //console.log(resulP);
     if(resulP.status == 200){
         loading(2);
     }else{
@@ -1181,7 +1206,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             <td>`+responsable+`</td>`;
                     if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<td>Cancelado por: <strong>`+canceled+`</strong></td>`;//Valida si esta cancelado
                     else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;//Valida si esta Aceptado
-                        else if(jHistorial[i].asigned_by != null) sModalVentana = sModalVentana + `<td>Asignado a: <strong>`+asigned+`</strong></td>`;//Valida si esta Asignado
+                        else if(jHistorial[i].asigned_to == 0) sModalVentana = sModalVentana + `<td>Asignado al area: <strong>`+area+`</strong></td>`;//Valida si esta Asignado
                             else if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+rechazado+`</strong></td>`;//Valida si esta Asignado
                                 else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                     if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
@@ -1296,10 +1321,11 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>`;
             break;
 
-        case 5:
+        case 5://Modal asignar
             let jUserS = await apiUsuario(usuIdGlobal);
             //console.log(jUserS[0].name);
             let areaS        = '';
+            console.log("arGlobal ",arGlobal);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
@@ -1385,12 +1411,12 @@ async function rechazar(orderId, acepted){
 }
 
 async function segPedido(opcM, numOrder, idUser, idOrder){
-    
-    if(opcM != 0) modMenu = opcM
+    //console.log("opcM ",opcM);
+    if(opcM != 0){ modMenu = opcM;}
     else{
         if(modMenu == 1){
             let selectArea = document.getElementById('selectedArea').value;
-            console.log(selectArea);
+            //console.log(selectArea);
             let datos = {
                 area    : selectArea,
                 numOrder: numOrder,
@@ -1404,8 +1430,8 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
             }
         }
         if(modMenu == 2){
-            let selectVendedor = document.getElementById('selectedVendedor');
-            let msgRegVentas   = document.getElementById('msgRegVentas');
+            let selectVendedor = document.getElementById('selectedVendedor').value;
+            let msgRegVentas   = document.getElementById('msgRegVentas').value;
             let datos = {
                 vendedor: selectVendedor,
                 msg     : msgRegVentas,
@@ -1440,8 +1466,8 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     let sModalVentana = '';
     switch(opc){
         case 1:
-            sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
-                                        <option >Seleccione a un vendedor</option>`
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
+                                        <option value="99" >Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
                 if(jUsuarios[i].user_rol_id == 3){
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
@@ -1450,7 +1476,7 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
             sModalVentana = sModalVentana +`</select>`;
             break;
         case 2:
-            sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
                                         <option >Seleccione una área</option>`
             for(i = 0; i < contArea; i++){
                 if(jArea[i].id != 3 && jArea[i].id != 0) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
