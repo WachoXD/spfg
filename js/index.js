@@ -151,38 +151,29 @@ function iniciarSesion(){
             })
             .catch(err => console.log(err));
         }else{
-            var hoy = today.toLocaleString();
-            var jNotificacion = {
-                "type": "Error",
-                "color": [{
-                    "r": 237, 
-                    "g": 32,
-                    "b": 32
-                }],
-                "time": hoy,
-                "msg": "Por favor llene los campos"
-            }
-            notificacion(jNotificacion);
+            Swal.fire({
+                
+                icon: 'warning',
+                title: 'Por favor llene los campos',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            comprobarCookie();
 
         }
     }else{
-        var hoy = today.toLocaleString();
-            var jNotificacion = {
-                "type": "Error",
-                "color": [{
-                    "r": 237, 
-                    "g": 32,
-                    "b": 32
-                }],
-                "time":  hoy,
-                "msg": "Usuario o contraseña son incorrectos"
-            }
-            notificacion(jNotificacion);
+        Swal.fire({
+            icon: 'warning',
+            title: 'Usuario y/o contraseñas incorrectas',
+            showConfirmButton: false,
+            timer: 1500
+        })
+           comprobarCookie();
     }
 }
 //Notificaciones, que al chile no se si jalan y los puse el 4 de mayo
 function notificacion(jNotifi){
-    document.getElementById('app').innerHTML = `<div class="toast-container position-fixed bottom-0 end-0 p-3" id="notificacion" style="background: rgba(`+jNotifi.color.r+`, `+jNotifi.color.g+`, `+jNotifi.color.b+`, 0.3);">
+    document.getElementById('app').innerHTML = `<div class="toast-container position-fixed bottom-0 end-0 p-3" id="notificacion" style="background: rgba(`+jNotifi.r+`, `+jNotifi.g+`, `+jNotifi.b+`, 0.3);">
                 <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
                     <strong class="me-auto">`+jNotifi.type+`</strong>
@@ -207,7 +198,11 @@ function changePasswordView(newU, id){
     document.getElementById('app').innerHTML = '';
     loading(2);
     if(newU == 1){
-        alert("Por favor cambié su contraseña.")
+        Swal.fire(
+            'Cambio de contraseña',
+            'Por favor cambie su contraseña',
+            'info'
+          )
     }
     document.getElementById('app').innerHTML = "<div class='m-0 vh100 row justify-content-center align-items-center mt-5' >\
                                                     <div class='col-auto mt-5'>\
@@ -259,17 +254,27 @@ function changePassword(id){
             .then(response => response.json()) 
             .then(function(json) {
                 loading(2);
-                alert("Por favor Inicie sesión con la nueva contraseña");
+                Swal.fire('Por favor Inicie sesión con la nueva contraseña')
                 varGlobal = 0;
                 comprobarCookie();
             }
             )
             .catch(err => console.log(err));
         }else{
-            alert("Las contraseñas deben coincidir");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Las contraseñas deben de coincidir',
+                showConfirmButton: false,
+                timer: 1500
+            })
         }
     }else{
-        alert("Por favor llene los campos");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Por favor llene los campos',
+            showConfirmButton: false,
+            timer: 1500
+        })
     }
 }
 
@@ -710,7 +715,8 @@ async function home(jUsuario){
             contAceptar++;
         }
     });
-
+    usuIdGlobal = jUsuario.id;
+    //console.log("usuIdGlobal",usuIdGlobal," jUsuario.id ",jUsuario.id);
     document.getElementById('app').innerHTML = '';
 
     var sVentana = `<nav class="navbar bg-body-tertiary"> <!--Inicio del nav-->
@@ -726,6 +732,9 @@ async function home(jUsuario){
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         
         sVentana = sVentana + `<li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Todos los Pedidos</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -856,7 +865,7 @@ async function home(jUsuario){
                                         </thead>
                                         
                                         <tbody class="table-group-divider" id="tablaActivos><tr><th scope="row"></th></tr>`
-        usuIdGlobal = jUsuario.id;
+        
         if(contadorObjetos > 0){
             let responsable = '';
             let area = '';
@@ -1114,9 +1123,21 @@ async function aceptar(orderId, orderNumber, userId){
     //console.log(resulP);
     if(resulP.status == 200){
         loading(2);
+        Swal.fire({
+            position: 'top-end',
+            icon: 'success',
+            title: 'Se ha creado el pedido',
+            showConfirmButton: false,
+            timer: 1500
+        })
     }else{
         loading(2);
-        alert("No se pudo agregar el nuevo pedido")
+        Swal.fire({
+            icon: 'success',
+            title: 'No se pudo agregar el nuevo pedido',
+            showConfirmButton: false,
+            timer: 1500
+        })
     }
     recargar();
 }
@@ -1325,7 +1346,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
             let jUserS = await apiUsuario(usuIdGlobal);
             //console.log(jUserS[0].name);
             let areaS        = '';
-            console.log("arGlobal ",arGlobal);
+            console.log(jUserS);
+            console.log("usuIdGlobal",usuIdGlobal,"arGlobal ",arGlobal, "orderNumber", orderNumber, "IdOrder", idOrder, "jUserS[0].id",jUserS.id);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>

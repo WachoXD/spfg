@@ -32,6 +32,7 @@ var   app        = express();
 const morgan     = require('morgan');
 var   bodyParser = require('body-parser')
 var   cors       = require('cors');
+const { spawn }  = require('child_process');
 var   router     = express.Router();
 
  
@@ -49,6 +50,7 @@ app.use('/api', router);
  
 var mysql = require('mysql');
 
+/*
 var conexion= mysql.createConnection({
     host : 'localhost',
     database : 'spfg',
@@ -63,13 +65,60 @@ var conexion= mysql.createConnection({
     password : '',
 });*/
 
-conexion.connect(function(err) {
+/*conexion.connect(function(err) {
     if (err) {
         console.error('Error de conexion: ' + err.stack);
         return;
     }
     console.log('Conectado con el identificador ' + conexion.threadId);
 });
+*/
+
+var db_config = {
+    host: 'localhost',
+      user: 'pfg',
+      password: '(fEnebs[i_HIskp-',
+      database: 'spfg'
+  };
+  
+  var conexion;
+  
+  function handleDisconnect() {
+    conexion = mysql.createConnection(db_config); // Recreate the connection, since
+                                                    // the old one cannot be reused.
+  
+    conexion.connect(function(err) {              // The server is either down
+      if(err) {                                     // or restarting (takes a while sometimes).
+        console.log('error when connecting to db:', err);
+        setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+      }                                     // to avoid a hot loop, and to allow our node script to
+    });                                     // process asynchronous requests in the meantime.
+                                            // If you're also serving http, display a 503 error.
+    conexion.on('error', function(err) {
+      console.log('db error', err);
+      if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+        handleDisconnect();                         // lost due to either server restart, or a
+      } else {                                      // connnection idle timeout (the wait_timeout
+        throw err;                                  // server variable configures this)
+      }
+    });
+  }
+  
+  handleDisconnect();
+  function reinicio(){
+    process.on('ER_DUP_ENTRY', (error) => {
+        console.error('Se produjo un error:', error);
+    
+        // Reinicia el servicio de nodemon
+        const nodemonProcess = spawn('nodemon', ['index.js'], {
+        stdio: 'inherit',
+        });
+        
+        // Cierra el proceso actual
+        process.exit(1);
+    });
+  }
+  
 async function timeNow(){
     var today = new Date();
     return today;
@@ -87,7 +136,8 @@ app.get('/', (req, res) => {
     </head>
     <body>
     <br><br><br>
-        <center><h1>¿Que haces aquí?</h1><br><img src="https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg" width="900px" alt="Miloco"></center>
+        <center><h1>Cortese el pelo gei</h1><br><img src="https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg" width="900px" alt="Miloco"></center>
+        <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=https://proveedorferreterogdl.com/"> 
     </body>
 </html>`);
 })
@@ -171,7 +221,7 @@ router.get('/historial', (req, res) => {
 
 router.get('/solPedidos', (req,res) => {
     let id   = req.query.id;
-    conexion.query('SELECT * FROM orders WHERE who_id_created = '+id+'', (error, results, fields) => {
+    conexion.query('SELECT * FROM orders WHERE who_id_created = '+id+' ORDER BY id DESC', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -464,52 +514,63 @@ router.post('/agregarPed', (req, res) => {
    //console.log("numOrder ",numOrder);
    //
     conexion.query(`INSERT INTO orders (ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
-        if (error) {
-            console.error('Error al agregar el dato: ' + error.stack);
-            res.sendStatus(500);
-            return;
-          }
-      
-        const id = results.insertId; // Obtener el ID del nuevo dato agregado
-        let _datosHistorial = {
-            opc      : 1,
-            idOrder  : id,
-            area     : area,
-            idUser   : idUser,
-            numOrder : numOrder,
-            aceptado : 1
-        }
-        let resu = actHistorial(_datosHistorial);
-        //console.log(resu);
-        if(resu==200){
-            
-        }
-          //console.log('Dato agregado con éxito. ID:', id);
-          res.json({ 
-            "status":       200,
-           }); // Enviar el ID como respuesta en formato JSON
-        
         /*
-        if(Object.keys(results).length === 0){
-            res.json({
-                "status": 500
-            });
+        if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+            handleDisconnect();                         // lost due to either server restart, or a
+          } else {                                      // connnection idle timeout (the wait_timeout
+            throw err;                                  // server variable configures this)
+          }
+        */
+       // Captura los errores no capturados
+
+        if (error.code === 'ER_DUP_ENTRY') {
+            reinicio();
+            handleDisconnect();
+            
+            return;
         }else{
+      
+            const id = results.insertId; // Obtener el ID del nuevo dato agregado
             let _datosHistorial = {
                 opc      : 1,
+                idOrder  : id,
                 area     : area,
                 idUser   : idUser,
                 numOrder : numOrder,
+                aceptado : 1
             }
             let resu = actHistorial(_datosHistorial);
-            if(resu.status==200){
-                res.json({
-                    "status":       200,
-                });
+            //console.log(resu);
+            if(resu==200){
+                
             }
+            //console.log('Dato agregado con éxito. ID:', id);
+            res.json({ 
+                "status":       200,
+            }); // Enviar el ID como respuesta en formato JSON
+            
+            /*
+            if(Object.keys(results).length === 0){
+                res.json({
+                    "status": 500
+                });
+            }else{
+                let _datosHistorial = {
+                    opc      : 1,
+                    area     : area,
+                    idUser   : idUser,
+                    numOrder : numOrder,
+                }
+                let resu = actHistorial(_datosHistorial);
+                if(resu.status==200){
+                    res.json({
+                        "status":       200,
+                    });
+                }
+            }
+            */
+            //res.send(results); 
         }
-        */
-        //res.send(results); 
     }); 
     
 })
