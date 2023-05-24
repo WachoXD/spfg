@@ -95,6 +95,10 @@ window.addEventListener("keydown", (e) => {
             case 2:
                 changePassword(idGlobal);
                 break;
+            case 3:
+                document.querySelector('#btnNuevoPed').click();
+                break;
+
         }
         
     }
@@ -652,6 +656,35 @@ async function apiAceptar(area){
     return solPedidos;
 }
 
+async function apiSolTodPed(){
+    document.getElementById('app').innerHTML = '';
+    const url = urlBase+'solTodPed';
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solTodPed = [];
+    solTodPed = await fetch(url, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solTodPed;
+}
+
 async function apiRegAVentas(reqDatos){
     
 }
@@ -674,6 +707,7 @@ async function home(jUsuario){
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
     let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
+    tablaTodosAdm();
     //console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
@@ -732,7 +766,7 @@ async function home(jUsuario){
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         
         sVentana = sVentana + `<li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Todos los Pedidos</button>
+                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#home-tab-Todos" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Todos los Pedidos</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
@@ -757,8 +791,9 @@ async function home(jUsuario){
                                 </div>
                             </div>
                         </div>
-                        </nav><!--Fin del nav-->
-                        <div class="tab-content" id="myTabContent">
+                    </nav><!--Fin del nav-->
+                    <div class="tab-content" id="myTabContent">
+                        
                         <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <!--Inicio del menu de los pedidos-->
                             <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
@@ -1085,9 +1120,29 @@ async function home(jUsuario){
                                         </table>
 
                                     </div>
-                                    </div>
+                        </div>
 
-                                    </div>`;
+                    </div>
+                    </div>
+                        <div class="tab-pane fade" id="home-tab-Todos" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                            <div class="container-xxl" >
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">N° pedido</th>
+                                            <th scope="col">Estatus</th>
+                                            <th scope="col">Fecha de creación</th>
+                                            <th scope="col">Responsable</th>
+                                            <th scope="col">Área</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaTodosAdm">
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
     document.getElementById('app').innerHTML = sVentana;
     loading(2);
 }
@@ -1111,6 +1166,31 @@ function tamanomodal(vswitch){
         event.preventDefault();
     });
     */
+}
+
+async function tablaTodosAdm(){
+    document.getElementById('tablaTodosAdm').innerHTML = '';
+    let jTodos = await apiSolTodPed();
+    console.log(jTodos);
+    var sTablaTodosPed = '';
+    let countTodosPed = 0;
+
+    Object.keys(jTodos).forEach((clave) => {
+        if (typeof jTodos[clave] === "object") {
+            countTodosPed++;
+        }
+    });
+    for(i = 0; i < countTodosPed; i++){
+        sTablaTodosPed = sTablaTodosPed + ` <tr>
+                                                <th scope="row">`+jTodos[i].ordernumber+`</th>
+                                                <td>`+jTodos[i].status+`</td>
+                                                <td>`+jTodos[i].startdate+`</td>
+                                                <td>`+jTodos[i].user_id+`</td>
+                                                <td>`+jTodos[i].area_id+`</td>
+                                            </tr>`;
+    }
+    document.getElementById('tablaTodosAdm').innerHTML = sTablaTodosPed;
+    
 }
 
 async function aceptar(orderId, orderNumber, userId){
@@ -1266,6 +1346,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>`;
             break;
         case 3://Modal para nuevo pedido
+            varGlobal = 3;
             tamanomodal(1);
             let jUserP = await apiUsuario(usuIdGlobal);
             //console.log(jUserP[0].name);
@@ -1285,7 +1366,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                <button type="button" class="btn btn-primary" onclick="nuevoPed(`+jUserP[0].user_rol_id+`,`+jUserP[0].id+`)">Aceptar</button>
+                                                <button type="button" class="btn btn-primary" id="btnNuevoPed" onclick="nuevoPed(`+jUserP[0].user_rol_id+`,`+jUserP[0].id+`)">Aceptar</button>
                                             </div>`;
             break;
         
@@ -1402,15 +1483,29 @@ async function nuevoPed(area, userId){
         userId  : userId,
         numOrder : document.getElementById('nuevoPedidoInput').value
     }
-    let resulP = await apiAgregarPed(datosP);
+    let resultP = await apiAgregarPed(datosP);
     
-    if(resulP.status == 200){
+    if(resultP.status == 200){
         recargar();
         loading(2);
         document.querySelector('#cerrarMoNuevo').click();
+        document.querySelector('#cerrarMoNuevo').click();
+        Swal.fire({
+            icon: 'success',
+            title: 'Se ha creado el pedido',
+            showConfirmButton: false,
+            timer: 1500
+        })
     }else{
         loading(2);
-        alert("No se pudo agregar el nuevo pedido")
+        document.querySelector('#cerrarMoNuevo').click();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ha ocurrido un error',
+            showConfirmButton: false,
+            timer: 1500
+        })
+        
     }
 }
 async function rechazar(orderId, acepted){

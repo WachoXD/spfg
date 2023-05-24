@@ -273,6 +273,18 @@ router.get('/usuarios', (req, res) => {
     });
 })
 
+router.get('/solTodPed', (req, res) => {
+    conexion.query('SELECT * FROM orders', (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        res.send(jsonData);
+    });
+})
+
 router.get('/area', (req, res) => {
     conexion.query('SELECT id, name FROM role', (error, results, fields) => {
         if (error) {
@@ -351,9 +363,10 @@ router.post('/asignarPed', (req, res) => {
     let area        = req.body.area;
     let orderId     = req.body.idOrder;
     let acepted     = req.body.idUser;
+    let before_user = acepted;
     //console.log("El area es: ", area);
     var resu = '';
-    conexion.query("UPDATE orders SET `acepted` = '0', `updated_at` = NOW(), `area_id` = '"+area+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
+    conexion.query("UPDATE orders SET `acepted` = '0', `before_user` = '"+before_user+"', `updated_at` = NOW(), `area_id` = '"+area+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
             throw error;
         }
@@ -523,11 +536,15 @@ router.post('/agregarPed', (req, res) => {
         */
        // Captura los errores no capturados
 
-        if (error.code === 'ER_DUP_ENTRY') {
-            reinicio();
-            handleDisconnect();
-            
-            return;
+        if(error){
+            if (error.code === 'ER_DUP_ENTRY') {
+                reinicio();
+                handleDisconnect();
+                res.json({ 
+                    "status":       500,
+                });
+                return;
+            }
         }else{
       
             const id = results.insertId; // Obtener el ID del nuevo dato agregado
