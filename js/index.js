@@ -4,20 +4,21 @@ https://desarrolloweb.com/articulos/axios-ajax-cliente-http-javascript.html
 */
 var URLactual = window.location;
 //alert(URLactual);
-var varGlobal   = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
-var idGlobal    = 0;
-var today       = new Date(); // Iniciamos la fecha actual
-var arGlobal    = 0;
-var modMenu     = 1;
-var usuIdGlobal = 0;
+var varGlobal     = 0; //0 = login, 2 = cambio de contraseña, 3 = nuevo pedido,
+var idGlobal      = 0;
+var today         = new Date(); // Iniciamos la fecha actual
+var arGlobal      = 0;
+var modMenu       = 1;
+var usuIdGlobal   = 0;
+var todoModGlobal = 0;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
-if(URLactual == 'http://192.168.1.74:81/spfg/'){
+if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 }
-if(URLactual == 'http://localhost/spfg/'){
+if(URLactual.href.substring(0,28) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
 }
-if(URLactual == 'http://187.188.181.242:81/spfg/'){
+if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
 //alert(urlBase)
@@ -707,7 +708,7 @@ async function home(jUsuario){
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
     let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
-    tablaTodosAdm();
+    
     //console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
@@ -765,9 +766,13 @@ async function home(jUsuario){
     arGlobal = jUsuario.user_rol_id;
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         
-        sVentana = sVentana + `<li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#home-tab-Todos" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Todos los Pedidos</button>
+        sVentana = sVentana + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='tablaTodosAdm(`+jUsuario+`)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
                                 </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnTodosP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="tablaTodosAdm()" >Todos los Pedidos</button>
+                                </li>
+                                
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
@@ -1126,24 +1131,15 @@ async function home(jUsuario){
                     </div>
                         <div class="tab-pane fade" id="home-tab-Todos" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <div class="container-xxl" >
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">N° pedido</th>
-                                            <th scope="col">Estatus</th>
-                                            <th scope="col">Fecha de creación</th>
-                                            <th scope="col">Responsable</th>
-                                            <th scope="col">Área</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tablaTodosAdm">
-                                        
-                                    </tbody>
-                                </table>
+                                
                             </div>
                         </div>
                     </div>`;
     document.getElementById('app').innerHTML = sVentana;
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+       //let esperar = await tablaTodosAdm();
+       //setTimeout(tablaTodosAdm, 5000);
+    }
     loading(2);
 }
 let tModal = 0;
@@ -1168,8 +1164,11 @@ function tamanomodal(vswitch){
     */
 }
 
-async function tablaTodosAdm(){
-    document.getElementById('tablaTodosAdm').innerHTML = '';
+async function tablaTodosAdm(jUsuarioTodo){ 
+    
+    document.getElementById('tablaTodoPed').innerHTML = '';
+
+    
     let jTodos = await apiSolTodPed();
     console.log(jTodos);
     var sTablaTodosPed = '';
@@ -1180,17 +1179,32 @@ async function tablaTodosAdm(){
             countTodosPed++;
         }
     });
+    sTablaTodosPed = sTablaTodosPed + `<table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">N° pedido</th>
+                                                    <th scope="col">Estatus</th>
+                                                    <th scope="col">Fecha de creación</th>
+                                                    <th scope="col">Responsable</th>
+                                                    <th scope="col">Área</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaTodosAdmB">   `;
+   // document.getElementById('tablaTodosAdmB').innerHTML = '';
     for(i = 0; i < countTodosPed; i++){
-        sTablaTodosPed = sTablaTodosPed + ` <tr>
-                                                <th scope="row">`+jTodos[i].ordernumber+`</th>
-                                                <td>`+jTodos[i].status+`</td>
-                                                <td>`+jTodos[i].startdate+`</td>
-                                                <td>`+jTodos[i].user_id+`</td>
-                                                <td>`+jTodos[i].area_id+`</td>
-                                            </tr>`;
+        sTablaTodosPed = sTablaTodosPed + `     <tr>
+                                                    <th scope="row">`+jTodos[i].ordernumber+`</th>
+                                                    <td>`+jTodos[i].status+`</td>
+                                                    <td>`+jTodos[i].startdate+`</td>
+                                                    <td>`+jTodos[i].user_id+`</td>
+                                                    <td>`+jTodos[i].area_id+`</td>
+                                                </tr>`;
     }
-    document.getElementById('tablaTodosAdm').innerHTML = sTablaTodosPed;
-    
+
+    sTablaTodosPed = sTablaTodosPed + `     </tbody>
+                                        </table>`;
+    document.getElementById('tablaTodoPed').innerHTML = sTablaTodosPed;
+    //setTimeout(home(jUsuarioTodo), 5000);
 }
 
 async function aceptar(orderId, orderNumber, userId){

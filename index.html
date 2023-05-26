@@ -18,7 +18,8 @@
         </div>
     </div>
     <div id="app">
-    </div> <!-- Aqui se encuentra todo lo de ./js/index.js-->
+    </div>
+    <div id="tablaTodosAdmB1"></div> <!-- Aqui se encuentra todo lo de ./js/index.js-->
     <div class="modal fade" id="modalTotal" tabindex="-1" aria-labelledby="modalTotalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-xl" id="modalClass">
             <div class="modal-content" id="modalInfo">
@@ -28,6 +29,24 @@
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modalTodPed" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Todos los pedidos</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="tablaTodoPed">
+                  ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
     <script src="./js/bootstrap.bundle.min.js"></script>
     <script src="./js/axios.min.js"></script>
     <script src="./js/index.js"></script>

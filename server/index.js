@@ -27,13 +27,15 @@ server.listen(3000, ()=>{
     console.log('Listening on *:3000');
 });*/
 
-var   express    = require('express');
-var   app        = express();
-const morgan     = require('morgan');
-var   bodyParser = require('body-parser')
-var   cors       = require('cors');
-const { spawn }  = require('child_process');
-var   router     = express.Router();
+var   express                = require('express');
+var   app                    = express();
+const morgan                 = require('morgan');
+var   bodyParser             = require('body-parser')
+var   cors                   = require('cors');
+const { spawn }              = require('child_process');
+var   router                 = express.Router();
+//const winston                = require('winston');
+//const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
  
 //Configuraciones
@@ -73,7 +75,19 @@ var conexion= mysql.createConnection({
     console.log('Conectado con el identificador ' + conexion.threadId);
 });
 */
-
+/*const logger = winston.createLogger({
+    level: 'error', // Nivel de registro: error
+    format: winston.format.simple(), // Formato del mensaje de error
+    transports: [
+        new winston.transports.Console(), // Salida de la consola
+        new winstonDailyRotateFile({
+            filename: 'logs/error-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            maxSize: '20m',
+            maxFiles: '30d'
+        }) // Archivo de registro diario
+    ]
+});*/
 var db_config = {
     host: 'localhost',
       user: 'pfg',
@@ -145,7 +159,7 @@ app.get('/', (req, res) => {
 router.post('/login', (req, res) => { 
     let email = req.body.email;
     let pass  = req.body.pass;
-    console.log("email: "+email+" pass: "+ pass);
+    console.log("email: "+email);
     var resu = '';
     conexion.query("SELECT * FROM users WHERE email = ? AND password = ?",[email, pass], function (error, results, fields) {
         
@@ -322,6 +336,7 @@ router.post('/aceptarPed', (req, res) => {
     let orderId     = req.body.orderId;
     let acepted     = userId;
     var resu = '';
+    console.log("El usuario: ",userId," la orden: ",orderId);
     conexion.query("UPDATE orders SET `acepted` = '1', `user_id` = '"+userId+"', `updated_at` = NOW(), `before_area` = `area_id`,  `before_user` = '"+userId+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
             throw error;
@@ -368,6 +383,7 @@ router.post('/asignarPed', (req, res) => {
     var resu = '';
     conexion.query("UPDATE orders SET `acepted` = '0', `before_user` = '"+before_user+"', `updated_at` = NOW(), `area_id` = '"+area+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
+            console.log(error.code);
             throw error;
         }
         //console.log(results);  
@@ -411,6 +427,7 @@ router.post('/rechazarPed',(req, res)=>{
     var resu = '';
     conexion.query("UPDATE orders SET `acepted` = '1', `area_id` = `before_area`, `user_id` = `before_user`, `updated_at` = NOW() WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
+            console.log(error.code);
             throw error;
         }
         //console.log(results);  
@@ -509,6 +526,7 @@ function actHistorial(reqDatos){
     let res = conexion.query(sqlCon, function (error, results, fields) {
         if(error){
             console.log("error");
+            console.log(error.code);
             throw error;
             return 500;
         }
