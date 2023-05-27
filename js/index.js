@@ -1165,8 +1165,45 @@ function tamanomodal(vswitch){
 }
 
 async function tablaTodosAdm(jUsuarioTodo){ 
-    
-    document.getElementById('tablaTodoPed').innerHTML = '';
+
+    /* Veremos esto el lunes xD
+    // Simula un JSON con datos
+    let jsonDatos = await apiSolTodPed();
+
+
+    // Accede al elemento recién creado
+    const miElemento = document.querySelector('#tablaTodoPedAb');
+
+    // Borra el contenido actual del elemento
+    miElemento.innerHTML = '';
+
+    // Crea la tabla y sus elementos
+    const tabla = document.createElement('table');
+    const encabezado = document.createElement('thead');
+    const cuerpo = document.createElement('tbody');
+
+    // Crea el encabezado de la tabla
+    const encabezadoFila = document.createElement('tr');
+    encabezadoFila.innerHTML = '<th>Nombre</th><th>Edad</th>';
+    encabezado.appendChild(encabezadoFila);
+
+    // Itera sobre el JSON y crea las filas y celdas de datos
+    jsonDatos.forEach(datos => {
+    const fila = document.createElement('tr');
+    fila.innerHTML = `<td>${datos.nombre}</td><td>${datos.edad}</td>`;
+    cuerpo.appendChild(fila);
+    });
+
+    // Agrega el encabezado y el cuerpo a la tabla
+    tabla.appendChild(encabezado);
+    tabla.appendChild(cuerpo);
+
+    // Agrega la tabla al elemento HTML deseado
+    miElemento.appendChild(tabla);
+    */
+
+
+    /*document.getElementById('tablaTodoPed').innerHTML = '';
 
     
     let jTodos = await apiSolTodPed();
@@ -1204,7 +1241,7 @@ async function tablaTodosAdm(jUsuarioTodo){
     sTablaTodosPed = sTablaTodosPed + `     </tbody>
                                         </table>`;
     document.getElementById('tablaTodoPed').innerHTML = sTablaTodosPed;
-    //setTimeout(home(jUsuarioTodo), 5000);
+    //setTimeout(home(jUsuarioTodo), 5000);*/
 }
 
 async function aceptar(orderId, orderNumber, userId){
