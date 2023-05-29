@@ -34,8 +34,8 @@ var   bodyParser             = require('body-parser')
 var   cors                   = require('cors');
 const { spawn }              = require('child_process');
 var   router                 = express.Router();
-//const winston                = require('winston');
-//const winstonDailyRotateFile = require('winston-daily-rotate-file');
+const winston                = require('winston');
+const winstonDailyRotateFile = require('winston-daily-rotate-file');
 
  
 //Configuraciones
@@ -75,7 +75,7 @@ var conexion= mysql.createConnection({
     console.log('Conectado con el identificador ' + conexion.threadId);
 });
 */
-/*const logger = winston.createLogger({
+const logger = winston.createLogger({
     level: 'error', // Nivel de registro: error
     format: winston.format.simple(), // Formato del mensaje de error
     transports: [
@@ -87,7 +87,7 @@ var conexion= mysql.createConnection({
             maxFiles: '30d'
         }) // Archivo de registro diario
     ]
-});*/
+});
 var db_config = {
     host: 'localhost',
       user: 'pfg',
@@ -138,7 +138,8 @@ async function timeNow(){
     return today;
 }
 //Nuestro primer WS Get
-app.get('/', (req, res) => {    
+app.get('/', (req, res) => {
+    //logger.log("error", "Hello, Winston!");    
     res.send(`
 <!DOCTYPE html>
     <html lang="en">
@@ -151,7 +152,7 @@ app.get('/', (req, res) => {
     <body>
     <br><br><br>
         <center><h1>Cortese el pelo gei</h1><br><img src="https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg" width="900px" alt="Miloco"></center>
-        <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=https://proveedorferreterogdl.com/"> 
+        <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
     </body>
 </html>`);
 })
