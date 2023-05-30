@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPFG</title>
+    <link rel="stylesheet"    href="./scss/custom.css">
+    <link rel="stylesheet"    href="./scss/icons/font/bootstrap-icons.css">
+    <link rel="stylesheet"    href="./scss/sweetalert2.min.css">
+    <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+</head>
+<body id="body" onload="comprobarCookie()">
+<!--body-->
+    <div class="loader" id="loader">
+        <div class="spinner-border position-absolute top-50 start-50" style="width: 80px; height: 80px;" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <div id="app">
+    </div>
+    <div id="tablaTodosAdmB1"></div> <!-- Aqui se encuentra todo lo de ./js/index.js-->
+    <div class="modal fade" id="modalTotal" tabindex="-1" aria-labelledby="modalTotalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl" id="modalClass">
+            <div class="modal-content" id="modalInfo">
+                <!--Aqui van los modales desde el header, body y footer-->
+                
+                <!--Aqui terminan los modales desde el header, body y footer-->
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modalTodPed" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Todos los pedidos</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="tablaTodoPed">
+                  ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <script src="./js/bootstrap.bundle.min.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/index.js"></script>
+    <script src="./js/sweetalert2.all.min.js"></script>
+</body>
+</html>
+
