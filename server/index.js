@@ -139,6 +139,11 @@ async function timeNow(){
 }
 //Nuestro primer WS Get
 app.get('/', (req, res) => {
+    let img = {
+        uno: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
+        dos: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwradio.com.mx%2Fradio%2F2017%2F05%2F31%2Fdeportes%2F1496248133_037699.html&psig=AOvVaw1XdV8hYBAGgVVrfTPU6fiM&ust=1685484409888000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCLC66be3m_8CFQAAAAAdAAAAABAI",
+        tres: "https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg"
+    }
     //logger.log("error", "Hello, Winston!");    
     res.send(`
 <!DOCTYPE html>
@@ -151,7 +156,7 @@ app.get('/', (req, res) => {
     </head>
     <body>
     <br><br><br>
-        <center><h1>Cortese el pelo gei</h1><br><img src="https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg" width="900px" alt="Miloco"></center>
+        <center><h1>Ya Gonzalo</h1><br><img src="https://wrmx00.epimg.net/radio/imagenes/2017/05/31/deportes/1496248133_037699_1496249946_noticia_normal.jpg" width="900px" alt="Miloco"></center>
         <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
     </body>
 </html>`);
