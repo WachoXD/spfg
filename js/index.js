@@ -469,12 +469,37 @@ async function apiActualizarPedido(reqDatos){
     return res;
 }
 
+async function apiParcial(reqDatos){
+    let _datos = {
+        orderId : reqDatos.idOrder,
+        numOrder: reqDatos.ordernumber,
+        area_id : reqDatos.area_id,
+        idUser  : reqDatos.idUser
+    }
+    console.log(_datos);
+    var res = fetch(urlBase+'parcialPed', {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
+
+    return res;
+}
+
 async function apiAgregarPed(reqDatos){
     //console.log(reqDatos);
+    
     let _datos = {
         area    : reqDatos.area,
         idUser  : reqDatos.userId,
-        numOrder: reqDatos.numOrder
+        numOrder: reqDatos.numOrder, 
+        emp     : reqDatos.emp
     }
     //console.log(_datos);
     var res = fetch(urlBase+'agregarPed', {
@@ -658,17 +683,15 @@ async function apiAceptar(area){
 }
 
 async function apiSolTodPed(){
-    document.getElementById('app').innerHTML = '';
     const url = urlBase+'solTodPed';
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
+        method: 'GET',
+        mode: 'cors'
     };
-    var solTodPed = [];
-    solTodPed = await fetch(url, options)
+    var solTodPedidos = [];
+    solTodPedidos = await fetch(url, options)
     .then(response => {
         if (response.ok) {
             return response.json();
@@ -683,7 +706,7 @@ async function apiSolTodPed(){
     .catch(error => {
         console.error(error);
     });
-    return solTodPed;
+    return solTodPedidos;
 }
 
 async function apiRegAVentas(reqDatos){
@@ -702,8 +725,18 @@ async function recargar(){
 let jArea;
 let jUsuarios;
 let userIdGlobal;
+
+let incrementoR = 0;
 async function home(jUsuario){
-    let jPedidos        = await apiPedidos(jUsuario.id);
+    let jPedidos
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+        console.log("Si");
+        jPedidos        = await apiSolTodPed();
+    }else{
+        console.log("No");
+        jPedidos        = await apiPedidos(jUsuario.id);
+    }
+    
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
@@ -802,7 +835,7 @@ async function home(jUsuario){
                         <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <!--Inicio del menu de los pedidos-->
                             <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
-    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="pills-Todos-tab" data-bs-toggle="pill" data-bs-target="#pills-Todos" type="button" role="tab" aria-controls="pills-Todos" aria-selected="true"><i class="bi bi-list-nested"></i> Todos</button>
                                 </li>
@@ -816,7 +849,7 @@ async function home(jUsuario){
                                     <button class="nav-link" id="pills-finalizados-tab" data-bs-toggle="pill" data-bs-target="#pills-finalizados" type="button" role="tab" aria-controls="pills-finalizados" aria-selected="false"><i class="bi bi-emoji-smile"></i> Finalizados</button>
                                 </li>`
     }
-    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0){
+    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0 && jUsuario.user_rol_id != 6){
         sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="pills-aceptados-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptados" type="button" role="tab" aria-controls="pills-aceptados" aria-selected="false"><i class="bi bi-check2-circle"></i> Aceptados</button>
                                 </li>`;
@@ -848,7 +881,7 @@ async function home(jUsuario){
                             <!--Inicio de tablas-->
                                 <div class="container-xxl">
                                     <div class="tab-content" id="pills-tabContent">`
-    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana + `
                                         <!--Inicio de tabla de Todos-->
                                         <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
@@ -868,21 +901,19 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
-                    }
-                    for(k = 0; k < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                    }
-                    sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                        <td>`+responsable+`</td>
-                                                        <td>`+area+`</td>
-                                                    </tr>`
+                for(j = 0; j < contUsuarios; j++){
+                    if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
                 }
+                for(k = 0; k < contArea; k++){
+                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                }
+                sVentana = sVentana + `<tr>
+                                                    <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                    <td>`+jPedidos[i].status+`</td>
+                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                    <td>`+responsable+`</td>
+                                                    <td>`+area+`</td>
+                                                </tr>`
             }
         }
         
@@ -910,22 +941,20 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Activo'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Activo'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
@@ -952,26 +981,24 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Parcial'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Parcial'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
-
+ 
         sVentana = sVentana + `</tbody>
                                                     </table>
                                                 </div>
@@ -994,22 +1021,20 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Finalizado'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Finalizado'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
@@ -1059,9 +1084,22 @@ async function home(jUsuario){
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
+                                                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
-                                                            </button>
+                                                            </button>`;
+                    if(jUsuario.user_rol_id == 7){
+                        if(jAceptados[i].status != 'Parcial'){
+                            sVentana = sVentana +`          <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-columns-gap"></i>
+                                                            </button>`;
+                        }
+                        if(jAceptados[i].status != 'Finalizado'){
+                            sVentana = sVentana +`          <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-inbox"></i>
+                                                            </button>`;
+                        }
+                    }
+                    sVentana = sVentana +`
                                                         </td>
                                                     </tr>`
                 }
@@ -1136,12 +1174,66 @@ async function home(jUsuario){
                         </div>
                     </div>`;
     document.getElementById('app').innerHTML = sVentana;
-    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-       //let esperar = await tablaTodosAdm();
-       //setTimeout(tablaTodosAdm, 5000);
-    }
+
+    setTimeout(() => {
+        if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+            //let esperar = await tablaTodosAdm();
+            incrementoR++;
+            console.log("Hola tu ",incrementoR);
+            home(jUsuario)
+         }
+      }, 60000);
+    
     loading(2);
 }
+
+async function parcialView(idOrder, ordernumber, area, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' está en parcial?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precacución que el pedido se va a PARCIAL",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, a parcial'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                ordernumber : ordernumber,
+                area_id     : area,
+                idUser      : idUser
+            }
+            console.log(_reqDatos);
+            let resParcial = await parcialFun(_reqDatos);
+            console.log(resParcial);
+            if(resParcial == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha ido a parcial',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha ido a parcial',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function parcialFun(_reqDatos){
+    let resParcialFun = await apiParcial(_reqDatos);
+    console.log("El res es: ",resParcialFun.status);
+    console.log(resParcialFun.status == 200 ? 200 : 500);
+    return resParcialFun.status;
+}
+
 let tModal = 0;
 function tamanomodal(vswitch){
     //vswitch en 0 significa que es para que regerse a su tamaño real
@@ -1336,6 +1428,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                 let canceled    = '';
                 let asigned     = '';
                 let rechazado   = '';
+                let finalizado  = '';
 
                 for(i=0; i < contHistorial; i++){ 
                     for(j = 0; j < contUsuarios; j++){
@@ -1344,6 +1437,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                         if(jUsuarios[j].id == jHistorial[i].canceled_by)    canceled    = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].asigned_id)     asigned     = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].rejected_by)    rechazado   = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].finished_by)    finalizado  = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jHistorial[i].area_id) area = jArea[k].name;
@@ -1360,7 +1454,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
                     else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;//Valida si esta Aceptado
                         else if(jHistorial[i].asigned_to == 0) sModalVentana = sModalVentana + `<td>Asignado al area: <strong>`+area+`</strong></td>`;//Valida si esta Asignado
                             else if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+rechazado+`</strong></td>`;//Valida si esta Asignado
-                                else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                else if(jHistorial[i].partially_by != null) sModalVentana = sModalVentana + `<td>Parcial por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                    else if(jHistorial[i].finished_by != null) sModalVentana = sModalVentana + `<td>Finalizado por <strong>`+finalizado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                        else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                     if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
                     else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
@@ -1408,7 +1504,16 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>
                                             <div class="modal-body">
                                                 <div class="containerModal">
-                                                    <div class="input-group mb-3">
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="radioEmp" id="inlineRadio1" value="P" checked>
+                                                        <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="radioEmp" id="inlineRadio2" value="M">
+                                                        <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                                                    </div>
+                                                    
+                                                    <div class="input-group mb-3 mt-3">
                                                         <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
                                                         <input type="int" class="form-control" id="nuevoPedidoInput" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
                                                     </div>
@@ -1478,8 +1583,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
             let jUserS = await apiUsuario(usuIdGlobal);
             //console.log(jUserS[0].name);
             let areaS        = '';
-            console.log(jUserS);
-            console.log("usuIdGlobal",usuIdGlobal,"arGlobal ",arGlobal, "orderNumber", orderNumber, "IdOrder", idOrder, "jUserS[0].id",jUserS.id);
+            //console.log(jUserS);
+            //console.log("usuIdGlobal",usuIdGlobal,"arGlobal ",arGlobal, "orderNumber", orderNumber, "IdOrder", idOrder, "jUserS[0].id",jUserS.id);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
@@ -1527,13 +1632,22 @@ async function modalView(idOrder, orderNumber, opc, userId){
 }
 
 async function nuevoPed(area, userId){
-
-    loading(1);
-    let datosP = {
-        area    : area,
-        userId  : userId,
-        numOrder : document.getElementById('nuevoPedidoInput').value
+    var x = document.getElementsByName("radioEmp");
+    let resCheck = '';
+    for (i = 0; i < x.length; i++) {
+    	if(x[i].checked == true ){
+            resCheck = x[i].value;
+        }
     }
+    loading(1);
+    let numOrder = document.getElementById('nuevoPedidoInput').value.trim();
+    let datosP = {
+        area     : area,
+        userId   : userId,
+        numOrder : numOrder,
+        emp      : resCheck
+    }
+    //console.log(datosP);
     let resultP = await apiAgregarPed(datosP);
     
     if(resultP.status == 200){
@@ -1552,7 +1666,7 @@ async function nuevoPed(area, userId){
         document.querySelector('#cerrarMoNuevo').click();
         Swal.fire({
             icon: 'warning',
-            title: 'Ha ocurrido un error',
+            title: 'El N° de pedido '+numOrder+' ya existe',
             showConfirmButton: false,
             timer: 1500
         })
@@ -1634,20 +1748,22 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     let sModalVentana = '';
     switch(opc){
         case 1:
+            //Caso para ver a los vendedores
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
                                         <option value="99" >Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
-                if(jUsuarios[i].user_rol_id == 3){
+                if(jUsuarios[i].user_rol_id == 3){//validamos que los que se van a mostrar sean unicamente del área de vendedores
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
                 }
             }
             sModalVentana = sModalVentana +`</select>`;
             break;
         case 2:
+            //Caso para mostrar las áreas
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
                                         <option >Seleccione una área</option>`
-            for(i = 0; i < contArea; i++){
-                if(jArea[i].id != 3 && jArea[i].id != 0) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
+            for(i = 0; i < contArea; i++){//Iniciamos un ciclo para mostrar las áreas
+                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 10) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
             }
             sModalVentana = sModalVentana +`</select>`;
             

@@ -294,7 +294,7 @@ router.get('/usuarios', (req, res) => {
 })
 
 router.get('/solTodPed', (req, res) => {
-    conexion.query('SELECT * FROM orders', (error, results, fields) => {
+    conexion.query('SELECT * FROM orders ORDER BY id DESC', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -316,6 +316,7 @@ router.get('/area', (req, res) => {
         res.send(jsonData);
     });
 })
+
 router.post('/actualizarPedido',(req, res)=>{
     let area        = req.body.area;
     let numOrder    = req.body.numOrder;
@@ -337,12 +338,39 @@ router.post('/actualizarPedido',(req, res)=>{
     }); 
 })
 
+router.post('/parcialPed' ,(req, res)=>{
+    let numOrder    = req.body.numOrder;
+    let orderId     = req.body.orderId;
+    //console.log("Api orderId ",orderId);
+    conexion.query(`UPDATE orders SET status = 'Parcial' WHERE id = ?`,[orderId], function (error, results, fields) {
+        if(error){
+            console.log(error);
+            res.json({
+                "status": 500
+            });
+        }else{
+            let datosRes = {
+                area        : req.body.area_id,
+                orderId     : req.body.orderId,
+                idUser      : req.body.idUser,
+                opc         : 5,
+            }
+            //console.log(datosRes);
+            let resultado = actHistorial(datosRes);
+            res.json({
+                "status": 200,
+            });
+        }
+        //res.send(results);
+    });
+})
+
 router.post('/aceptarPed', (req, res) => {
     let userId      = req.body.userId;
     let orderId     = req.body.orderId;
     let acepted     = userId;
     var resu = '';
-    console.log("El usuario: ",userId," la orden: ",orderId);
+    //console.log("El usuario: ",userId," la orden: ",orderId);
     conexion.query("UPDATE orders SET `acepted` = '1', `user_id` = '"+userId+"', `updated_at` = NOW(), `before_area` = `area_id`,  `before_user` = '"+userId+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
             throw error;
@@ -503,8 +531,8 @@ function actHistorial(reqDatos){
         6: Finalizado
         */
         case 1:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, created_at) 
-            VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`',NOW())`;
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,    user_id,       order_id,       created_at) 
+            VALUES (                            'Activo', NOW(),    '`+area+`', '`+idUser+`',   '`+orderId+`',  NOW())`;
             break;
         case 2:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, asigned_to, order_id, created_at) 
@@ -520,8 +548,10 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`', NOW())`;
             break;
         case 5:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, created_at) 
-            VALUES ('Parcial', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', NOW())`;
+            /*sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, created_at) 
+            VALUES ('Parcial', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+idUser+`', NOW())`;*/
+            sqlCon = `INSERT INTO order_record(status,  changed_date, area_id,       user_id,        order_id,       changed_status_by, created_at ) 
+            VALUES (                           'Parcial', NOW(),       '`+area+`',    '`+idUser+`',    '`+orderId+`',    '`+idUser+`',       NOW())`
             break;
         case 6:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, created_at) 
@@ -531,8 +561,10 @@ function actHistorial(reqDatos){
 
     let res = conexion.query(sqlCon, function (error, results, fields) {
         if(error){
+            
             console.log("error");
             console.log(error.code);
+            
             throw error;
             return 500;
         }
@@ -546,11 +578,12 @@ router.post('/agregarPed', (req, res) => {
     let area        = req.body.area;
     let idUser      = req.body.idUser;
     let numOrder    = req.body.numOrder;
+    let emp         = req.body.emp;
    //console.log("Area: ",area);
    //console.log("IdUser: ",idUser);
    //console.log("numOrder ",numOrder);
    //
-    conexion.query(`INSERT INTO orders (ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
+    conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
         /*
         if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
             handleDisconnect();                         // lost due to either server restart, or a
@@ -574,8 +607,8 @@ router.post('/agregarPed', (req, res) => {
             const id = results.insertId; // Obtener el ID del nuevo dato agregado
             let _datosHistorial = {
                 opc      : 1,
-                idOrder  : id,
                 area     : area,
+                orderId  : id,
                 idUser   : idUser,
                 numOrder : numOrder,
                 aceptado : 1
