@@ -727,13 +727,12 @@ let jUsuarios;
 let userIdGlobal;
 
 let incrementoR = 0;
+let jEncode;
 async function home(jUsuario){
     let jPedidos
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-        console.log("Si");
         jPedidos        = await apiSolTodPed();
     }else{
-        console.log("No");
         jPedidos        = await apiPedidos(jUsuario.id);
     }
     
@@ -747,6 +746,10 @@ async function home(jUsuario){
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
     userIdGlobal        = jUsuario.id;
+
+    const jsonString = JSON.stringify(jUsuario);
+    jEncode = btoa(jsonString);
+    //console.log(jEncode);
 
     Object.keys(jPedidos).forEach((clave) => {
         if (typeof jPedidos[clave] === "object") {
@@ -797,16 +800,14 @@ async function home(jUsuario){
                                 <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Pedidos</button>
                                 </li>`;
     arGlobal = jUsuario.user_rol_id;
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){
+        sVentana = sVentana + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaAdm()" >Actualizar lista</button>
+                                </li>`
+    }
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         
         sVentana = sVentana + ` <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='tablaTodosAdm(`+jUsuario+`)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnTodosP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="tablaTodosAdm()" >Todos los Pedidos</button>
-                                </li>
-                                
-                                <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -1256,84 +1257,9 @@ function tamanomodal(vswitch){
     */
 }
 
-async function tablaTodosAdm(jUsuarioTodo){ 
-
-    /* Veremos esto el lunes xD
-    // Simula un JSON con datos
-    let jsonDatos = await apiSolTodPed();
-
-
-    // Accede al elemento recién creado
-    const miElemento = document.querySelector('#tablaTodoPedAb');
-
-    // Borra el contenido actual del elemento
-    miElemento.innerHTML = '';
-
-    // Crea la tabla y sus elementos
-    const tabla = document.createElement('table');
-    const encabezado = document.createElement('thead');
-    const cuerpo = document.createElement('tbody');
-
-    // Crea el encabezado de la tabla
-    const encabezadoFila = document.createElement('tr');
-    encabezadoFila.innerHTML = '<th>Nombre</th><th>Edad</th>';
-    encabezado.appendChild(encabezadoFila);
-
-    // Itera sobre el JSON y crea las filas y celdas de datos
-    jsonDatos.forEach(datos => {
-    const fila = document.createElement('tr');
-    fila.innerHTML = `<td>${datos.nombre}</td><td>${datos.edad}</td>`;
-    cuerpo.appendChild(fila);
-    });
-
-    // Agrega el encabezado y el cuerpo a la tabla
-    tabla.appendChild(encabezado);
-    tabla.appendChild(cuerpo);
-
-    // Agrega la tabla al elemento HTML deseado
-    miElemento.appendChild(tabla);
-    */
-
-
-    /*document.getElementById('tablaTodoPed').innerHTML = '';
-
-    
-    let jTodos = await apiSolTodPed();
-    console.log(jTodos);
-    var sTablaTodosPed = '';
-    let countTodosPed = 0;
-
-    Object.keys(jTodos).forEach((clave) => {
-        if (typeof jTodos[clave] === "object") {
-            countTodosPed++;
-        }
-    });
-    sTablaTodosPed = sTablaTodosPed + `<table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">N° pedido</th>
-                                                    <th scope="col">Estatus</th>
-                                                    <th scope="col">Fecha de creación</th>
-                                                    <th scope="col">Responsable</th>
-                                                    <th scope="col">Área</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tablaTodosAdmB">   `;
-   // document.getElementById('tablaTodosAdmB').innerHTML = '';
-    for(i = 0; i < countTodosPed; i++){
-        sTablaTodosPed = sTablaTodosPed + `     <tr>
-                                                    <th scope="row">`+jTodos[i].ordernumber+`</th>
-                                                    <td>`+jTodos[i].status+`</td>
-                                                    <td>`+jTodos[i].startdate+`</td>
-                                                    <td>`+jTodos[i].user_id+`</td>
-                                                    <td>`+jTodos[i].area_id+`</td>
-                                                </tr>`;
-    }
-
-    sTablaTodosPed = sTablaTodosPed + `     </tbody>
-                                        </table>`;
-    document.getElementById('tablaTodoPed').innerHTML = sTablaTodosPed;
-    //setTimeout(home(jUsuarioTodo), 5000);*/
+async function pestanaAdm(){
+    console.log("Hola");
+    location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
 }
 
 async function aceptar(orderId, orderNumber, userId){

@@ -20,3 +20,7 @@
 #dropPerfil li a{
     cursor: pointer;
 }
+
+#listaAdm a {
+    cursor: pointer;
+}
