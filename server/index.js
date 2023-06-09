@@ -52,29 +52,7 @@ app.use('/api', router);
  
 var mysql = require('mysql');
 
-/*
-var conexion= mysql.createConnection({
-    host : 'localhost',
-    database : 'spfg',
-    user : 'pfg',
-    password : '(fEnebs[i_HIskp-',
-}); 
 
-/*var conexion= mysql.createConnection({
-    host : 'localhost',
-    database : 'spfg',
-    user : 'root',
-    password : '',
-});*/
-
-/*conexion.connect(function(err) {
-    if (err) {
-        console.error('Error de conexion: ' + err.stack);
-        return;
-    }
-    console.log('Conectado con el identificador ' + conexion.threadId);
-});
-*/
 const logger = winston.createLogger({
     level: 'error', // Nivel de registro: error
     format: winston.format.simple(), // Formato del mensaje de error
@@ -88,18 +66,18 @@ const logger = winston.createLogger({
         }) // Archivo de registro diario
     ]
 });
-/*var db_config = {
+var db_config = {
     host: 'localhost',
       user: 'pfg',
       password: '(fEnebs[i_HIskp-',
       database: 'spfg'
-  };*/
-  var db_config = {
+  };
+  /*var db_config = {
     host: 'localhost',
       user: 'root',
       password: '',
       database: 'spfg'
-  };
+  };*/
   
   var conexion;
   

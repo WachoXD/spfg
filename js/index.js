@@ -1504,7 +1504,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                     
                                                     <div class="input-group mb-3 mt-3">
                                                         <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
-                                                        <input type="int" class="form-control" id="nuevoPedidoInput" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
+                                                        <input type="int" class="form-control" id="nuevoPedidoInput" min="9000" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
                                                     </div>
                                                 </div>
                                           
