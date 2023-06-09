@@ -649,6 +649,136 @@ router.post('/agregarPed', (req, res) => {
     
 })
 
+
+///////////////////////////////////////////////////////  Apis de adm ///////////////////////////
+router.get('/pm', (req, res) => {
+    conexion.query("SELECT * FROM orders WHERE company = ''", (error, results) => {
+        if (error) {
+            console.error('Error al verificar el producto:', error);
+        } else{
+            console.log(results.length);
+            for(i = 0; i < results.length; i++){
+                if(results[i].ordernumber < 40000){
+                    conexion.query("UPDATE `orders` SET `company`='M' WHERE `ordernumber`= "+results[i].ordernumber+"",(error, results) => {
+                        if (error) {
+                            console.error('Error al verificar el producto:', error);
+                        }
+                    })
+                }else{
+                    conexion.query("UPDATE `orders` SET `company`='P' WHERE `ordernumber`= "+results[i].ordernumber+"",(error, results) => {
+                        if (error) {
+                            console.error('Error al verificar el producto:', error);
+                        }
+                    })
+                }
+                console.log(i);
+            }
+            console.log("Ya terminó");
+        }
+    })
+})
+
+router.get('/actInvalido', (req, res) =>{
+    conexion.query("UPDATE `productos` SET `invalido`='0'",(error, results) =>{
+        if (error) {
+            console.error('Error al actualizar el invalido a 0:', error);
+        }
+    });
+})
+
+router.post('/agregarProd', (req, res) => {
+    let codigo       = req.body.codigo;
+    let codprov      = req.body.codprov;
+    let um           = req.body.um;
+    let descripcion  = req.body.descripcion;
+    let especial     = req.body.especial;
+    let costo        = req.body.costo;
+    let mon          = req.body.mon;
+    let prov         = req.body.prov;
+    let marca        = req.body.marca;
+    let fechaLista   = req.body.fechaLista;
+    let emp          = req.body.emp;
+    let sat          = req.body.sat;
+    let oferta       = req.body.oferta;
+    let invalido     = req.body.invalido;
+    // Consulta para verificar si el producto existe
+    
+    const consulta = `SELECT id FROM productos WHERE codigo = ?`;
+
+    conexion.query(consulta, [codigo], (error, results) => {
+        if (error) {
+            console.error('Error al verificar el producto:', error);
+        } else {
+            if (results.length > 0) {
+              // El producto existe, realizar la actualización
+                conexion.query("UPDATE `productos` SET `um`='"+um+"',`descripcion`='"+descripcion+"',`especial` = '"+especial+"' ,`costo`='"+costo+"',`fechalista`= NOW(), `invalido`='"+invalido+"' WHERE `codigo`='"+codigo+"'",(error, results) =>{
+                    if (error) {
+                        console.error('Error al actualizar el producto:', error);
+                    } else{
+                        res.json({
+                            "status" : 200
+                        })
+                    }
+                })
+            } else {
+              // El producto no existe, realizar la inserción
+              conexion.query(`INSERT INTO productos(codigo,       codprov,        um,     descripcion,       especial,     costo,       mon,      prov,      marca,      fechalista,     emp,       sat,        oferta,      invalido) 
+              VALUES (                            '`+codigo+`','`+codprov+`', '`+um+`','`+descripcion+`', '`+especial+`' , '`+costo+`','`+mon+`','`+prov+`','`+marca+`',NOW(),'`+emp+`','`+sat+`','`+oferta+`','`+invalido+`')`,(error, results) =>{
+                  if (error) {
+                      console.error('Error al ingresar el producto:', error);
+                  } else{
+                      res.json({
+                          "status" : 200
+                      })
+                  }
+              })
+            }
+        }
+    });
+});
+
+router.post('/resetInvalido', (req, results) => {
+    let prov       = req.body.prov;
+    let sQuery    = "";
+    //if(opc == 0){
+        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `prov` = "+prov+"; "
+    /*
+    }else{
+        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `especial` = (1); "
+    }
+    */
+    conexion.query(sQuery,(error, results) =>{
+        if (error) {
+            console.error('Error al resetear el invalido el producto:', error);
+        } else{
+            res.json({
+                "status" : 200
+            })
+        }
+    })
+});
+
+router.post('/agregarPorcen', (req, results) => {
+    let marca  = req.body.marca;
+    let lista1 = req.body.lista1;
+    let lista2 = req.body.lista2;
+    let lista3 = req.body.lista3;
+    sQuery = `INSERT INTO proveedores( marca,   lista1,         lista2,     lista3) 
+    VALUES (                        '`+marca+`','`+lista1+`','`+lista2+`','`+lista3+`') `;
+    conexion.query(sQuery,(error, results) =>{
+        if (error) {
+            console.error('Error al resetear el invalido el producto:', error);
+        } else{
+            res.json({
+                "status" : 200
+            })
+        }
+    })
+});
+
+
+
+
 //Iniciando el servidor
 app.listen(app.get('port'),()=>{
     console.log(`Server listening on port ${app.get('port')}`);

@@ -909,7 +909,7 @@ async function home(jUsuario){
                     if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                 }
                 sVentana = sVentana + `<tr>
-                                                    <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                    <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                     <td>`+jPedidos[i].status+`</td>
                                                     <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                     <td>`+responsable+`</td>
