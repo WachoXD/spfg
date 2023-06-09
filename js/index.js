@@ -728,7 +728,9 @@ let userIdGlobal;
 
 let incrementoR = 0;
 let jEncode;
+let jUsuarioGlobal;
 async function home(jUsuario){
+    jUsuarioGlobal = jUsuario;
     let jPedidos
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         jPedidos        = await apiSolTodPed();
@@ -879,14 +881,24 @@ async function home(jUsuario){
                                 </li>
                             </ul>
                             <!--Fin del menu de los pedidos-->
+                            
                             <!--Inicio de tablas-->
                                 <div class="container-xxl">
+                                    
                                     <div class="tab-content" id="pills-tabContent">`
     if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana + `
                                         <!--Inicio de tabla de Todos-->
                                         <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
-                                            <table class="table table-hover border">
+                                            <form>                                    
+                                                <div class="align-items-end" style="width: 100%;">
+                                                    <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                        <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
+                                                        <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch()" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            <table class="table table-hover border" id="tablaTodosT">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">N° pedido</th>
@@ -1177,15 +1189,66 @@ async function home(jUsuario){
     document.getElementById('app').innerHTML = sVentana;
 
     setTimeout(() => {
-        if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-            //let esperar = await tablaTodosAdm();
-            incrementoR++;
-            console.log("Hola tu ",incrementoR);
-            home(jUsuario)
-         }
+        if(noRecargar == 0){
+            if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+                //let esperar = await tablaTodosAdm();
+                incrementoR++;
+                console.log("Hola tu ",incrementoR);
+                home(jUsuario)
+            }
+        }
       }, 60000);
     
     loading(2);
+}
+
+let noRecargar = 0;
+function doSearch(){
+    const tableReg      = document.getElementById('tablaTodosT');
+    const searchText    = document.getElementById('searchTerm').value.toLowerCase();
+    noRecargar          = searchText.length;
+    let total           = 0;
+    // Recorremos todas las filas con contenido de la tabla
+    for (let i = 1; i < tableReg.rows.length; i++) {
+        // Si el td tiene la clase "noSearch" no se busca en su cntenido
+        if (tableReg.rows[i].classList.contains("noSearch")) {
+            continue;
+        }
+        let found = false;
+        const cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
+        // Recorremos todas las celdas
+        for (let j = 0; j < cellsOfRow.length && !found; j++) {
+            const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+            // Buscamos el texto en el contenido de la celda
+            if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
+                found = true;
+                total++;
+            }
+        }
+        if (found) {
+            tableReg.rows[i].style.display = '';
+        } else {
+            // si no ha encontrado ninguna coincidencia, esconde la
+            // fila de la tabla
+            tableReg.rows[i].style.display = 'none';
+        }
+    }
+    // mostramos las coincidencias
+    const lastTR = tableReg.rows[tableReg.rows.length - 1];
+    const td = lastTR.querySelector("td");
+    lastTR.classList.remove("hide", "red");
+    if (searchText == "") {
+        lastTR.classList.add("hide");
+    } else if (total) {
+        //td.innerHTML = "Se ha encontrado " + total + " coincidencia" + ((total > 1) ? "s" : "");
+    } else {
+        lastTR.classList.add("red");
+        td.innerHTML = "No se han encontrado coincidencias";
+    }
+    if(noRecargar == 0){
+        home(jUsuarioGlobal);
+    }
+
 }
 
 async function parcialView(idOrder, ordernumber, area, idUser){

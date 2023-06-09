@@ -88,10 +88,16 @@ const logger = winston.createLogger({
         }) // Archivo de registro diario
     ]
 });
-var db_config = {
+/*var db_config = {
     host: 'localhost',
       user: 'pfg',
       password: '(fEnebs[i_HIskp-',
+      database: 'spfg'
+  };*/
+  var db_config = {
+    host: 'localhost',
+      user: 'root',
+      password: '',
       database: 'spfg'
   };
   
