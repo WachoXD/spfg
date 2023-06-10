@@ -493,15 +493,13 @@ router.post('/finalizarPed', (req, res) => {
             const jsonData = JSON.stringify(results);
             let resul = JSON.parse(jsonData);
             console.log(resul);
-            let msg = 'El pedido ha sido finalizado';
             let datosRes = {
                 opc         : 6,
-                area        : resul[0].area_id,
-                orderId     : resul[0].id,
-                idUser      : resul[0].user_id,
+                area        : 101,
+                orderId     : idOrder,
+                idUser      : idUser,
                 acepted     : 0,
-                numOrder    : resul[0].ordernumber,
-                msg         : msg,
+                msg         : 'El pedido ha sido finalizado',
             }
             let resultado = actHistorial(datosRes);
             //console.log(resultado);
@@ -522,12 +520,53 @@ router.post('/eliminarPed', (req, res) => {
             console.log(error.code);
             throw error;
         }else{
-            res.json({ 
-                "status":       200,
-            }); 
+            conexion.query("DELETE FROM order_record WHERE `order_record`.`order_id` = '"+idOrder+"'", function (error, results, fields){
+                if (error) {
+                    console.log(error.code);
+                    throw error;
+                }else{
+                    res.json({ 
+                        "status":       200,
+                    }); 
+                }
+            })
+            
         }
     })
 })
+
+router.post('/cancelarPed', (req, res) => {
+    let idOrder     = req.body.idOrder;
+    let ordernumber = req.body.ordernumber;
+    let area_id     = req.body.area_id;
+    let idUser      = req.body.idUser;
+    conexion.query("UPDATE orders SET `status` = 'Cancelado', `acepted` = '0', `area_id` = '100', `user_id` = '"+idUser+"', `updated_at` = NOW() WHERE id = '"+idOrder+"'", function (error, results, fields) {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            console.log(resul);
+            let datosRes = {
+                opc         : 7,
+                area        : 100,
+                orderId     : idOrder,
+                idUser      : idUser,
+                acepted     : 0,
+                msg         : 'El pedido ha sido cancelado',
+            }
+            let resultado = actHistorial(datosRes);
+            //console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        }
+    });
+})
+
 function actHistorial(reqDatos){
 
     let area        = reqDatos.area;
@@ -535,6 +574,7 @@ function actHistorial(reqDatos){
     let idUser      = reqDatos.idUser;
     let aceptado    = reqDatos.acepted;
     let numOrder    = reqDatos.numOrder;
+    let msg         = reqDatos.msg;
     var resu;
     /*
     conexion.query('SELECT id FROM orders WHERE ordernumber = ?',[numOrder], (error, results, fields) => {
@@ -559,6 +599,7 @@ function actHistorial(reqDatos){
         4: Rechazado
         5: Parcial
         6: Finalizado
+        7: Cancelado
         */
         case 1:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id,    user_id,       order_id,       created_at) 
@@ -573,19 +614,21 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',NOW())`;
             break;
         case 4: 
-            let msg    = reqDatos.msg;
+            
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, rejected_by, cancellation_details, created_at) 
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`', NOW())`;
             break;
         case 5:
-            /*sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, created_at) 
-            VALUES ('Parcial', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+idUser+`', NOW())`;*/
-            sqlCon = `INSERT INTO order_record(status,  changed_date, area_id,       user_id,        order_id,       changed_status_by, created_at ) 
-            VALUES (                           'Parcial', NOW(),       '`+area+`',    '`+idUser+`',    '`+orderId+`',    '`+idUser+`',       NOW())`
+            sqlCon = `INSERT INTO order_record(status,  changed_date, area_id,       user_id,        order_id,       changed_status_by,  	partially_by, created_at ) 
+            VALUES (                           'Parcial', NOW(),       '`+area+`',    '`+idUser+`',    '`+orderId+`',    '`+idUser+`',       '`+idUser+`', NOW())`
             break;
         case 6:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, cancellation_details, created_at) 
-            VALUES ('Finalizado', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', '`+msg+`', NOW())`;
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	finished_by, created_at) 
+            VALUES (                        'Finalizado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
+        case 7:
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	canceled_by, created_at) 
+            VALUES (                        'Cancelado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
             break;
     }
 

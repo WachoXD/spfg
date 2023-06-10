@@ -503,7 +503,7 @@ async function apiParcial(reqDatos){
         area_id : reqDatos.area_id,
         idUser  : reqDatos.idUser
     }
-    console.log(_datos);
+    //console.log(_datos);
     var res = fetch(urlBase+'parcialPed', {
         method: "POST",
         body: JSON.stringify(_datos),
@@ -614,6 +614,16 @@ async function apiEliminarPed(reqDatos){
 
     let res = await apiMasterPost(_datos, 'eliminarPed');
 
+    return res;
+}
+
+async function apiCancelarPed(reqDatos){
+    let _datos = {
+        idOrder     : reqDatos.idOrder,
+        idUser      : reqDatos.idUser
+    }
+    console.log("idUser ",_datos.idUser);
+    let res = await apiMasterPost(_datos, 'cancelarPed');
     return res;
 }
 
@@ -928,9 +938,9 @@ async function home(jUsuario){
                                         <!--Inicio de tabla de Todos-->
                                         <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
                                                                                 
-                                            <div class="align-items-end" style="width: 100%;">
+                                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                                 <div class="input-group align-items-end mb-3" style="width: 30%;">
-                                                    <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
+                                                    <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
                                                     <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch()" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
                                                 </div>
                                             </div>
@@ -964,11 +974,11 @@ async function home(jUsuario){
                                                     <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                     <td `;
                 if(jPedidos[i].status == "Finalizado"){
-                    sVentana = sVentana + `               style="background: rgba(232, 30, 30 , 0.4);"`;
+                    sVentana = sVentana + `               style="background: rgba(32, 211, 59 , 0.4);"`;
                 }else if(jPedidos[i].status == "Parcial"){
                     sVentana = sVentana + `               style="background: rgba(232, 165, 30 , 0.4);"`;
                 }else if(jPedidos[i].status == "Cancelado"){
-                    sVentana = sVentana + `               style="background: rgba(232, 125, 30 , 0.4);"`;
+                    sVentana = sVentana + `               style="background: rgba(232, 30, 30 , 0.4);"`;
                 }
                 sVentana = sVentana + `                  >`+jPedidos[i].status+`</td>
                                                     <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
@@ -978,18 +988,27 @@ async function home(jUsuario){
                 if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
                     sVentana = sVentana + `         <td>`;
                     if(jPedidos[i].status != "Finalizado" && jPedidos[i].status != "Cancelado"){ //Si es diferente a Finalizado y Cancelado aparecerán estas opciones
-                        sVentana = sVentana +`          <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                        sVentana = sVentana +`          <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='editarPedView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
                                                             <i class="bi bi-arrow-left-right"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jPedidos[i].area_id+`,`+jUsuario.id+`)'>
+                                                        </button>`;
+                        if(jPedidos[i].status != 'Parcial'){
+                            sVentana = sVentana +`      <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jPedidos[i].area_id+`,`+jUsuario.id+`)'>
                                                             <i class="bi bi-columns-gap"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                        </button>`;
+                        }
+                        
+                        sVentana = sVentana +`          <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
                                                             <i class="bi bi-inbox"></i>
-                                                        </button>`
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='cancelarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-x-octagon"></i>
+                                                        </button>`;
                     }
                     
-                    sVentana = sVentana +`              <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='eliminarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`)'>
+                    sVentana = sVentana +`              <button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='eliminarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`)'>
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </td>`;
@@ -1169,6 +1188,24 @@ async function home(jUsuario){
                                                             <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
                                                             </button>`;
+                    if(jUsuario.user_rol_id == 5){
+                        if(jAceptados[i].status != 'Parcial'){
+                            sVentana = sVentana +`
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-columns-gap"></i>
+                                                            </button>
+                                                            `;
+                        }
+                        sVentana = sVentana +`              
+                                                            <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-inbox"></i>
+                                                            </button>`;
+                        
+                        sVentana = sVentana +`
+                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='cancelarView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-x-octagon"></i>
+                                                            </button>`;
+                    }                                      
                     if(jUsuario.user_rol_id == 7){
                         if(jAceptados[i].status != 'Parcial'){
                             sVentana = sVentana +`          <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
@@ -1264,7 +1301,7 @@ async function home(jUsuario){
             if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
                 //let esperar = await tablaTodosAdm();
                 incrementoR++;
-                console.log("Hola tu ",incrementoR);
+              console.log("Hola tu ",incrementoR);
                 home(jUsuario)
             }
         }
@@ -1364,8 +1401,8 @@ async function parcialView(idOrder, ordernumber, area, idUser){
 
 async function parcialFun(_reqDatos){
     let resParcialFun = await apiParcial(_reqDatos);
-    console.log("El res es: ",resParcialFun.status);
-    console.log(resParcialFun.status == 200 ? 200 : 500);
+    //console.log("El res es: ",resParcialFun.status);
+    //console.log(resParcialFun.status == 200 ? 200 : 500);
     return resParcialFun.status;
 }
 
@@ -1373,7 +1410,7 @@ async function finalizarView(idOrder, ordernumber, idUser){
     let sMensaje = '¿El pedido '+ordernumber+' está finalizado?'
     Swal.fire({
         title: sMensaje,
-        text: "Revisa con precaución que el pedido Este FINALIZADO",
+        text: "Revisa con precaución que el pedido este FINALIZADO",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#b68d2c',
@@ -1386,10 +1423,10 @@ async function finalizarView(idOrder, ordernumber, idUser){
                 idOrder     : idOrder,
                 idUser      : idUser
             }
-            console.log(_reqDatos);
+            //console.log(_reqDatos);
             let resParcial = await apiFinalizarPed(_reqDatos);
             console.log(resParcial);
-            if(resParcial == 200){
+            if(resParcial.status == 200){
                 Swal.fire(
                     '¡Exito!',
                     'El pedido '+ordernumber+' se ha ido a finalizado',
@@ -1399,6 +1436,45 @@ async function finalizarView(idOrder, ordernumber, idUser){
                 Swal.fire(
                     '¡Error!',
                     'El pedido '+ordernumber+' no se ha podido finalizar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function cancelarView(idOrder, ordernumber, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' se cancelará?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución que el pedido este CANCELADO",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Salir",
+        confirmButtonText: 'Si, cancelar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                area_id     : 100,
+                idUser      : idUser
+            }
+            console.log(_reqDatos);
+            let resParcial = await apiCancelarPed(_reqDatos);
+            console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha cancelado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha cancelado',
                     'error'
                 )
             }
@@ -1423,9 +1499,8 @@ async function eliminarView(idOrder, ordernumber){
             let _reqDatos = {
                 idOrder     : idOrder,
             }
-            console.log(_reqDatos);
             let resParcial = await apiEliminarPed(_reqDatos);
-            console.log(resParcial);
+            //console.log(resParcial);
             if(resParcial.status == 200){
                 Swal.fire(
                     '¡Exito!',
@@ -1444,6 +1519,49 @@ async function eliminarView(idOrder, ordernumber){
     })
 }
 
+async function editarPedView(idOrder, ordernumber){
+    Swal.fire({
+        title: 'Modificar el pedido '+ordernumber+'',
+        html:
+          `<input id="nombre-input" class="swal2-input" placeholder="Nombre" type="text" required>` +
+          `<input id="telefono-input" class="swal2-input" placeholder="Teléfono" type="text" required>`,
+        focusConfirm: false,
+        preConfirm: () => {
+          const nombre = document.getElementById('nombre-input').value;
+          const telefono = document.getElementById('telefono-input').value;
+          return { nombre, telefono };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const registroId = 123; // ID del registro que se va a modificar
+      
+          // Realizar la solicitud de actualización a través de Ajax o Fetch
+          const url = `URL_DEL_ENDPOINT_DE_ACTUALIZACION/${registroId}`;
+          const data = {
+            nombre: result.value.nombre,
+            telefono: result.value.telefono
+          };
+      
+          fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          })
+            .then((response) => {
+              if (response.ok) {
+                Swal.fire('Actualización Exitosa', '', 'success');
+              } else {
+                throw new Error('Error en la actualización');
+              }
+            })
+            .catch((error) => {
+              Swal.fire('Error', error.message, 'error');
+            });
+        }
+      });
+}
 
 let tModal = 0;
 function tamanomodal(vswitch){
@@ -1899,7 +2017,7 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
                                         <option >Seleccione una área</option>`
             for(i = 0; i < contArea; i++){//Iniciamos un ciclo para mostrar las áreas
-                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 100 && jArea[i].id != 101) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
+                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 100 && jArea[i].id != 101 && jArea[i].id != 7 && jArea[i].id != 6) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
             }
             sModalVentana = sModalVentana +`</select>`;
             break;

@@ -42,3 +42,10 @@
     border-radius: 30px;
 }
 
+#searchTerm, #basic-search{
+  border:2px solid #b68d2c;
+}
+#searchTerm:focus, #basic-search:focus{
+    outline: none;
+}
+
