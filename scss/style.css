@@ -28,3 +28,17 @@
 #idLogo{
     cursor:pointer;
 }
+
+.ir-arriba {
+	display:none;
+	padding:10px;
+	background:#b68d2c;
+	font-size:40px;
+	color:#fff;
+	cursor:pointer;
+	position: fixed;
+	bottom:10px;
+	right:10px;
+    border-radius: 30px;
+}
+

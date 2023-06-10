@@ -15,7 +15,7 @@ var todoModGlobal = 0;
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 }
-if(URLactual.href.substring(0,28) == 'http://localhost/spfg/'){
+if(URLactual.href.substring(0,22) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
 }
 if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
@@ -84,6 +84,7 @@ function comprobarCookie() {
 function cerrarSesion(){
     window.location.reload();
 }
+
 
 
 //Para reconocer el enter en el formulario
@@ -283,6 +284,22 @@ function changePassword(id){
     }
 }
 
+async function apiMasterPost(_datos, urlCont){
+    var res = fetch(urlBase+urlCont, {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
+
+    return res;
+}
+
 async function apiPedidos(id){
        
         const url = urlBase+'solPedidos';
@@ -452,9 +469,10 @@ async function apiActualizarPedido(reqDatos){
         area    : reqDatos.area,
         numOrder: reqDatos.numOrder,
         idUser  : reqDatos.idUser,
-        idOrder : reqDatosidOrder
+        idOrder : reqDatos.idOrder
     }
-    var res = fetch(urlBase+'actualizarPedido', {
+    let res = await apiMasterPost(_datos, 'actualizarPedido');
+    /*var res = fetch(urlBase+'actualizarPedido', {
         method: "POST",
         body: JSON.stringify(_datos),
         headers: {'Access-Control-Allow-Origin': '*',
@@ -464,8 +482,17 @@ async function apiActualizarPedido(reqDatos){
     .then(function(json) {
         return json;
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log(err));*/
 
+    return res;
+}
+
+async function apiFinalizarPed(reqDatos){
+    let _datos = {
+        idUser  : reqDatos.idUser,
+        idOrder : reqDatos.idOrder
+    }
+    let res = await apiMasterPost(_datos, 'finalizarPed');
     return res;
 }
 
@@ -576,6 +603,16 @@ async function apiAceptarPed(reqDatos){
         return json;
     })
     .catch(err => console.log(err));
+
+    return res;
+}
+
+async function apiEliminarPed(reqDatos){
+    let _datos = {
+        idOrder : reqDatos.idOrder
+    }
+
+    let res = await apiMasterPost(_datos, 'eliminarPed');
 
     return res;
 }
@@ -792,9 +829,9 @@ async function home(jUsuario){
     //console.log("usuIdGlobal",usuIdGlobal," jUsuario.id ",jUsuario.id);
     document.getElementById('app').innerHTML = '';
 
-    var sVentana = `<nav class="navbar bg-body-tertiary"> <!--Inicio del nav-->
+    var sVentana = `<nav class="navbar bg-body-tertiary" id="topNav"> <!--Inicio del nav-->
                         <div class="container-fluid">
-                            <a class="navbar-brand ms-4" href="#">
+                            <a class="navbar-brand ms-4" id="idLogo">
                                 <img src="./img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
                             </a>
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -890,14 +927,14 @@ async function home(jUsuario){
         sVentana = sVentana + `
                                         <!--Inicio de tabla de Todos-->
                                         <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
-                                            <form>                                    
-                                                <div class="align-items-end" style="width: 100%;">
-                                                    <div class="input-group align-items-end mb-3" style="width: 30%;">
-                                                        <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
-                                                        <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch()" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
-                                                    </div>
+                                                                                
+                                            <div class="align-items-end" style="width: 100%;">
+                                                <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                    <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
+                                                    <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch()" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
                                                 </div>
-                                            </form>
+                                            </div>
+                                            
                                             <table class="table table-hover border" id="tablaTodosT">
                                                 <thead>
                                                     <tr>
@@ -905,8 +942,11 @@ async function home(jUsuario){
                                                         <th scope="col">Estatus</th>
                                                         <th scope="col">Fecha de creación</th>
                                                         <th scope="col">Responsable</th>
-                                                        <th scope="col">Área</th>
-                                                    </tr>
+                                                        <th scope="col">Área</th>`;
+        if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){
+            sVentana = sVentana + `                     <th scope="col">Funciones</th>`;
+        }
+        sVentana = sVentana + `                     </tr>
                                                 </thead>
                                                 <tbody class="table-group-divider" id="tablaTodos">`;
 
@@ -920,12 +960,41 @@ async function home(jUsuario){
                 for(k = 0; k < contArea; k++){
                     if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                 }
-                sVentana = sVentana + `<tr>
+                sVentana = sVentana + `         <tr>
                                                     <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
-                                                    <td>`+jPedidos[i].status+`</td>
+                                                    <td `;
+                if(jPedidos[i].status == "Finalizado"){
+                    sVentana = sVentana + `               style="background: rgba(232, 30, 30 , 0.4);"`;
+                }else if(jPedidos[i].status == "Parcial"){
+                    sVentana = sVentana + `               style="background: rgba(232, 165, 30 , 0.4);"`;
+                }else if(jPedidos[i].status == "Cancelado"){
+                    sVentana = sVentana + `               style="background: rgba(232, 125, 30 , 0.4);"`;
+                }
+                sVentana = sVentana + `                  >`+jPedidos[i].status+`</td>
                                                     <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                     <td>`+responsable+`</td>
-                                                    <td>`+area+`</td>
+                                                    <td>`+area+`</td>`;
+                //if(jPedidos[i].status == "Finalizado")
+                if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
+                    sVentana = sVentana + `         <td>`;
+                    if(jPedidos[i].status != "Finalizado" && jPedidos[i].status != "Cancelado"){ //Si es diferente a Finalizado y Cancelado aparecerán estas opciones
+                        sVentana = sVentana +`          <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <i class="bi bi-arrow-left-right"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jPedidos[i].area_id+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-columns-gap"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-inbox"></i>
+                                                        </button>`
+                    }
+                    
+                    sVentana = sVentana +`              <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='eliminarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`)'>
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>`;
+                }
+                sVentana = sVentana + `
                                                 </tr>`
             }
         }
@@ -1185,7 +1254,9 @@ async function home(jUsuario){
                                 
                             </div>
                         </div>
-                    </div>`;
+                    </div>
+                    
+                    <a id="goup" href="#topNav" onclick="irArriba()" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
 
     setTimeout(() => {
@@ -1255,7 +1326,7 @@ async function parcialView(idOrder, ordernumber, area, idUser){
     let sMensaje = '¿El pedido '+ordernumber+' está en parcial?'
     Swal.fire({
         title: sMensaje,
-        text: "Revisa con precacución que el pedido se va a PARCIAL",
+        text: "Revisa con preacución que el pedido se va a PARCIAL",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#b68d2c',
@@ -1297,6 +1368,82 @@ async function parcialFun(_reqDatos){
     console.log(resParcialFun.status == 200 ? 200 : 500);
     return resParcialFun.status;
 }
+
+async function finalizarView(idOrder, ordernumber, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' está finalizado?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución que el pedido Este FINALIZADO",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, finalizar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                idUser      : idUser
+            }
+            console.log(_reqDatos);
+            let resParcial = await apiFinalizarPed(_reqDatos);
+            console.log(resParcial);
+            if(resParcial == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha ido a finalizado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha podido finalizar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function eliminarView(idOrder, ordernumber){
+    let sMensaje = '¿El pedido '+ordernumber+' será eliminado?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución el pedido. Si se elimina no se podrá recuperar",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, eliminar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+            }
+            console.log(_reqDatos);
+            let resParcial = await apiEliminarPed(_reqDatos);
+            console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' ha sido eliminado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha podido eliminar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
 
 let tModal = 0;
 function tamanomodal(vswitch){
@@ -1752,14 +1899,20 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
                                         <option >Seleccione una área</option>`
             for(i = 0; i < contArea; i++){//Iniciamos un ciclo para mostrar las áreas
-                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 10) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
+                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 100 && jArea[i].id != 101) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
             }
             sModalVentana = sModalVentana +`</select>`;
-            
             break;
-        
     }
-
     return sModalVentana;
-    
+}
+
+window.onscroll = function() {myFunction()};
+
+function myFunction() {
+  if (document.documentElement.scrollTop > 50) {
+    $("#goup").css("display", "block");
+  } else {
+    $("#goup").css("display", "none");
+  }
 }

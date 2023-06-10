@@ -482,6 +482,52 @@ router.post('/rechazarPed',(req, res)=>{
     }); 
 })
 
+router.post('/finalizarPed', (req, res) => {
+    let idUser      = req.body.idUser;
+    let idOrder     = req.body.idOrder;
+    conexion.query("UPDATE orders SET `status` = 'Finalizado', `acepted` = '0', `area_id` = '101', `user_id` = '"+idUser+"', `updated_at` = NOW() WHERE id = '"+idOrder+"'", function (error, results, fields) {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            console.log(resul);
+            let msg = 'El pedido ha sido finalizado';
+            let datosRes = {
+                opc         : 6,
+                area        : resul[0].area_id,
+                orderId     : resul[0].id,
+                idUser      : resul[0].user_id,
+                acepted     : 0,
+                numOrder    : resul[0].ordernumber,
+                msg         : msg,
+            }
+            let resultado = actHistorial(datosRes);
+            //console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        }
+    });
+
+})
+
+router.post('/eliminarPed', (req, res) => {
+    let idOrder     = req.body.idOrder;
+    conexion.query("DELETE FROM orders WHERE orders.id = '"+idOrder+"'", function (error, results, fields){
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            res.json({ 
+                "status":       200,
+            }); 
+        }
+    })
+})
 function actHistorial(reqDatos){
 
     let area        = reqDatos.area;
@@ -538,8 +584,8 @@ function actHistorial(reqDatos){
             VALUES (                           'Parcial', NOW(),       '`+area+`',    '`+idUser+`',    '`+orderId+`',    '`+idUser+`',       NOW())`
             break;
         case 6:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, created_at) 
-            VALUES ('Finalizado', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', NOW())`;
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, cancellation_details, created_at) 
+            VALUES ('Finalizado', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', '`+msg+`', NOW())`;
             break;
     }
 
