@@ -11,6 +11,7 @@ var arGlobal      = 0;
 var modMenu       = 1;
 var usuIdGlobal   = 0;
 var todoModGlobal = 0;
+let jPedidosGlobal;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
@@ -300,39 +301,38 @@ async function apiMasterPost(_datos, urlCont){
     return res;
 }
 
-async function apiPedidos(id){
-       
-        const url = urlBase+'solPedidos';
-        const data = {
-            id: id,
-        };
-        const params = new URLSearchParams(data);
-        const apiUrl = url + '?' + params;
+async function apiPedidos(id){   
+    const url = urlBase+'solPedidos';
+    const data = {
+        id: id,
+    };
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
 
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        const options = {
-        method: 'GET',
-        mode: 'cors',
-        headers: headers,
-        };
-        var solPedidos = [];
-        solPedidos = await fetch(apiUrl, options)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Error en la solicitud.');
-            }
-        })
-        .then(function(json) {
-            // Hacer algo con los datos recibidos
-            return json;
-        })
-        .catch(error => {
-            console.error(error);
-        });
-        return solPedidos;
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solPedidos = [];
+    solPedidos = await fetch(apiUrl, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solPedidos;
 }
 
 async function apiUsuarios(){
@@ -496,6 +496,11 @@ async function apiFinalizarPed(reqDatos){
     return res;
 }
 
+async function apiEditarPed(reqDatos){
+    let res = await apiMasterPost(reqDatos, 'modificarPed');
+    return res;
+}
+
 async function apiParcial(reqDatos){
     let _datos = {
         orderId : reqDatos.idOrder,
@@ -528,18 +533,7 @@ async function apiAgregarPed(reqDatos){
         numOrder: reqDatos.numOrder, 
         emp     : reqDatos.emp
     }
-    //console.log(_datos);
-    var res = fetch(urlBase+'agregarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
+    let res = await apiMasterPost(_datos, 'agregarPed');
 
     return res;
 }
@@ -850,6 +844,7 @@ async function home(jUsuario){
                                 </li>`;
     arGlobal = jUsuario.user_rol_id;
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){
+        jPedidosGlobal = jPedidos
         sVentana = sVentana + ` <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaAdm()" >Actualizar lista</button>
                                 </li>`
@@ -988,7 +983,7 @@ async function home(jUsuario){
                 if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
                     sVentana = sVentana + `         <td>`;
                     if(jPedidos[i].status != "Finalizado" && jPedidos[i].status != "Cancelado"){ //Si es diferente a Finalizado y Cancelado aparecerán estas opciones
-                        sVentana = sVentana +`          <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='editarPedView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                        sVentana = sVentana +`          <button type="button" class="btn btn-info" onclick='editarPedView(`+i+`, `+jUsuario.id+`)'>
                                                             <i class="bi bi-pencil-square"></i>
                                                         </button>
                                                         <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
@@ -1280,20 +1275,17 @@ async function home(jUsuario){
 
     sVentana = sVentana + `</tbody>
                                         </table>
-
                                     </div>
                         </div>
-
                     </div>
                     </div>
                         <div class="tab-pane fade" id="home-tab-Todos" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <div class="container-xxl" >
-                                
                             </div>
                         </div>
                     </div>
                     
-                    <a id="goup" href="#topNav" onclick="irArriba()" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
+                    <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
 
     setTimeout(() => {
@@ -1301,7 +1293,7 @@ async function home(jUsuario){
             if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
                 //let esperar = await tablaTodosAdm();
                 incrementoR++;
-              console.log("Hola tu ",incrementoR);
+                console.log("Hola tu ",incrementoR);
                 home(jUsuario)
             }
         }
@@ -1519,48 +1511,80 @@ async function eliminarView(idOrder, ordernumber){
     })
 }
 
-async function editarPedView(idOrder, ordernumber){
+async function editarPedView(pos, idUSer){
+    //console.log(jPedidosGlobal[pos]);
+    let sHtml = '';
+    if(jPedidosGlobal[pos].company == "P"){
+        sHtml = `<div class="form-check form-check-inline mt-3">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio1" value="P" checked>
+                    <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio2" value="M">
+                    <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                </div>`;
+    }else{
+        sHtml = `<div class="form-check form-check-inline mt-3">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio1" value="P">
+                    <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio2" value="M" checked>
+                    <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                </div>`;
+    }
+    sHtml = sHtml + `       
+                <div class="form-floating mt-3">
+                    <input type="number" class="form-control" id="changeOrderNumber" name="" value="`+jPedidosGlobal[pos].ordernumber+`">
+                    <label for="floatingPassword">Numéro de orden </label>
+                </div>
+            `;
     Swal.fire({
-        title: 'Modificar el pedido '+ordernumber+'',
-        html:
-          `<input id="nombre-input" class="swal2-input" placeholder="Nombre" type="text" required>` +
-          `<input id="telefono-input" class="swal2-input" placeholder="Teléfono" type="text" required>`,
-        focusConfirm: false,
-        preConfirm: () => {
-          const nombre = document.getElementById('nombre-input').value;
-          const telefono = document.getElementById('telefono-input').value;
-          return { nombre, telefono };
-        }
-      }).then((result) => {
+        title: 'Modificar el pedido <strong>'+jPedidosGlobal[pos].ordernumber+'</strong>',
+        html:   sHtml,
+        icon:  'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, modificar'
+    }).then(async (result) => {
         if (result.isConfirmed) {
-          const registroId = 123; // ID del registro que se va a modificar
-      
-          // Realizar la solicitud de actualización a través de Ajax o Fetch
-          const url = `URL_DEL_ENDPOINT_DE_ACTUALIZACION/${registroId}`;
-          const data = {
-            nombre: result.value.nombre,
-            telefono: result.value.telefono
-          };
-      
-          fetch(url, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          })
-            .then((response) => {
-              if (response.ok) {
-                Swal.fire('Actualización Exitosa', '', 'success');
-              } else {
-                throw new Error('Error en la actualización');
-              }
-            })
-            .catch((error) => {
-              Swal.fire('Error', error.message, 'error');
-            });
+            var cmp     = document.getElementsByName("radioCmp");
+            var orderN  = document.getElementById("changeOrderNumber").value;
+            for (i = 0; i < cmp.length; i++) {
+                if(cmp[i].checked == true ){
+                    resCheck = cmp[i].value;
+                }
+            }
+            let _reqDatos = {
+                idUser         : idUSer,
+                idOrder        : jPedidosGlobal[pos].id,
+                company        : resCheck, 
+                ordernumber    : orderN,
+                oldOrderNumber : jPedidosGlobal[pos].ordernumber,
+                oldCompany     : jPedidosGlobal[pos].company,
+                area           : jPedidosGlobal[pos].area_id,
+                acepted        : jPedidosGlobal[pos].acepted,
+            }
+            let resParcial = await apiEditarPed(_reqDatos);
+            //console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido se ha modificado el pedido',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+orderN+' no se ha podido modificar',
+                    'error'
+                )
+            }
+            recargar();
         }
-      });
+    })
 }
 
 let tModal = 0;

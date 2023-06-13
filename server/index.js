@@ -123,27 +123,29 @@ async function timeNow(){
 }
 //Nuestro primer WS Get
 app.get('/', (req, res) => {
-    let img = {
-        uno: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
-        dos: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwradio.com.mx%2Fradio%2F2017%2F05%2F31%2Fdeportes%2F1496248133_037699.html&psig=AOvVaw1XdV8hYBAGgVVrfTPU6fiM&ust=1685484409888000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCLC66be3m_8CFQAAAAAdAAAAABAI",
-        tres: "https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg"
-    }
-    //logger.log("error", "Hello, Winston!");    
-    res.send(`
-<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>¿?</title>
-    </head>
-    <body>
-    <br><br><br>
-        <center><h1>Ya Gonzalo</h1><br><img src="https://wrmx00.epimg.net/radio/imagenes/2017/05/31/deportes/1496248133_037699_1496249946_noticia_normal.jpg" width="900px" alt="Miloco"></center>
-        <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
-    </body>
-</html>`);
+    let img = [  "","https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
+                "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwradio.com.mx%2Fradio%2F2017%2F05%2F31%2Fdeportes%2F1496248133_037699.html&psig=AOvVaw1XdV8hYBAGgVVrfTPU6fiM&ust=1685484409888000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCLC66be3m_8CFQAAAAAdAAAAABAI",
+                "https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg"
+            ]
+    //logger.log("error", "Hello, Winston!");
+    const numeroAlAzar = Math.floor(Math.random() * 2) + 1;  
+    console.log("numeroAlAzar ",numeroAlAzar);
+    let sVista = `
+    <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>¿?</title>
+        </head>
+        <body>
+        <br><br><br>
+            <center><h1>Ya Gonzalo</h1><br><img src="`+img[numeroAlAzar]+`" width="900px" alt="Miloco"></center>
+            <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
+        </body>
+    </html>`
+    res.send(sVista);
 })
 
 router.post('/login', (req, res) => { 
@@ -567,6 +569,55 @@ router.post('/cancelarPed', (req, res) => {
     });
 })
 
+router.post('/modificarPed', (req, res) => {
+    let area           = req.body.area;
+    let acepted        = req.body.acepted;
+    let idUser         = req.body.idUser;
+    let idOrder        = req.body.idOrder;
+    let company        = req.body.company;    
+    let ordernumber    = req.body.ordernumber;
+    let oldOrderNumber = req.body.oldOrderNumber;
+    let oldCompany     = req.body.oldCompany;
+    //console.log("area ",area," acepted ",acepted," idUser ", idUser, " idOrder ",idOrder, " company ",company," ordernumber ",ordernumber," oldOrderNumber ",oldOrderNumber," oldCompany ",oldCompany);
+
+    conexion.query("SELECT id FROM `orders` WHERE `company` = '"+company+"' AND `ordernumber` = '"+ordernumber+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            if (results.length > 0) {
+                console.log("Result: ",results.length);
+                res.json({
+                    "status":       500,
+                })
+            }else{
+                conexion.query("UPDATE `orders` SET `company`='"+company+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
+                    if (error) {
+                        console.log(error.code);
+                        throw error;
+                    }else{
+                        let datosRes = {
+                            opc         : 8,
+                            area        : area,
+                            orderId     : idOrder,
+                            idUser      : idUser,
+                            acepted     : acepted,
+                            msg         : 'El pedido ha sido modificado de '+oldOrderNumber+' a '+ordernumber+' y de '+oldCompany+' a '+company+'',
+                        }
+                        let resultado = actHistorial(datosRes);
+                        res.json({ 
+                            "status":  200,
+                        });
+                    }
+                });
+            }
+            
+        }
+    });
+
+    
+})
+
 function actHistorial(reqDatos){
 
     let area        = reqDatos.area;
@@ -600,6 +651,7 @@ function actHistorial(reqDatos){
         5: Parcial
         6: Finalizado
         7: Cancelado
+        8: Modificar
         */
         case 1:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id,    user_id,       order_id,       created_at) 
@@ -630,6 +682,10 @@ function actHistorial(reqDatos){
             sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	canceled_by, created_at) 
             VALUES (                        'Cancelado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
             break;
+        case 8:
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	canceled_by, created_at) 
+            VALUES (                        'Modificado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
     }
 
     let res = conexion.query(sqlCon, function (error, results, fields) {
@@ -656,69 +712,83 @@ router.post('/agregarPed', (req, res) => {
    //console.log("IdUser: ",idUser);
    //console.log("numOrder ",numOrder);
    //
-    conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
-        /*
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
-            handleDisconnect();                         // lost due to either server restart, or a
-          } else {                                      // connnection idle timeout (the wait_timeout
-            throw err;                                  // server variable configures this)
-          }
-        */
-       // Captura los errores no capturados
-
-        if(error){
-            if (error.code === 'ER_DUP_ENTRY') {
-                reinicio();
-                handleDisconnect();
-                res.json({ 
-                    "status":       500,
-                });
-                return;
-            }
+    conexion.query("SELECT id FROM orders WHERE company = '"+emp+"' AND ordernumber = '"+numOrder+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
         }else{
-      
-            const id = results.insertId; // Obtener el ID del nuevo dato agregado
-            let _datosHistorial = {
-                opc      : 1,
-                area     : area,
-                orderId  : id,
-                idUser   : idUser,
-                numOrder : numOrder,
-                aceptado : 1
-            }
-            let resu = actHistorial(_datosHistorial);
-            //console.log(resu);
-            if(resu==200){
-                
-            }
-            //console.log('Dato agregado con éxito. ID:', id);
-            res.json({ 
-                "status":       200,
-            }); // Enviar el ID como respuesta en formato JSON
-            
-            /*
-            if(Object.keys(results).length === 0){
+            if (results.length > 0) {
                 res.json({
-                    "status": 500
-                });
+                    "status":       500,
+                })
             }else{
-                let _datosHistorial = {
-                    opc      : 1,
-                    area     : area,
-                    idUser   : idUser,
-                    numOrder : numOrder,
-                }
-                let resu = actHistorial(_datosHistorial);
-                if(resu.status==200){
-                    res.json({
-                        "status":       200,
-                    });
-                }
+                conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
+                    /*
+                    if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+                        handleDisconnect();                         // lost due to either server restart, or a
+                    } else {                                      // connnection idle timeout (the wait_timeout
+                        throw err;                                  // server variable configures this)
+                    }
+                    */
+                // Captura los errores no capturados
+            
+                    if(error){
+                        if (error.code === 'ER_DUP_ENTRY') {
+                            reinicio();
+                            handleDisconnect();
+                            res.json({ 
+                                "status":       500,
+                            });
+                            return;
+                        }
+                    }else{
+                        
+                        const id = results.insertId; // Obtener el ID del nuevo dato agregado
+                        let _datosHistorial = {
+                            opc      : 1,
+                            area     : area,
+                            orderId  : id,
+                            idUser   : idUser,
+                            numOrder : numOrder,
+                            aceptado : 1
+                        }
+                        let resu = actHistorial(_datosHistorial);
+                        //console.log(resu);
+                        if(resu==200){
+                            
+                        }
+                        //console.log('Dato agregado con éxito. ID:', id);
+                        res.json({ 
+                            "status":       200,
+                        }); // Enviar el ID como respuesta en formato JSON
+                        
+                        /*
+                        if(Object.keys(results).length === 0){
+                            res.json({
+                                "status": 500
+                            });
+                        }else{
+                            let _datosHistorial = {
+                                opc      : 1,
+                                area     : area,
+                                idUser   : idUser,
+                                numOrder : numOrder,
+                            }
+                            let resu = actHistorial(_datosHistorial);
+                            if(resu.status==200){
+                                res.json({
+                                    "status":       200,
+                                });
+                            }
+                        }
+                        */
+                        //res.send(results); 
+                    }
+                }); 
             }
-            */
-            //res.send(results); 
         }
-    }); 
+    })
+    
     
 })
 
