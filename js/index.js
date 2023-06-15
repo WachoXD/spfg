@@ -59,7 +59,7 @@ function comprobarCookie() {
                                                                     <div class='mb-3'>\
                                                                     <label for='exampleInputEmail1' class='form-label'>\Correo</label>\
                                                                     <div class='input-group mb-3'>\
-                                                                        <input type='email' class='form-control' id='inpEmail' placeholder='ejemplo@proveedorferretero.net'>\
+                                                                        <input type='email' autofocus class='form-control' id='inpEmail' placeholder='ejemplo@proveedorferretero.net'>\
                                                                         <span class='input-group-text bi bi-person' id='basic-addon1'>\
                                                                         </span>\
                                                                     </div>\
@@ -219,7 +219,7 @@ function changePasswordView(newU, id){
                                                                 <div class='mb-3'>\
                                                                     <label for='exampleInputPassword1' class='form-label'>Nueva contraseña</label>\
                                                                     <div class='input-group mb-3'>\
-                                                                        <input type='password' class='form-control' id='newInpPass' placeholder='*********'>\
+                                                                        <input type='password' autofocus class='form-control' id='newInpPass' placeholder='*********'>\
                                                                         <span class='input-group-text bi bi-eye' id='basic-addon1'>\
                                                                         </span>\
                                                                     </div>\
@@ -496,6 +496,11 @@ async function apiFinalizarPed(reqDatos){
     return res;
 }
 
+async function apiAsignarDir(reqDatos){
+    let res = await apiMasterPost(reqDatos, 'asignarDir');
+    return res;
+}
+
 async function apiEditarPed(reqDatos){
     let res = await apiMasterPost(reqDatos, 'modificarPed');
     return res;
@@ -509,18 +514,7 @@ async function apiParcial(reqDatos){
         idUser  : reqDatos.idUser
     }
     //console.log(_datos);
-    var res = fetch(urlBase+'parcialPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
-
+    let res = await apiMasterPost(_datos, 'parcialPed')
     return res;
 }
 
@@ -543,18 +537,7 @@ async function apiRechazarPed(reqDatos){
         orderId  : reqDatos.orderId,
         msg: reqDatos.msg
     }
-    var res = fetch(urlBase+'rechazarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
-
+    let res = await apiMasterPost(_datos, 'rechazarPed');
     return res;
 }
 
@@ -565,18 +548,7 @@ async function apiAvanzaPedido(reqDatos){
         idUser  : reqDatos.idUser,
         idOrder : reqDatos.idOrder
     }
-    var res = await fetch(urlBase+'asignarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
-
+    let res = await apiMasterPost(_datos, 'asignarPed');
     return res;
 }
 
@@ -586,7 +558,8 @@ async function apiAceptarPed(reqDatos){
         orderNumber : reqDatos.orderNumber,
         userId      : reqDatos.userId
     }
-    var res = await fetch(urlBase+'aceptarPed', {
+    let res = await apiMasterPost(_datos, 'aceptarPed');
+    /* var res = await fetch(urlBase+'aceptarPed', {
         method: "POST",
         body: JSON.stringify(_datos),
         headers: {'Access-Control-Allow-Origin': '*',
@@ -596,7 +569,7 @@ async function apiAceptarPed(reqDatos){
     .then(function(json) {
         return json;
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log(err));*/
 
     return res;
 }
@@ -751,7 +724,8 @@ async function apiSolTodPed(){
 }
 
 async function apiRegAVentas(reqDatos){
-    
+    let res = await apiMasterPost(reqDatos, 'regresarVent');
+    return res;
 }
 
 async function recargar(){
@@ -770,6 +744,7 @@ let userIdGlobal;
 let incrementoR = 0;
 let jEncode;
 let jUsuarioGlobal;
+let cargaTodo = 0;
 async function home(jUsuario){
     jUsuarioGlobal = jUsuario;
     let jPedidos
@@ -1288,18 +1263,25 @@ async function home(jUsuario){
                     <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
 
-    setTimeout(() => {
+    if(cargaTodo == 0){
+        cargaTodo = 1;
+        let resul = recargarTodo(jUsuario.user_rol_id);
+    }
+    
+    loading(2);
+    return 1;
+}
+
+async function recargarTodo(rol){
+    setTimeout(async () => {
         if(noRecargar == 0){
-            if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+            if(rol == 0 || rol == 2 || rol == 6){
                 //let esperar = await tablaTodosAdm();
-                incrementoR++;
-                console.log("Hola tu ",incrementoR);
-                home(jUsuario)
+                let = await home(jUsuarioGlobal);
+                recargarTodo(rol);
             }
         }
       }, 60000);
-    
-    loading(2);
 }
 
 let noRecargar = 0;
@@ -1600,13 +1582,6 @@ function tamanomodal(vswitch){
         document.getElementById('modalClass').classList.add('modal-xl');
         tModal = 0;
     }
-    /*
-    document.getElementById("btnModanNuevoP")
-    .addEventListener("click", function(event) {
-        alert("Submit button is clicked!");
-        event.preventDefault();
-    });
-    */
 }
 
 async function pestanaAdm(){
@@ -1624,13 +1599,28 @@ async function aceptar(orderId, orderNumber, userId){
     //console.log(resulP);
     if(resulP.status == 200){
         loading(2);
-        Swal.fire({
+        const Toast = Swal.mixin({
+            toast: true,
             position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer)
+              toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+          })
+          
+          Toast.fire({
+            icon: 'success',
+            title: 'El pedido <strong>'+orderNumber+'</strong> a sido aceptado'
+          })
+        /*Swal.fire({
             icon: 'success',
             title: 'Se ha creado el pedido',
             showConfirmButton: false,
             timer: 1500
-        })
+        })*/
     }else{
         loading(2);
         Swal.fire({
@@ -1707,7 +1697,10 @@ async function modalView(idOrder, orderNumber, opc, userId){
                 let asigned     = '';
                 let rechazado   = '';
                 let finalizado  = '';
-
+                let modificado  = '';
+                let regreso     = '';
+                let asigado     = '';
+                
                 for(i=0; i < contHistorial; i++){ 
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jHistorial[i].user_id)        responsable = jUsuarios[j].name;
@@ -1716,6 +1709,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
                         if(jUsuarios[j].id == jHistorial[i].asigned_id)     asigned     = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].rejected_by)    rechazado   = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].finished_by)    finalizado  = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].modificed_by)   modificado  = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].return_by)      regreso     = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].redirect_by)    asigado     = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jHistorial[i].area_id) area = jArea[k].name;
@@ -1724,7 +1720,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
                         else if(jHistorial[i].status == 'Parcial') sModalVentana = sModalVentana + `<tr class="table-warning">`; //Si es parcial se pone en naranja
                             else if(jHistorial[i].status == 'Finalizado') sModalVentana = sModalVentana + `<tr class="table-success">`; //Si es finalizado se pone en verde
                                 else if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
-                                    else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
+                                    else if(jHistorial[i].modificed_by != null) sModalVentana = sModalVentana + `<tr class="table-info">`; //Si es cancelado se pone en Rojo
+                                        else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
                     sModalVentana = sModalVentana + `<td scope="row">`+new Date(jHistorial[i].changed_date).toLocaleString()+`</td>
                                             <td>`+area+`</td>
                                             <td>`+responsable+`</td>`;
@@ -1734,7 +1731,10 @@ async function modalView(idOrder, orderNumber, opc, userId){
                             else if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+rechazado+`</strong></td>`;//Valida si esta Asignado
                                 else if(jHistorial[i].partially_by != null) sModalVentana = sModalVentana + `<td>Parcial por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                                     else if(jHistorial[i].finished_by != null) sModalVentana = sModalVentana + `<td>Finalizado por <strong>`+finalizado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
-                                        else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                        else if(jHistorial[i].modificed_by != null) sModalVentana = sModalVentana + `<td>Modificado por <strong>`+modificado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                            else if(jHistorial[i].return_by != null) sModalVentana = sModalVentana + `<td>Regresó a ventas por: <strong>`+regreso+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                                else if(jHistorial[i].redirect_by != null) sModalVentana = sModalVentana + `<td>Se asignó por: <strong>`+asigado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido    
+                                                    else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                     if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
                     else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
@@ -1793,7 +1793,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                     
                                                     <div class="input-group mb-3 mt-3">
                                                         <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
-                                                        <input type="int" class="form-control" id="nuevoPedidoInput" min="9000" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
+                                                        <input type="int" class="form-control" autofocus id="nuevoPedidoInput" min="9000" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;" placeholder="Ejemplo: 45055">
                                                     </div>
                                                 </div>
                                           
@@ -1878,20 +1878,28 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                         </li>
                                                         <li class="nav-item" role="presentation">
                                                             <button class="nav-link" onclick="segPedido(2,0,0)" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-si" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Si</button>
-                                                        </li>
-                                                    </ul>
+                                                        </li>`
+            if(arGlobal == 0 || arGlobal == 2){
+                sModalVentana = sModalVentana +`        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link" onclick="segPedido(3,0,0)" id="pills-user-tab" data-bs-toggle="pill" data-bs-target="#pills-todosUsuarios" type="button" role="tab" aria-controls="pills-user" aria-selected="false">Todos los usuarios</button>
+                                                        </li>`
+            }
+            sModalVentana = sModalVentana + `       </ul>
                                                     <div class="tab-content" id="pills-tabContent">
-                                                    <div class="tab-pane fade show active" id="pills-no" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">`;
-                                                    sModalVentana = sModalVentana + asignarModalOpc(2);
-                                                    sModalVentana = sModalVentana + `                                          
-                                                    </div>
-                                                    <div class="tab-pane fade" id="pills-si" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">`;
-                                                    sModalVentana = sModalVentana + asignarModalOpc(1);
-                                                    sModalVentana = sModalVentana + `
-                                                    <label for="floatingTextarea" class="mt-3">Comentarios</label>  
-                                                    <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="msgRegVentas"></textarea>
-                                                       
-                                                    </div>
+                                                        <div class="tab-pane fade show active" id="pills-no" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(2);
+                                                            sModalVentana = sModalVentana + `                                          
+                                                        </div>
+                                                        <div class="tab-pane fade" id="pills-si" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(1);
+                                                            sModalVentana = sModalVentana + `
+                                                            <label for="floatingTextarea" class="mt-3">Comentarios</label>  
+                                                            <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="msgRegVentas"></textarea>
+                                                        </div>
+                                                        <div class="tab-pane fade" id="pills-todosUsuarios" role="tabpanel" aria-labelledby="pills-user-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(3);
+                                                            sModalVentana = sModalVentana + `                                          
+                                                        </div>
                                                     </div>
                                                 </div>`;
             }else{
@@ -1904,12 +1912,11 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>`;
             break;
     }
-
     document.getElementById('modalInfo').innerHTML = sModalVentana;
-
 }
 
 async function nuevoPed(area, userId){
+
     var x = document.getElementsByName("radioEmp");
     let resCheck = '';
     for (i = 0; i < x.length; i++) {
@@ -1919,36 +1926,47 @@ async function nuevoPed(area, userId){
     }
     loading(1);
     let numOrder = document.getElementById('nuevoPedidoInput').value.trim();
-    let datosP = {
-        area     : area,
-        userId   : userId,
-        numOrder : numOrder,
-        emp      : resCheck
-    }
-    //console.log(datosP);
-    let resultP = await apiAgregarPed(datosP);
-    
-    if(resultP.status == 200){
-        recargar();
-        loading(2);
-        document.querySelector('#cerrarMoNuevo').click();
-        document.querySelector('#cerrarMoNuevo').click();
-        Swal.fire({
-            icon: 'success',
-            title: 'Se ha creado el pedido',
-            showConfirmButton: false,
-            timer: 1500
-        })
+    if(numOrder != ''){
+        let datosP = {
+            area     : area,
+            userId   : userId,
+            numOrder : numOrder,
+            emp      : resCheck
+        }
+        //console.log(datosP);
+        let resultP = await apiAgregarPed(datosP);
+
+        if(resultP.status == 200){
+            recargar();
+            loading(2);
+            document.querySelector('#cerrarMoNuevo').click();
+            document.querySelector('#cerrarMoNuevo').click();
+            Swal.fire({
+                icon: 'success',
+                title: 'Se ha creado el pedido',
+                showConfirmButton: false,
+                timer: 1500
+            })
+        }else{
+            loading(2);
+            document.querySelector('#cerrarMoNuevo').click();
+            Swal.fire({
+                icon: 'warning',
+                title: 'El N° de pedido '+numOrder+' ya existe',
+                showConfirmButton: false,
+                timer: 1500
+            })
+
+        }
     }else{
         loading(2);
-        document.querySelector('#cerrarMoNuevo').click();
+        document.querySelector("#nuevoPedidoInput").focus();
         Swal.fire({
             icon: 'warning',
-            title: 'El N° de pedido '+numOrder+' ya existe',
+            title: 'El N° de pedido no puede estar vacio',
             showConfirmButton: false,
             timer: 1500
         })
-        
     }
 }
 async function rechazar(orderId, acepted){
@@ -1974,36 +1992,95 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
     //console.log("opcM ",opcM);
     if(opcM != 0){ modMenu = opcM;}
     else{
-        if(modMenu == 1){
-            let selectArea = document.getElementById('selectedArea').value;
-            //console.log(selectArea);
-            let datos = {
-                area    : selectArea,
-                numOrder: numOrder,
-                idUser  : idUser,
-                idOrder : idOrder
-            }
-            let result = await apiAvanzaPedido(datos);
-            if(result.status == 200){
-                recargar();
-                document.querySelector('#cerrarModal').click();
-            }
-        }
-        if(modMenu == 2){
-            let selectVendedor = document.getElementById('selectedVendedor').value;
-            let msgRegVentas   = document.getElementById('msgRegVentas').value;
-            let datos = {
-                vendedor: selectVendedor,
-                msg     : msgRegVentas,
-                numOrder: numOrder,
-                idUser  : idUser,
-                idOrder : idOrder
-            }
-            let result = await apiRegAVentas(datos);
-            if(result.status == 200){
-                recargar();
-                document.querySelector('#cerrarModal').click();
-            }
+        let datos;
+        let result;
+        switch(modMenu){
+            case 1:
+                let selectArea = document.getElementById('selectedArea').value;
+                //console.log(selectArea);
+                datos = {
+                    area    : selectArea,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectArea != 0){
+                    result = await apiAvanzaPedido(datos);
+                    if(result.status == 200){
+                        recargar();
+                        document.querySelector('#cerrarModal').click();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione una área',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedArea").focus();
+                }
+            break;
+            case 2:
+                let selectVendedor = document.getElementById('selectedVendedor').value;
+                let msgRegVentas   = document.getElementById('msgRegVentas').value;
+                datos = {
+                    vendedor: selectVendedor,
+                    msg     : msgRegVentas,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectVendedor != 0){
+                    if(msgRegVentas != ''){
+                        result = await apiRegAVentas(datos);
+                        if(result.status == 200){
+                            recargar();
+                            document.querySelector('#cerrarModal').click();
+                        }
+                    }else{
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Por favor ingrese el detalle porque regresa el pedido al vendedor',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        document.getElementById("msgRegVentas").focus();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione a un vendedor',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedVendedor").focus();
+                }
+            break;
+            case 3:
+                let selectUsuario = document.getElementById('selectedUsuario').value;
+                //console.log(selectArea);
+                datos = {
+                    user    : selectUsuario,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectUsuario != 0){
+                    result = await apiAsignarDir(datos);
+                    if(result.status == 200){
+                        recargar();
+                        document.querySelector('#cerrarModal').click();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione a un usuario',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedUsuario").focus();
+                }
+            break;
         }
     }
 }
@@ -2028,7 +2105,7 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
         case 1:
             //Caso para ver a los vendedores
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
-                                        <option value="99" >Seleccione a un vendedor</option>`
+                                        <option value="0" >Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
                 if(jUsuarios[i].user_rol_id == 3){//validamos que los que se van a mostrar sean unicamente del área de vendedores
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
@@ -2039,9 +2116,17 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
         case 2:
             //Caso para mostrar las áreas
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
-                                        <option >Seleccione una área</option>`
+                                        <option value="0">Seleccione una área</option>`
             for(i = 0; i < contArea; i++){//Iniciamos un ciclo para mostrar las áreas
                 if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 100 && jArea[i].id != 101 && jArea[i].id != 7 && jArea[i].id != 6) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
+            }
+            sModalVentana = sModalVentana +`</select>`;
+            break;
+        case 3:
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedUsuario" aria-label="Default select example">
+                                        <option value="0">Seleccione a un usuario a asignar el pedido</option>`
+            for(i = 0; i < contUsuarios; i++){
+                sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
             }
             sModalVentana = sModalVentana +`</select>`;
             break;

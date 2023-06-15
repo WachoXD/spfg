@@ -68,16 +68,16 @@ const logger = winston.createLogger({
 });
 var db_config = {
     host: 'localhost',
-      user: 'pfg',
-      password: '(fEnebs[i_HIskp-',
-      database: 'spfg'
-  };
-  /*var db_config = {
+    user: 'pfg',
+    password: '(fEnebs[i_HIskp-',
+    database: 'spfg'
+};
+/*var db_config = {
     host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'spfg'
-  };*/
+    user: 'root',
+    password: '',
+    database: 'spfg'
+};*/
   
   var conexion;
   
@@ -86,19 +86,19 @@ var db_config = {
                                                     // the old one cannot be reused.
   
     conexion.connect(function(err) {              // The server is either down
-      if(err) {                                     // or restarting (takes a while sometimes).
-        console.log('error when connecting to db:', err);
-        setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
-      }                                     // to avoid a hot loop, and to allow our node script to
+        if(err) {                                     // or restarting (takes a while sometimes).
+            console.log('error when connecting to db:', err);
+            setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+        }                                     // to avoid a hot loop, and to allow our node script to
     });                                     // process asynchronous requests in the meantime.
                                             // If you're also serving http, display a 503 error.
     conexion.on('error', function(err) {
-      console.log('db error', err);
-      if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
-        handleDisconnect();                         // lost due to either server restart, or a
-      } else {                                      // connnection idle timeout (the wait_timeout
-        throw err;                                  // server variable configures this)
-      }
+        console.log('db error', err);
+        if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+            handleDisconnect();                         // lost due to either server restart, or a
+        } else {                                      // connnection idle timeout (the wait_timeout
+            throw err;                                  // server variable configures this)
+        }
     });
   }
   
@@ -109,7 +109,7 @@ var db_config = {
     
         // Reinicia el servicio de nodemon
         const nodemonProcess = spawn('nodemon', ['index.js'], {
-        stdio: 'inherit',
+            stdio: 'inherit',
         });
         
         // Cierra el proceso actual
@@ -602,7 +602,7 @@ router.post('/modificarPed', (req, res) => {
                             orderId     : idOrder,
                             idUser      : idUser,
                             acepted     : acepted,
-                            msg         : 'El pedido ha sido modificado de '+oldOrderNumber+' a '+ordernumber+' y de '+oldCompany+' a '+company+'',
+                            msg         : 'El pedido ha sido modificado de N° '+oldOrderNumber+' a N° '+ordernumber+' y de '+oldCompany+' a '+company+'',
                         }
                         let resultado = actHistorial(datosRes);
                         res.json({ 
@@ -610,13 +610,74 @@ router.post('/modificarPed', (req, res) => {
                         });
                     }
                 });
+            }   
+        }
+    });   
+})
+
+router.post('/regresarVent', (req, res) => {
+    let vendedor = req.body.vendedor;
+    let msg      = req.body.msg;
+    let numOrder = req.body.numOrder;
+    let idUser   = req.body.idUser;
+    let idOrder  = req.body.idOrder;
+    conexion.query("UPDATE `orders` SET  `acepted`='1',`area_id`='3',`user_id`='"+vendedor+"',`updated_at`= NOW() WHERE `id`='"+idOrder+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            let _datos = {
+                opc      : 9,
+                acepted  : idUser,
+                msg      : msg     ,
+                numOrder : numOrder,
+                idUser   : vendedor,
+                orderId  : idOrder ,
+                area     : 3
             }
+            let resHist = actHistorial(_datos);
+            res.json({ 
+                "status":  200,
+            });
+        }
+    });
+});
+
+router.post('/asignarDir', (req, res) => {
+    let user     = req.body.user;
+    let numOrder = req.body.numOrder;
+    let idUser   = req.body.idUser;
+    let idOrder  = req.body.idOrder;
+
+    conexion.query("SELECT `user_rol_id` FROM `users` WHERE `id` = '"+user+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            let area = results[0].user_rol_id;
+            conexion.query("UPDATE `orders` SET  `acepted`='1',`area_id`='"+area+"',`user_id`='"+user+"',`updated_at`= NOW() WHERE `id`='"+idOrder+"'", (error, results) => {
+                if (error) {
+                    console.log(error.code);
+                    throw error;
+                }else{
+                    let _datos = {
+                        area     : area,
+                        opc      : 10,
+                        acepted  : idUser,
+                        numOrder : numOrder,
+                        idUser   : user,
+                        orderId  : idOrder ,
+                    }
+                    let resHist = actHistorial(_datos);
+                    res.json({ 
+                        "status":  200,
+                    });
+                }
+            });
             
         }
     });
-
-    
-})
+});
 
 function actHistorial(reqDatos){
 
@@ -627,21 +688,8 @@ function actHistorial(reqDatos){
     let numOrder    = reqDatos.numOrder;
     let msg         = reqDatos.msg;
     var resu;
-    /*
-    conexion.query('SELECT id FROM orders WHERE ordernumber = ?',[numOrder], (error, results, fields) => {
-        if (error) {
-          console.error('Error al ejecutar la consulta: ', error);
-          throw error;
-        }
-        // Convertir los resultados en formato JSON
-        const jsonData = JSON.stringify(results);
-        let resJson = JSON.parse(jsonData);
-        //console.log(jsonData);
-        resu = resJson;
-    });
-    */
     let sqlCon = '';
-    //console.log(reqDatos);
+    console.log("aceptado ",aceptado);
     switch(reqDatos.opc){
         /*
         1: Nuevo
@@ -652,6 +700,7 @@ function actHistorial(reqDatos){
         6: Finalizado
         7: Cancelado
         8: Modificar
+        9: Se regresa a ventas
         */
         case 1:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id,    user_id,       order_id,       created_at) 
@@ -666,7 +715,6 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',NOW())`;
             break;
         case 4: 
-            
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, rejected_by, cancellation_details, created_at) 
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`', NOW())`;
             break;
@@ -683,8 +731,16 @@ function actHistorial(reqDatos){
             VALUES (                        'Cancelado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
             break;
         case 8:
-            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	canceled_by, created_at) 
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	modificed_by, created_at) 
             VALUES (                        'Modificado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
+        case 9: 
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,   user_id,        order_id,    	return_by,    cancellation_details, created_at) 
+            VALUES                          ('Regreso', NOW(),      '`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`',               NOW())`;
+            break;
+        case 10: 
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,   user_id,        order_id,    	redirect_by,  created_at) 
+            VALUES                          ('Asignado', NOW(),      '`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',  NOW())`;
             break;
     }
 
@@ -699,7 +755,7 @@ function actHistorial(reqDatos){
         }
         console.log("No error");
         return 200;
-    }); 
+    });
     return 200;
 }
 
@@ -761,28 +817,6 @@ router.post('/agregarPed', (req, res) => {
                         res.json({ 
                             "status":       200,
                         }); // Enviar el ID como respuesta en formato JSON
-                        
-                        /*
-                        if(Object.keys(results).length === 0){
-                            res.json({
-                                "status": 500
-                            });
-                        }else{
-                            let _datosHistorial = {
-                                opc      : 1,
-                                area     : area,
-                                idUser   : idUser,
-                                numOrder : numOrder,
-                            }
-                            let resu = actHistorial(_datosHistorial);
-                            if(resu.status==200){
-                                res.json({
-                                    "status":       200,
-                                });
-                            }
-                        }
-                        */
-                        //res.send(results); 
                     }
                 }); 
             }
