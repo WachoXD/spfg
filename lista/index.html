@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de productos</title>
+    <link rel="stylesheet"    href="../scss/custom.css">
+    <link rel="stylesheet"    href="../scss/icons/font/bootstrap-icons.css">
+    <link rel="stylesheet"    href="../scss/sweetalert2.min.css">
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <nav class="navbar bg-body-tertiary border-bottom border-2 mb-3" id="topNav"> <!--Inicio del nav-->
+        <div class="container-fluid">
+            <a class="navbar-brand ms-4" id="idLogo">
+                <img src="../img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
+            </a>
+            <center><h1>Lista de pedidos</h1></center>
+            <div class="d-flex" role="search">
+                <div class="btn-group dropstart">
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>  `+jUsuario.name+`
+                    </button>
+                    <ul class="dropdown-menu" id="dropPerfil">
+                        <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
+                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container-xxl">
+        <div class="card mb-3">
+            <div class="card-body border">
+              <blockquote class="blockquote mb-0">
+                <div class="row g-0 text-center">
+                    <div class="col-sm-6 col-md-5">
+                        <p class="text-center fs-2">Datos del cliente</p>
+                        <div class="input-group mb-4 ">
+                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Razón social</span>
+                            <input type="text" autofocus class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="input-group mb-4">
+                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Atención a</span>
+                            <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="input-group mb-4">
+                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Departamento</span>
+                            <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-5">
+                        <p class="text-center fs-2">Datos del vendedor</p>
+                        <div class="input-group mb-4">
+                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Nombre</span>
+                            <input type="text" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled>
+                        </div>
+                        <div class="input-group mb-4">
+                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Teléfono</span>
+                            <input type="text" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="input-group mb-4">
+                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Correo</span>
+                            <input type="email" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-2"><br><br>
+                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
+                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button>
+                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
+                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-send"></i> Enviar</button>
+                    </div>
+                </div>
+              </blockquote>
+            </div>
+          </div>
+        <table class="table table-hover border border-success">
+            <thead>
+                <tr>
+                    <th scope="col">N° pedido</th>
+                    <th scope="col">Estatus</th>
+                    <th scope="col">Fecha de creación</th>
+                    <th scope="col">Responsable</th>
+                    <th scope="col">Área</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/sweetalert2.all.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="./js/indexLista.js"></script>
+</body>
+</html>

@@ -808,20 +808,23 @@ async function home(jUsuario){
     //console.log("usuIdGlobal",usuIdGlobal," jUsuario.id ",jUsuario.id);
     document.getElementById('app').innerHTML = '';
 
-    var sVentana = `<nav class="navbar bg-body-tertiary" id="topNav"> <!--Inicio del nav-->
+    var sVentana = `<nav class="navbar bg-body-tertiary border-bottom" id="topNav"> <!--Inicio del nav-->
                         <div class="container-fluid">
                             <a class="navbar-brand ms-4" id="idLogo">
                                 <img src="./img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
                             </a>
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Pedidos</button>
+                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true"><i class="bi bi-123"></i> Pedidos</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="home-tab"  type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true" onclick="pestanaNva(1)"><i class="bi bi-card-checklist"></i> Lista</button>
                                 </li>`;
     arGlobal = jUsuario.user_rol_id;
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){
         jPedidosGlobal = jPedidos
         sVentana = sVentana + ` <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaAdm()" >Actualizar lista</button>
+                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaNva(2)" >Actualizar lista</button>
                                 </li>`
     }
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
@@ -1020,7 +1023,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1060,7 +1063,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1100,7 +1103,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1149,7 +1152,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jAceptados[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jAceptados[i].ordernumber+`</th>
+                                                        <th scope="row">`+jAceptados[i].company+` `+jAceptados[i].ordernumber+`</th>
                                                         <td>`+jAceptados[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 1)'>`+new Date(jAceptados[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1229,7 +1232,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jAceptar[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jAceptar[i].ordernumber+`</th>
+                                                        <th scope="row">`+jAceptar[i].company+` `+jAceptar[i].ordernumber+`</th>
                                                         <td>`+jAceptar[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 1)'>`+new Date(jAceptar[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1584,9 +1587,16 @@ function tamanomodal(vswitch){
     }
 }
 
-async function pestanaAdm(){
-    console.log("Hola");
-    location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
+async function pestanaNva(opc){
+    switch(opc){
+        case 1:
+            location.href ="http://192.168.1.74:81/spfg/lista/?data="+jEncode+"";
+            break;
+        case 2:
+            location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
+            break;
+    }
+    
 }
 
 async function aceptar(orderId, orderNumber, userId){
