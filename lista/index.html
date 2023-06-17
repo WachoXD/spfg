@@ -9,7 +9,12 @@
     <link rel="stylesheet"    href="../scss/sweetalert2.min.css">
     <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body onload="comprobarPermiso()">
+    <div class="loader" id="loader">
+        <div class="spinner-border position-absolute top-50 start-50" style="width: 80px; height: 80px;" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
     <nav class="navbar bg-body-tertiary border-bottom border-2 mb-3" id="topNav"> <!--Inicio del nav-->
         <div class="container-fluid">
             <a class="navbar-brand ms-4" id="idLogo">
@@ -19,7 +24,7 @@
             <div class="d-flex" role="search">
                 <div class="btn-group dropstart">
                     <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i>  `+jUsuario.name+`
+                        <i class="bi bi-person-circle"></i>  <span id="nomUser"></span>
                     </button>
                     <ul class="dropdown-menu" id="dropPerfil">
                         <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
@@ -32,49 +37,54 @@
     <div class="container-xxl">
         <div class="card mb-3">
             <div class="card-body border">
-              <blockquote class="blockquote mb-0">
-                <div class="row g-0 text-center">
-                    <div class="col-sm-6 col-md-5">
-                        <p class="text-center fs-2">Datos del cliente</p>
-                        <div class="input-group mb-4 ">
-                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Razón social</span>
-                            <input type="text" autofocus class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                <blockquote class="blockquote mb-0">
+                    <div class="row g-0 text-center">
+                        <div class="col-sm-6 col-md-5">
+                            <p class="text-center fs-2">Datos del cliente</p>
+                            <div class="input-group mb-4 ">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Razón social</span>
+                                <input type="text" autofocus class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Atención a</span>
+                                <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Departamento</span>
+                                <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
                         </div>
-                        <div class="input-group mb-4">
-                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Atención a</span>
-                            <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        <div class="col-sm-6 col-md-5">
+                            <p class="text-center fs-2">Datos del vendedor</p>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Nombre</span>
+                                <input type="text" class="form-control border border-primary" aria-label="Sizing example input" id="nomVend" aria-describedby="inputGroup-sizing-default" disabled>
+                            </div>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Teléfono</span>
+                                <input type="text" class="form-control border border-primary" aria-label="Sizing example input" id="telVend" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Correo</span>
+                                <input type="email" class="form-control border border-primary" aria-label="Sizing example input" id="correoVend" aria-describedby="inputGroup-sizing-default" disabled>
+                            </div>
                         </div>
-                        <div class="input-group mb-4">
-                            <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Departamento</span>
-                            <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        <div class="col-sm-6 col-md-2"><br><br>
+                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
+                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button>
+                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
+                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-send"></i> Enviar</button>
                         </div>
                     </div>
-                    <div class="col-sm-6 col-md-5">
-                        <p class="text-center fs-2">Datos del vendedor</p>
-                        <div class="input-group mb-4">
-                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Nombre</span>
-                            <input type="text" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled>
-                        </div>
-                        <div class="input-group mb-4">
-                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Teléfono</span>
-                            <input type="text" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
-                        </div>
-                        <div class="input-group mb-4">
-                            <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Correo</span>
-                            <input type="email" class="form-control border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-md-2"><br><br>
-                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
-                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button>
-                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
-                        <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-send"></i> Enviar</button>
-                    </div>
-                </div>
-              </blockquote>
+                </blockquote>
             </div>
-          </div>
-        <table class="table table-hover border border-success">
+        </div>
+        <div class="d-grid gap-2 d-md-flex mb-3 justify-content-md-end">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Agregar un producto
+            </button>
+        </div>
+        <table class="table table-hover border border-success table-bordered"">
             <thead>
                 <tr>
                     <th scope="col">N° pedido</th>
@@ -86,6 +96,46 @@
             </thead>
         </table>
     </div>
+
+    <!-- Modal -->
+    <!-- Button trigger modal -->
+
+  
+  <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Busqueda de productos</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="input-group">
+                                <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Codigo del Producto</span>
+                                <input type="text" class="form-control border border-primary" style="width:70%;" aria-label="Sizing example input" id="buscarProd" aria-describedby="inputGroup-sizing-default">
+                                <button class="btn btn-primary me-md-2" type="button" onclick="searchProduct()"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-start fs-3">Productos</p>
+                            <div data-bs-spy="scroll" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
+                                <table class="table table-hover" id="tablaProductosS">
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/axios.min.js"></script>
     <script src="../js/sweetalert2.all.min.js"></script>

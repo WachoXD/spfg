@@ -953,6 +953,21 @@ router.post('/agregarPorcen', (req, results) => {
     })
 });
 
+/////////////////////////////////// APIs de lista de productos /////////////////////////////
+router.get('/solProductosSearch', (req, res) => {
+    let producto   = req.query.producto;
+    //console.log("El order es: ",orderid);
+    conexion.query("SELECT * FROM `productos` WHERE `codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%';", (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
 
 
 

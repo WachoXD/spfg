@@ -496,10 +496,12 @@ async function apiFinalizarPed(reqDatos){
     return res;
 }
 
+/*
 async function apiAsignarDir(reqDatos){
     let res = await apiMasterPost(reqDatos, 'asignarDir');
     return res;
 }
+*/
 
 async function apiEditarPed(reqDatos){
     let res = await apiMasterPost(reqDatos, 'modificarPed');
@@ -1590,7 +1592,9 @@ function tamanomodal(vswitch){
 async function pestanaNva(opc){
     switch(opc){
         case 1:
-            location.href ="http://192.168.1.74:81/spfg/lista/?data="+jEncode+"";
+            //let url ="http://192.168.1.74:81/spfg/lista/?data="+jEncode+"";
+            let url ="http://localhost/spfg/lista/?data="+jEncode+"";
+            window.open(url, '_blank');
             break;
         case 2:
             location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
@@ -2076,7 +2080,9 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
                     idOrder : idOrder
                 }
                 if(selectUsuario != 0){
-                    result = await apiAsignarDir(datos);
+                    //result = await apiAsignarDir(datos);
+                    result = await apiMasterPost(datos,'asignarDir');
+
                     if(result.status == 200){
                         recargar();
                         document.querySelector('#cerrarModal').click();
