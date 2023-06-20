@@ -916,7 +916,7 @@ async function home(jUsuario){
                                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                                 <div class="input-group align-items-end mb-3" style="width: 30%;">
                                                     <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
-                                                    <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch()" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                    <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch(1)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
                                                 </div>
                                             </div>
                                             
@@ -1129,7 +1129,14 @@ async function home(jUsuario){
                                             <!-- Inicio de la tabla Aceptados-->
                                             <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">`
     }
-        sVentana = sVentana + `             <table class="table table-hover border border-info">
+        sVentana = sVentana + `             
+                                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                    <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                                    <input type="text" id="searchAceptados" class="form-control" onkeyup="doSearch(3)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                </div>
+                                            </div>
+                                            <table class="table table-hover border border-info" id="tablaAceptado">
                                                     <thead>
                                                         <tr>
                                                             <th scope="col">N° pedido</th>
@@ -1207,7 +1214,13 @@ async function home(jUsuario){
                                                 <!-- Fin de la tabla Aceptados-->
                                                 <!-- Inicio de la tabla por Aceptar-->
                                                 <div class="tab-pane fade" id="pills-aceptar" role="tabpanel" aria-labelledby="pills-aceptar-tab" tabindex="0">
-                                                    <table class="table table-hover border border-black">
+                                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                        <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                            <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                                            <input type="text" id="searchPorAceptar" class="form-control border border-primary" onkeyup="doSearch(2)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                        </div>
+                                                    </div>
+                                                    <table class="table table-hover border border-black" id="tablaAceptar">
                                                         <thead>
                                                             <tr>
                                                                 <th scope="col">N° pedido</th>
@@ -1218,7 +1231,7 @@ async function home(jUsuario){
                                                                 <th scope="col">Funciones</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody class="table-group-divider" id="tablaAceptar">`;
+                                                        <tbody class="table-group-divider" >`;
 
     if(contAceptar > 0){
         let responsable = '';
@@ -1290,9 +1303,23 @@ async function recargarTodo(rol){
 }
 
 let noRecargar = 0;
-function doSearch(){
-    const tableReg      = document.getElementById('tablaTodosT');
-    const searchText    = document.getElementById('searchTerm').value.toLowerCase();
+function doSearch(opc){
+    var tableReg;
+    var searchText;
+    switch(opc){
+        case 1:
+            tableReg      = document.getElementById('tablaTodosT');
+            searchText    = document.getElementById('searchTerm').value.toLowerCase();
+            break;
+        case 2:
+            tableReg      = document.getElementById('tablaAceptar');
+            searchText    = document.getElementById('searchPorAceptar').value.toLowerCase();
+            break;
+        case 3:
+            tableReg      = document.getElementById('tablaAceptado');
+            searchText    = document.getElementById('searchAceptados').value.toLowerCase();
+            break;
+    }
     noRecargar          = searchText.length;
     let total           = 0;
     // Recorremos todas las filas con contenido de la tabla
@@ -1332,10 +1359,56 @@ function doSearch(){
         lastTR.classList.add("red");
         td.innerHTML = "No se han encontrado coincidencias";
     }
-    if(noRecargar == 0){
-        home(jUsuarioGlobal);
+    if(opc == 1){
+        if(noRecargar == 0){
+            home(jUsuarioGlobal);
+        }
     }
 
+}
+
+function doSearchPorAceptar(){
+    const tableReg      = document.getElementById('tablaAceptar');
+    const searchText    = document.getElementById('searchPorAceptar').value.toLowerCase();
+    noRecargar          = searchText.length;
+    let total           = 0;
+    // Recorremos todas las filas con contenido de la tabla
+    for (let i = 1; i < tableReg.rows.length; i++) {
+        // Si el td tiene la clase "noSearch" no se busca en su cntenido
+        if (tableReg.rows[i].classList.contains("noSearch")) {
+            continue;
+        }
+        let found = false;
+        const cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
+        // Recorremos todas las celdas
+        for (let j = 0; j < cellsOfRow.length && !found; j++) {
+            const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+            // Buscamos el texto en el contenido de la celda
+            if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
+                found = true;
+                total++;
+            }
+        }
+        if (found) {
+            tableReg.rows[i].style.display = '';
+        } else {
+            // si no ha encontrado ninguna coincidencia, esconde la
+            // fila de la tabla
+            tableReg.rows[i].style.display = 'none';
+        }
+    }
+    // mostramos las coincidencias
+    const lastTR = tableReg.rows[tableReg.rows.length - 1];
+    const td = lastTR.querySelector("td");
+    lastTR.classList.remove("hide", "red");
+    if (searchText == "") {
+        lastTR.classList.add("hide");
+    } else if (total) {
+        //td.innerHTML = "Se ha encontrado " + total + " coincidencia" + ((total > 1) ? "s" : "");
+    } else {
+        lastTR.classList.add("red");
+        td.innerHTML = "No se han encontrado coincidencias";
+    }
 }
 
 async function parcialView(idOrder, ordernumber, area, idUser){
@@ -1787,6 +1860,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
         case 3://Modal para nuevo pedido
             varGlobal = 3;
             tamanomodal(1);
+            
             let jUserP = await apiUsuario(usuIdGlobal);
             //console.log(jUserP[0].name);
             sModalVentana = sModalVentana + `
@@ -1927,6 +2001,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
             break;
     }
     document.getElementById('modalInfo').innerHTML = sModalVentana;
+    if(opc == 3){
+        document.getElementById('nuevoPedidoInput').focus();
+    }
 }
 
 async function nuevoPed(area, userId){

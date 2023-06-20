@@ -85,15 +85,18 @@
             </button>
         </div>
         <table class="table table-hover border border-success table-bordered"">
-            <thead>
-                <tr>
-                    <th scope="col">N° pedido</th>
-                    <th scope="col">Estatus</th>
-                    <th scope="col">Fecha de creación</th>
-                    <th scope="col">Responsable</th>
-                    <th scope="col">Área</th>
-                </tr>
-            </thead>
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Cod Prov</th>
+                <th scope="col">UM</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Fecha Lista</th>
+                <th scope="col">Costo</th>
+                <th scope="col">Función</th>
+            </tr>
+            <tbody id="tablaProductosPed">
+            </tbody>
         </table>
     </div>
 
@@ -114,7 +117,7 @@
                         <div class="card-body">
                             <div class="input-group">
                                 <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Codigo del Producto</span>
-                                <input type="text" class="form-control border border-primary" style="width:70%;" aria-label="Sizing example input" id="buscarProd" aria-describedby="inputGroup-sizing-default">
+                                <input type="text" autofocus class="form-control border border-primary" style="width:70%;" aria-label="Sizing example input" id="buscarProd" aria-describedby="inputGroup-sizing-default">
                                 <button class="btn btn-primary me-md-2" type="button" onclick="searchProduct()"><i class="bi bi-search"></i></button>
                             </div>
                         </div>
@@ -123,7 +126,20 @@
                         <div class="card-body">
                             <p class="text-start fs-3">Productos</p>
                             <div data-bs-spy="scroll" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
-                                <table class="table table-hover" id="tablaProductosS">
+                                <table class="table table-hover table-bordered" >
+                                    <tr>
+                                        <th scope="col">Código</th>
+                                        <th scope="col">Cod Prov</th>
+                                        <th scope="col">UM</th>
+                                        <th scope="col">Descripción</th>
+                                        <th scope="col">Proveedor</th>
+                                        <th scope="col">Fecha Lista</th>
+                                        <th scope="col">Costo</th>
+                                        <th scope="col">Función</th>
+                                    </tr>
+                                    <tbody id="tablaProductosS">
+
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -143,3 +159,4 @@
     <script src="./js/indexLista.js"></script>
 </body>
 </html>
+

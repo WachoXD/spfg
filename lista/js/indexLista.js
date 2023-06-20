@@ -1,3 +1,4 @@
+let jProductosGlobal;
 var URLactual = window.location;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
@@ -10,7 +11,6 @@ if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
 
-console.log("URLactual ", URLactual," urlBase ",urlBase);
 //APIs
 async function apiProductosSearch(producto){   
     const url = urlBase+'solProductosSearch';
@@ -19,7 +19,6 @@ async function apiProductosSearch(producto){
     };
     const params = new URLSearchParams(data);
     const apiUrl = url + '?' + params;
-    console.log(apiUrl);
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
@@ -43,7 +42,7 @@ async function apiProductosSearch(producto){
     .catch(error => {
         console.error(error);
     });
-    console.log(solProducto);
+    //console.log(solProducto);
     return solProducto;
 }
 //Fin APIs
@@ -60,13 +59,12 @@ function comprobarPermiso(){
             //console.log(decodedString);
             const jUsuario = JSON.parse(decodedString);
             //console.log(jUsuario);
-            console.log(typeof jUsuario);
             if( typeof jUsuario === 'object'){
                 loading(2);
                 if(jUsuario.user_rol_id != 0 && jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2){
                     errorInic();
                 }else{
-                    console.log(jUsuario);
+                    //console.log(jUsuario);
                     inicio(jUsuario);
                 } 
             }
@@ -112,49 +110,115 @@ async function inicio(jUsuario){
 }
 
 async function searchProduct(){
-    let sProductos = '';
-    let jProductos;
+    let verif = 0;
     let producto = '';
-    
-    document.getElementById('tablaProductosS').innerHTML = '';
     producto = document.getElementById('buscarProd').value.trim();
-    jProductos = await apiProductosSearch(producto);
+    if(producto == ''){
+        Swal.fire({
+            title: '¿Esta seguro/a de que quiere solicitar toda la lista?',
+            text: "Esto puede provocar que el servicio se alente e incluso deje de funcionar.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: "Cancelar",
+            confirmButtonText: 'Si, traer todo'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                verif = 1;
+            }
+        })
+    }else{
+        verif = 1;
+    }
+    
+    if(verif == 1){
+        loading(1);
+        let sProductos = '';
+        let jProductos;
+        
+        
+        document.getElementById('tablaProductosS').innerHTML = '';
+        
+        jProductos = await apiProductosSearch(producto);
+        jProductosGlobal = jProductos;
+        let contadorObjetos = 0;
+        Object.keys(jProductos).forEach((clave) => {
+            if (typeof jProductos[clave] === "object") {
+                contadorObjetos++;
+            }
+        });
+        if(contadorObjetos > 0){
+            for(i = 0; i < contadorObjetos; i++){
+                sProductos = sProductos + `
+                                    <tr>
+                                        <td scope="row">`+jProductos[i].codigo+`</td>
+                                        <td>`+jProductos[i].codprov+`</td>
+                                        <td>`+jProductos[i].um+`</td>
+                                        <td>`+jProductos[i].descripcion+`</td>
+                                        <td>`+jProductos[i].prov+`</td>
+                                        <td>`+jProductos[i].fechalista+`</td>
+                                        <td><input type="text" class="form-control border border-primary" id="inCosto`+i+`" value="`+parseFloat(jProductos[i].lista).toFixed(2)+`" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;"></td>
+                                        <td><button type="button" class="btn btn-outline-primary"><i class="bi bi-plus" onclick="agregarProd(`+i+`)"></i></button></td>
+                                    </tr>
+                                    `;
+            }
+            
+        }
+
+        document.getElementById('tablaProductosS').innerHTML = sProductos;
+        loading(2);
+    }
+}
+let jListaProdGlobal = [];
+async function agregarProd(pos){
+    console.log(jListaProdGlobal);
+    let objeto = {
+        id          : jProductosGlobal[pos].id,
+        codigo      : jProductosGlobal[pos].codigo,
+        codprov     : jProductosGlobal[pos].codprov,
+        descripcion : jProductosGlobal[pos].descripcion,
+        emp         : jProductosGlobal[pos].emp,
+        fechalista  : jProductosGlobal[pos].fechalista,
+        industria   : jProductosGlobal[pos].industria,
+        lista       : document.getElementById("inCosto"+pos+"").value,
+        marca       : jProductosGlobal[pos].marca,
+        mon         : jProductosGlobal[pos].mon,
+        oferta      : jProductosGlobal[pos].oferta,
+        prov        : jProductosGlobal[pos].prov,
+        sat         : jProductosGlobal[pos].sat,
+        um          : jProductosGlobal[pos].um
+    }
+    jListaProdGlobal.push(objeto);
+    let json = JSON.stringify(jListaProdGlobal);
+    mostrarProdAgreg();
+}
+
+async function mostrarProdAgreg(){
+    document.getElementById('tablaProductosPed').innerHTML = '';
     let contadorObjetos = 0;
-    Object.keys(jProductos).forEach((clave) => {
-        if (typeof jProductos[clave] === "object") {
+    let sProductosList = '';
+    Object.keys(jListaProdGlobal).forEach((clave) => {
+        if (typeof jListaProdGlobal[clave] === "object") {
             contadorObjetos++;
         }
     });
-    
-    sProductos = sProductos + `
-                                <tr>
-                                    <th scope="col">Código</th>
-                                    <th scope="col">Cod Prov</th>
-                                    <th scope="col">UM</th>
-                                    <th scope="col">Descripción</th>
-                                    <th scope="col">Proveedor</th>
-                                    <th scope="col">Fecha Lista</th>
-                                    <th scope="col">Costo</th>
-                                    <th scope="col">Función</th>
-                                </tr>
-    `;
     if(contadorObjetos > 0){
         for(i = 0; i < contadorObjetos; i++){
-            sProductos = sProductos + `
+            sProductosList = sProductosList + `
                                 <tr>
-                                    <td scope="row">`+jProductos[i].codigo+`</td>
-                                    <td>`+jProductos[i].codprov+`</td>
-                                    <td>`+jProductos[i].um+`</td>
-                                    <td>`+jProductos[i].descripcion+`</td>
-                                    <td>`+jProductos[i].prov+`</td>
-                                    <td>`+jProductos[i].fechalista+`</td>
-                                    <td><input type="text" class="form-control border border-primary" aria-label="Sizing example input" id="inCosto`+i+`" aria-describedby="inputGroup-sizing-default" value="`+parseFloat(jProductos[i].lista).toFixed(2)+`"></td>
-                                    <td><button type="button" class="btn btn-outline-primary"><i class="bi bi-plus" onclick=""></i></button></td>
+                                    <td scope="row">`+jListaProdGlobal[i].codigo+`</td>
+                                    <td>`+jListaProdGlobal[i].codprov+`</td>
+                                    <td>`+jListaProdGlobal[i].um+`</td>
+                                    <td>`+jListaProdGlobal[i].descripcion+`</td>
+                                    <td>`+jListaProdGlobal[i].prov+`</td>
+                                    <td>`+jListaProdGlobal[i].fechalista+`</td>
+                                    <td>`+parseFloat(jListaProdGlobal[i].lista).toFixed(4)+`</td>
+                                    <td><button type="button" class="btn btn-outline-primary"><i class="bi bi-plus" onclick="agregarProd(`+i+`)"></i></button></td>
                                 </tr>
                                 `;
         }
-        
     }
+    document.getElementById('tablaProductosPed').innerHTML = sProductosList;
 
-    document.getElementById('tablaProductosS').innerHTML = sProductos;
 }
