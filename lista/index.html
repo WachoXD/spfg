@@ -72,7 +72,7 @@
                         <div class="col-sm-6 col-md-2"><br><br>
                             <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
                             <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button>
-                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
+                            <button type="button" class="btn btn-primary mb-1" style="width:150px;" onclick="generarPDF()"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
                             <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-send"></i> Enviar</button>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                 Agregar un producto
             </button>
         </div>
-        <table class="table table-hover border border-success table-bordered"">
+        <table class="table table-hover border border-success table-bordered">
             <tr>
                 <th scope="col">Código</th>
                 <th scope="col">Cod Prov</th>
@@ -92,8 +92,10 @@
                 <th scope="col">Descripción</th>
                 <th scope="col">Proveedor</th>
                 <th scope="col">Fecha Lista</th>
-                <th scope="col">Costo</th>
-                <th scope="col">Función</th>
+                <th scope="col" style="width: 35px;">Cant</th>
+                <th scope="col" style="width: 120px;">Costo U</th>
+                <th scope="col" style="width: 120px;">Costo T</th>
+                <th scope="col">Func</th>
             </tr>
             <tbody id="tablaProductosPed">
             </tbody>
@@ -105,14 +107,14 @@
 
   
   <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fullscreen">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal" style="background: rgba(255, 255, 255, 0.5);" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fullscreen" style="background: rgba(255, 255, 255, 0.5);">
+            <div class="modal-content" style="background: rgba(255, 255, 255, 0.2);">
+                <div class="modal-header" style="background: rgba(255, 255, 255, 1);">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Busqueda de productos</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="background: rgba(255, 255, 255, 0.2);">
                     <div class="card">
                         <div class="card-body">
                             <div class="input-group">
@@ -122,11 +124,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-body">
+                    <div class="card" style="background: rgba(255, 255, 255, 0.5);">
+                        <div class="card-body" style="background: rgba(255, 255, 255, 0.5);">
                             <p class="text-start fs-3">Productos</p>
-                            <div data-bs-spy="scroll" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
-                                <table class="table table-hover table-bordered" >
+                            <div style="background: rgba(255, 255, 255, 0.5);" data-bs-spy="scroll" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
+                                <table class="table table-hover table-bordered" style="background: rgba(255, 255, 255, 0.5);">
                                     <tr>
                                         <th scope="col">Código</th>
                                         <th scope="col">Cod Prov</th>
@@ -134,10 +136,11 @@
                                         <th scope="col">Descripción</th>
                                         <th scope="col">Proveedor</th>
                                         <th scope="col">Fecha Lista</th>
-                                        <th scope="col">Costo</th>
+                                        <th scope="col-ms-2" style="width: 35px;">Cantidad</th>
+                                        <th scope="col" style="width: 120px;">Costo</th>
                                         <th scope="col">Función</th>
                                     </tr>
-                                    <tbody id="tablaProductosS">
+                                    <tbody id="tablaProductosS" style="background: rgba(255, 255, 255, 0.5);">
 
                                     </tbody>
                                 </table>
@@ -145,8 +148,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer" style="background: rgba(255, 255, 255, 1);">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -156,6 +159,8 @@
     <script src="../js/axios.min.js"></script>
     <script src="../js/sweetalert2.all.min.js"></script>
     <script src="../js/jquery.min.js"></script>
+    <script src="./js/pdfmake.min.js"></script>
+    <script src="./js/vfs_fonts.js"></script>
     <script src="./js/indexLista.js"></script>
 </body>
 </html>
