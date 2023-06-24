@@ -117,10 +117,19 @@
                 <div class="modal-body" style="background: rgba(255, 255, 255, 0.2);">
                     <div class="card">
                         <div class="card-body">
-                            <div class="input-group">
-                                <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Codigo del Producto</span>
-                                <input type="text" autofocus class="form-control border border-primary" style="width:70%;" aria-label="Sizing example input" id="buscarProd" aria-describedby="inputGroup-sizing-default">
-                                <button class="btn btn-primary me-md-2" type="button" onclick="searchProduct()"><i class="bi bi-search"></i></button>
+                            <div class="row g-0">
+                                <div class="col-sm-6 col-md-6">
+                                    <div class="input-group ">
+                                        <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Código del Producto</span>
+                                        <input type="text" autofocus class="form-control border border-primary me-2" placeholder="Código de producto" id="buscarProd" aria-describedby="inputGroup-sizing-default">
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-5" id="selectProv">
+                                    
+                                </div>
+                                <div class="col-4 col-md-1">
+                                    <button class="btn btn-primary me-md-2 ms-3" type="button" onclick="buscarPd()"><i class="bi bi-search"></i> Buscar</button>
+                                </div>
                             </div>
                         </div>
                     </div>

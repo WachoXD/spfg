@@ -108,16 +108,23 @@ async function inicio(jUsuario){
     $("#nomUser").text(jUsuario.name);
     $("#nomVend").val(jUsuario.name);
     $("#correoVend").val(jUsuario.email);
+    document.getElementById('selectProv').innerHTML = `
+    <select class="form-select me-3 border border-primary" aria-label="Default select example">
+        <option selected value="100">Seleccione proveedor</option>
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+    </select>`;
     jUsuarioGlobal = jUsuario;
 }
 
-async function searchProduct(){
+async function buscarPd(){
     let verif = 0;
     let producto = '';
     producto = document.getElementById('buscarProd').value.trim();
     if(producto == ''){
         Swal.fire({
-            title: '¿Esta seguro/a de que quiere solicitar toda la lista?',
+            title: '¿Está seguro/a de que quiere solicitar toda la lista?',
             text: "Esto puede provocar que el servicio se alente e incluso deje de funcionar.",
             icon: 'warning',
             showCancelButton: true,
@@ -127,13 +134,15 @@ async function searchProduct(){
             confirmButtonText: 'Si, traer todo'
         }).then((result) => {
             if (result.isConfirmed) {
-                verif = 1;
+                searchProduct(producto,1);
             }
         })
     }else{
-        verif = 1;
-    }
-    
+        searchProduct(producto,1);
+    }    
+}
+
+async function searchProduct(producto,verif){
     if(verif == 1){
         loading(1);
         let sProductos = '';
@@ -161,12 +170,27 @@ async function searchProduct(){
                                         <td>`+jProductos[i].prov+`</td>
                                         <td>`+jProductos[i].fechalista+`</td>
                                         <td><input type="number" min="1" class="form-control border border-primary" id="inCantidad`+i+`" value="1" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;"></td>
-                                        <td><input type="text" class="form-control border border-primary" id="inCosto`+i+`" value="`+parseFloat(jProductos[i].lista).toFixed(2)+`" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;"></td>
+                                        <td><input type="text" class="form-control border border-primary" id="inCosto`+i+`" value="`;
+                if(jProductos[i].lista != '#N/A' && jProductos[i].lista != null){
+                    sProductos = sProductos + parseFloat(jProductos[i].lista).toFixed(2)
+                }else{
+                    sProductos = sProductos + "0"
+                }
+                sProductos = sProductos +`" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;"></td>
                                         <td><button type="button" class="btn btn-outline-primary" onclick="agregarProd(`+i+`)"><i class="bi bi-plus"></i></button></td>
                                     </tr>
                                     `;
             }
             
+        }else{
+            Swal.fire({
+                icon: 'warning',
+                title: 'No se encontró el producto <strong>'+producto+'<strong>',
+                showConfirmButton: false,
+                timer: 1500
+            })
+            document.getElementById('buscarProd').value = '';
+            document.getElementById('buscarProd').focus();
         }
 
         document.getElementById('tablaProductosS').innerHTML = sProductos;
@@ -193,27 +217,38 @@ async function agregarProd(pos){
         sat         : jProductosGlobal[pos].sat,
         um          : jProductosGlobal[pos].um
     }
-    jListaProdGlobal.push(objeto);
-    let json = JSON.stringify(jListaProdGlobal);
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        background: 'rgba(182, 141, 44, 0.7)',
-        color: '#fff',
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-    })
+    if(objeto.lista > 0){
+        jListaProdGlobal.push(objeto);
+        let json = JSON.stringify(jListaProdGlobal);
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            background: 'rgba(182, 141, 44, 0.7)',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        })
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'El pedido <strong>'+jProductosGlobal[pos].codigo+'</strong> se agregó'
+        })
+        mostrarProdAgreg();
+    }else{
+        Swal.fire({
+            icon: 'warning',
+            title: 'El producto <strong>'+objeto.codigo+'</strong> no puede cobrarse en $0',
+            showConfirmButton: false,
+            timer: 1500
+        })
+        document.getElementById("inCosto"+pos+"").focus();
+    }
     
-    Toast.fire({
-        icon: 'success',
-        title: 'El pedido <strong>'+jProductosGlobal[pos].codigo+'</strong> se agregó'
-    })
-    mostrarProdAgreg();
 }
 let contLista = 0;
 async function mostrarProdAgreg(){
@@ -274,127 +309,134 @@ async function eliminarProd(pos,prod){
     })  
 }
 
-async function generarPDF() {
-    if(contLista > 0){
-        var { value: text } = await Swal.fire({
+async function generarPDF() {//Generar un pdf con la cotización
+    if(contLista > 0){ //Verificamos que si existan productos agregados a la lista 
+        var { value: text } = await Swal.fire({//Preguntamos si se agrega un comentario a la cotización
             input: 'textarea',
-            title: '¿Gusta agregar un comentario sobre el pedido',
+            title: '¿Gusta agregar un comentario sobre el pedido?',
             text: "Comentario sobre el pedido",
+            confirmButtonColor: "#b68d2c",
+            confirmButtonText: 'Guardar comentario',
             inputPlaceholder: 'Ejemplo: Debe de ser entregado en puerta 4',
             inputAttributes: {
               'aria-label': 'Ejemplo'
             },
-            showCancelButton: true
+            showCancelButton: true,
+            cancelButtonText: "No agregar comentario",
+            cancelButtonColor: "#dc3545"
         })
           
-        if (!text) {
+        if (!text) {//Verificamos si no se pone un comentario, si no lo tiene se pone N/A (No Aplica)
             text = 'N/A';
         }
-            var data = {
-                encabezado: "Productos",
-                imagen: "http://localhost/spfg/lista/img/head.jpg",
-                footer: "http://localhost/spfg/lista/img/footer.png",
-                background: "http://localhost/spfg/lista/img/background.png",
-                tabla: jListaProdGlobal
-            };
-            //console.log(data);
-            let base64Footer;
-            let base64Background;
-            obtenerBase64DesdeURL(data.footer, function(base64) {
-                base64Footer = base64;
-            })
-            obtenerBase64DesdeURL(data.background, function(base64) {
-                base64Background = base64;
-            })
-            // Convertir la imagen a base64
-            obtenerBase64DesdeURL(data.imagen, function(base64) {
-                // Crear contenido del PDF
-                var fechaActual = new Date();
-                var content = [
-                    { image: base64, width: 520, alignment: "center",margin: [0, 0, 0, 0], },
-                    {
-                        table: {
-                            widths: ["auto",60,"auto",100],
-                            body: [
-                                [{ text: "Folio:", bold: true }, { text: "1 " },{ text: "Fecha: ", bold: true }, { text: fechaActual.getDate() + "/" + fechaActual.toLocaleString('default', { month: 'long' }) + "/" + fechaActual.getFullYear() }],
-                            ]
-                        },
-                        margin: [265, 10, 10, 0], 
-                        alignment: "right",
+        var data = {//Realizamos un objeto con los datos necesarios para el pdf
+            encabezado: "Productos",
+            imagen: "http://localhost/spfg/lista/img/head.jpg", //La ruta fisica de la imagen header a usar 
+            footer: "http://localhost/spfg/lista/img/footer.png", //La ruta fisica de la imagen header a usar 
+            background: "http://localhost/spfg/lista/img/background.png",
+            tabla: jListaProdGlobal //Agregamos la lista que se ha generado con anterioridad
+        };
+        //console.log(data);
+        let base64Footer;
+        convertirImgB64(data.footer, function(base64) { //Llamos a la función para converitr una imagen a base 64 para utilizarlo en la libreria pdfmake
+            base64Footer = base64; //Guardamos en una variable el resultado
+        })
+        // Convertir la imagen a base64
+        convertirImgB64(data.imagen, function(base64) { //Volvemos a llamar la función para convertir una imagen a base 64 y realizar el pdf dentro de esta
+            // Crear contenido del PDF
+            var fechaActual = new Date();//Obtenemos la fecha actual
+            var content = [//Este es la variable a contener en el pdf en orden como irán apareciendo
+                { image: base64, width: 520, alignment: "center",margin: [0, 0, 0, 0], }, //Se agrega la imagen, el tamaño, alineación y el margen que tendrá
+                {
+                    table: {//Se integra una tabla de folio y fecha
+                        widths: ["auto",60,"auto",100],//La tabla tendrá 4 columnas y se ponen los tamaños de estas
+                        body: [//El cuerpo de la tabla
+                            [{ text: "Folio:", bold: true }, { text: "1 " },{ text: "Fecha: ", bold: true }, { text: fechaActual.getDate() + "/" + fechaActual.toLocaleString('default', { month: 'long' }) + "/" + fechaActual.getFullYear() }],
+                        ]
                     },
-                    {
-                        table: {
-                            widths: [80, 180,50, 180],
-                            body: [
-                                [{ text: "Razón Social:", bold: true }, { text: "1 " }, { text: "Nombre:", bold: true }, { text: jUsuarioGlobal.name }],
-                                [{ text: "Atención a: ", bold: true },  { text: "1 " }, { text: "Tel:", bold: true }, { text: "33 1578 0535" }],
-                                [{ text: "Departamento:", bold: true }, { text: "1 " }, { text: "Correo:", bold: true }, { text: "ventas17@proveedorferretero.net" }]
-                            ]
-                        },
-                        margin: [0, 10, 0, 0]
+                    style: "min",//El estilo qie se le de, como si fuese css
+                    margin: [275, 10, 10, 0], //Lo margenes que tendrá y posicion
+                    alignment: "right",//La alineacióon del texto
+                },
+                {
+                    table: {// Tabla de datos del vendedor y del cliente
+                        widths: [80, 183,50, 170],
+                        body: [
+                            [{ text: "Razón Social:", bold: true }, { text: "1 " }, { text: "Nombre:", bold: true }, { text: jUsuarioGlobal.name, style: "min" }],
+                            [{ text: "Atención a: ", bold: true },  { text: "1 " }, { text: "Tel:", bold: true }, { text: "33 1578 0535", style: "min" }],
+                            [{ text: "Departamento:", bold: true }, { text: "1 " }, { text: "Correo:", bold: true }, { text: "ventas17@proveedorferretero.net", style: "min" }]
+                        ]
                     },
-                    {
-                        table: {
-                            widths: [518],
-                            body: [
-                                [{ text: "Comentario:", bold: true }],
-                                [{ text: text}],
-                            ]
-                        },
-                        margin: [0, 10, 0, 0], 
+                    style: "tables",
+                    margin: [7, 10, 0, 0]
+                },
+                {
+                    table: { //Tabla de comentario
+                        widths: [511],
+                        body: [
+                            [{ text: "Comentario:", bold: true }],
+                            [{ text: text}],
+                        ]
                     },
-                    { text: "Productos", style: "subheader", margin: [0, 10, 0, 0] },
-                    {
-                        table: {
-                            headerRows: 1,
-                            widths: [80, 218, 25, 80, 80],
-                            body: [
-                                ["Código", "Descipción", "Cant","Costo U", "Costo T"]
-                            ].concat(data.tabla.map(producto => [
-                                producto.codigo,
-                                producto.descripcion,
-                                producto.cantidad,
-                                "$ "+parseFloat(producto.lista).toFixed(2)+" "+producto.mon,
-                                "$ "+parseFloat(producto.lista * producto.cantidad).toFixed(2)+" "+producto.mon
-                            ]))
-                        },
-                        margin: [0, 0, 0, 0], // Establecer margen izquierdo, superior, derecho e inferior en 0
-                        width: "100%" 
+                    margin: [7, 10, 0, 0], 
+                },
+                { text: "Productos", style: "subheader", margin: [7, 10, 0, 0] },
+                {
+                    table: {//Es la tabla de productos
+                        headerRows: 0,
+                        widths: [80, 217, 25, 77, 77],
+                        style: "ejem",
+                        body: [
+                            ["Código", "Descipción", "Cant","Costo U", "Costo T"]
+                        ].concat(data.tabla.map(producto => [//Es dinamico con respecto lo que tiene la lista de pedidos
+                            producto.codigo,//Se van agregando en orden como qqueremos que se manden
+                            producto.descripcion,
+                            producto.cantidad,
+                            "$ "+parseFloat(producto.lista).toFixed(2)+" "+producto.mon,//Se agrega un caracter,, se convierte en float y se agrega el tipo de moneda
+                            "$ "+parseFloat(producto.lista * producto.cantidad).toFixed(2)+" "+producto.mon //Se hace similar a la linea anterior pero se multiplica por la cantidad del miso productos
+                        ]))
                     },
-                    {
-                        table: {
-                            widths: ["auto", 102],
-                            body: [
-                                [{ text: "Subtotal:", bold: true }, { text: "$ "+parseFloat(calcularTotalPreciosTotales(data.tabla)).toFixed(2), bold: true }],
-                                [{ text: "16% IVA: ", bold: true }, { text: "$ "+parseFloat(calcularTotalPreciosTotales(data.tabla) * 0.16).toFixed(2), bold: true }],
-                                [{ text: "Total: ", bold: true }, { text: "$ "+parseFloat(calcularTotalPreciosTotales(data.tabla) * 1.16).toFixed(2), bold: true }]
-                            ]
-                        },
-                        margin: [360, 10, 10, 0], 
-                        alignment: "right",
+                    style: "tables",
+                    margin: [7, 0, 0, 0], // Establecer margen izquierdo, superior, derecho e inferior en 0
+                    width: "100%" 
+                },
+                {
+                    table: {// tabla de total
+                        widths: ["auto", 102],
+                        body: [
+                            [{ text: "Subtotal:", bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla)).toFixed(2) }],//Se llama la función que suma el precio de todos los productos
+                            [{ text: "16% IVA: ", bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 0.16).toFixed(2) }],//Se llama la función que suma el precio de todos los productos y se multiplica por .16 para sacar solo el iva
+                            [{ text: "Total: ",   bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 1.16).toFixed(2) }]//Se llama la función que suma el precio de todos los productos y se multiplica por 1.16 que suma el total y el iva
+                        ]
                     },
-                    { image: base64Footer, width: 520, alignment: "center",margin: [0, 0, 0, 0], }
-                ];
-
-                // Configuración del documento PDF
-                var docDefinition = {
-                    pageSize: 'LETTER',
-                    content: content,
-                    styles: {
-                        header: {
-                            fontSize: 18,
-                            bold: true
-                        },
-                        subheader: {
-                            fontSize: 12,
-                            bold: true
-                        }
+                    style: "min",
+                    margin: [365, 10, 10, 0], 
+                    alignment: "right",
+                },
+                { image: base64Footer, width: 520, alignment: "center",margin: [0, 10, 0, 0], }
+            ];
+            // Configuración del documento PDF
+            var docDefinition = {
+                pageSize: 'LETTER',
+                content: content,
+                styles: {
+                    subheader: {
+                        fontSize: 12,
+                        bold: true
+                    },
+                    tables: {
+                        fontSize: 11,
+                        bold: false
+                    },
+                    min: {
+                        fontSize: 10,
+                        bold: false
                     }
-                };
-
-                // Generar el PDF
-                pdfMake.createPdf(docDefinition).download("datos_productos.pdf");
-            });
+                }
+            };
+            // Generar el PDF
+            pdfMake.createPdf(docDefinition).download("datos_productos.pdf");
+        });
     }else{
         Swal.fire({
             icon: 'warning',
@@ -410,14 +452,15 @@ function limpiarBusqueda(){
     document.getElementById('buscarProd').value = '';
 }
 
-function calcularTotalPreciosTotales(productos) {
+function precioTotal(productos) {
     var total = 0;
     productos.forEach(producto => { 
         total += producto.lista * producto.cantidad;
     });
     return total;
 }
-function obtenerBase64DesdeURL(url, callback) {
+
+function convertirImgB64(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
         var reader = new FileReader();
