@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de productos</title>
+    <link rel="stylesheet"    href="../scss/custom.css">
+    <link rel="stylesheet"    href="../scss/icons/font/bootstrap-icons.css">
+    <link rel="stylesheet"    href="../scss/sweetalert2.min.css">
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+</head>
+<body onload="comprobarPermiso()">
+    <div class="loader" id="loader">
+        <div class="spinner-border position-absolute top-50 start-50" style="width: 80px; height: 80px;" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <nav class="navbar bg-body-tertiary border-bottom border-2 mb-3" id="topNav"> <!--Inicio del nav-->
+        <div class="container-fluid">
+            <a class="navbar-brand ms-4" id="idLogo">
+                <img src="../img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
+            </a>
+            <center><h1>Lista de pedidos</h1></center>
+            <div class="d-flex" role="search">
+                <div class="btn-group dropstart">
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>  <span id="nomUser"></span>
+                    </button>
+                    <ul class="dropdown-menu" id="dropPerfil">
+                        <li><span> <i class="bi bi-emoji-frown"></i> Aquí no hay nada</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container-xxl">
+        <div class="card mb-3">
+            <div class="card-body border">
+                <blockquote class="blockquote mb-0">
+                    <div class="row g-0 text-center">
+                        <div class="col-sm-6 col-md-5">
+                            <p class="text-center fs-2">Datos del cliente</p>
+                            <div class="input-group mb-2 ">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Razón social</span>
+                                <input type="text" autofocus class="form-control me-2 border border-primary" id="inRazon" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Atención a</span>
+                                <input type="text" class="form-control me-2 border border-primary" id="inAtencion" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Departamento</span>
+                                <input type="text" class="form-control me-2 border border-primary" id="inDep" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-5">
+                            <p class="text-center fs-2">Datos del vendedor</p>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Nombre</span>
+                                <input type="text" class="form-control border border-primary"  aria-label="Sizing example input" id="nomVend" aria-describedby="inputGroup-sizing-default" disabled>
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Teléfono</span>
+                                <input type="text" class="form-control border border-primary"  aria-label="Sizing example input" id="telVend" aria-describedby="inputGroup-sizing-default">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Correo</span>
+                                <input type="email" class="form-control border border-primary" aria-label="Sizing example input" id="correoVend" aria-describedby="inputGroup-sizing-default" disabled>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-2"><br><br>
+                            <button type="button" class="btn btn-primary mb-2" style="width:150px;" onclick="nvoPed()"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
+                            <!--button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button-->
+                            <button type="button" class="btn btn-primary mb-2" style="width:150px;" onclick="verificarCamposPDF(1)"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
+                            <!--button type="button" class="btn btn-primary mb-1" style="width:150px;" onclick="enviarCorreo()"><i class="bi bi-send"></i> Enviar</button-->
+                        </div>
+                    </div>
+                </blockquote>
+            </div>
+        </div>
+        <div class="row g-0">
+            <div class="col-sm-6 col-md-8" id="btnBuscar">
+                
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="d-grid gap-2 d-md-flex mb-3 justify-content-md-end">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <i class="bi bi-plus-circle"></i> Agregar un producto
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <table class="table table-hover border border-success table-bordered">
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Cod Prov</th>
+                <th scope="col">UM</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Fecha Lista</th>
+                <th scope="col" style="width: 35px;">Cant</th>
+                <th scope="col" style="width: 120px;">Costo U</th>
+                <th scope="col" style="width: 120px;">Costo T</th>
+                <th scope="col">Func</th>
+            </tr>
+            <tbody id="tablaProductosPed">
+            </tbody>
+        </table>
+        <div class="row g-0 text-end">
+            <div class="col-sm-6 col-md-8"></div>
+            <div class="col-6 col-md-4" id="tablaTotal"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <!-- Button trigger modal -->
+
+  
+  <!-- Modal -->
+    <div class="modal" style="background: rgba(255, 255, 255, 0.5);" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fullscreen" style="background: rgba(255, 255, 255, 0.5);">
+            <div class="modal-content" style="background: rgba(255, 255, 255, 0.2);">
+                <div class="modal-header" style="background: rgba(255, 255, 255, 1);">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Busqueda de productos</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="limpiarBusqueda()"></button>
+                </div>
+                <div class="modal-body" style="background: rgba(255, 255, 255, 0.2);">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row g-0">
+                                <div class="col-sm-6 col-md-6">
+                                    <div class="input-group ">
+                                        <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Código del Producto</span>
+                                        <input type="text" autofocus class="form-control border border-primary me-2" placeholder="Código de producto" id="buscarProd" aria-describedby="inputGroup-sizing-default">
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-5" id="selectProv">
+                                    
+                                </div>
+                                <div class="col-4 col-md-1">
+                                    <button class="btn btn-primary me-md-2 ms-3" type="button" onclick="buscarPd()"><i class="bi bi-search"></i> Buscar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="background: rgba(255, 255, 255, 0.5);">
+                        <div class="card-body" style="background: rgba(255, 255, 255, 0.5);">
+                            <p class="text-start fs-3">Productos</p>
+                            <div style="background: rgba(255, 255, 255, 0.5);" data-bs-spy="scroll" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="scrollspy-example bg-body-tertiary p-3 rounded-2" tabindex="0">
+                                <table class="table table-hover table-bordered" style="background: rgba(255, 255, 255, 0.5);">
+                                    <tr>
+                                        <th scope="col">Código</th>
+                                        <th scope="col">Cod Prov</th>
+                                        <th scope="col">UM</th>
+                                        <th scope="col">Descripción</th>
+                                        <th scope="col">Proveedor</th>
+                                        <th scope="col">Fecha Lista</th>
+                                        <th scope="col-ms-2" style="width: 35px;">Cantidad</th>
+                                        <th scope="col" style="width: 120px;">Costo</th>
+                                        <th scope="col">Función</th>
+                                    </tr>
+                                    <tbody id="tablaProductosS" style="background: rgba(255, 255, 255, 0.5);">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: rgba(255, 255, 255, 1);">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="limpiarBusqueda()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/sweetalert2.all.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="./js/pdfmake.min.js"></script>
+    <script src="./js/vfs_fonts.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script src="./js/indexLista.js"></script>
+</body>
+</html>
+

@@ -11,11 +11,12 @@ var arGlobal      = 0;
 var modMenu       = 1;
 var usuIdGlobal   = 0;
 var todoModGlobal = 0;
+let jPedidosGlobal;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 }
-if(URLactual.href.substring(0,28) == 'http://localhost/spfg/'){
+if(URLactual.href.substring(0,22) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
 }
 if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
@@ -58,7 +59,7 @@ function comprobarCookie() {
                                                                     <div class='mb-3'>\
                                                                     <label for='exampleInputEmail1' class='form-label'>\Correo</label>\
                                                                     <div class='input-group mb-3'>\
-                                                                        <input type='email' class='form-control' id='inpEmail' placeholder='ejemplo@proveedorferretero.net'>\
+                                                                        <input type='email' autofocus class='form-control' id='inpEmail' placeholder='ejemplo@proveedorferretero.net'>\
                                                                         <span class='input-group-text bi bi-person' id='basic-addon1'>\
                                                                         </span>\
                                                                     </div>\
@@ -84,6 +85,7 @@ function comprobarCookie() {
 function cerrarSesion(){
     window.location.reload();
 }
+
 
 
 //Para reconocer el enter en el formulario
@@ -217,7 +219,7 @@ function changePasswordView(newU, id){
                                                                 <div class='mb-3'>\
                                                                     <label for='exampleInputPassword1' class='form-label'>Nueva contraseña</label>\
                                                                     <div class='input-group mb-3'>\
-                                                                        <input type='password' class='form-control' id='newInpPass' placeholder='*********'>\
+                                                                        <input type='password' autofocus class='form-control' id='newInpPass' placeholder='*********'>\
                                                                         <span class='input-group-text bi bi-eye' id='basic-addon1'>\
                                                                         </span>\
                                                                     </div>\
@@ -283,39 +285,54 @@ function changePassword(id){
     }
 }
 
-async function apiPedidos(id){
-       
-        const url = urlBase+'solPedidos';
-        const data = {
-            id: id,
-        };
-        const params = new URLSearchParams(data);
-        const apiUrl = url + '?' + params;
+async function apiMasterPost(_datos, urlCont){
+    var res = fetch(urlBase+urlCont, {
+        method: "POST",
+        body: JSON.stringify(_datos),
+        headers: {'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',}
+    })
+    .then(response => response.json()) 
+    .then(function(json) {
+        return json;
+    })
+    .catch(err => console.log(err));
 
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        const options = {
-        method: 'GET',
-        mode: 'cors',
-        headers: headers,
-        };
-        var solPedidos = [];
-        solPedidos = await fetch(apiUrl, options)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Error en la solicitud.');
-            }
-        })
-        .then(function(json) {
-            // Hacer algo con los datos recibidos
-            return json;
-        })
-        .catch(error => {
-            console.error(error);
-        });
-        return solPedidos;
+    return res;
+}
+
+async function apiPedidos(id){   
+    const url = urlBase+'solPedidos';
+    const data = {
+        id: id,
+    };
+    const params = new URLSearchParams(data);
+    const apiUrl = url + '?' + params;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const options = {
+    method: 'GET',
+    mode: 'cors',
+    headers: headers,
+    };
+    var solPedidos = [];
+    solPedidos = await fetch(apiUrl, options)
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Error en la solicitud.');
+        }
+    })
+    .then(function(json) {
+        // Hacer algo con los datos recibidos
+        return json;
+    })
+    .catch(error => {
+        console.error(error);
+    });
+    return solPedidos;
 }
 
 async function apiUsuarios(){
@@ -452,9 +469,10 @@ async function apiActualizarPedido(reqDatos){
         area    : reqDatos.area,
         numOrder: reqDatos.numOrder,
         idUser  : reqDatos.idUser,
-        idOrder : reqDatosidOrder
+        idOrder : reqDatos.idOrder
     }
-    var res = fetch(urlBase+'actualizarPedido', {
+    let res = await apiMasterPost(_datos, 'actualizarPedido');
+    /*var res = fetch(urlBase+'actualizarPedido', {
         method: "POST",
         body: JSON.stringify(_datos),
         headers: {'Access-Control-Allow-Origin': '*',
@@ -464,30 +482,54 @@ async function apiActualizarPedido(reqDatos){
     .then(function(json) {
         return json;
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log(err));*/
 
+    return res;
+}
+
+async function apiFinalizarPed(reqDatos){
+    let _datos = {
+        idUser  : reqDatos.idUser,
+        idOrder : reqDatos.idOrder
+    }
+    let res = await apiMasterPost(_datos, 'finalizarPed');
+    return res;
+}
+
+/*
+async function apiAsignarDir(reqDatos){
+    let res = await apiMasterPost(reqDatos, 'asignarDir');
+    return res;
+}
+*/
+
+async function apiEditarPed(reqDatos){
+    let res = await apiMasterPost(reqDatos, 'modificarPed');
+    return res;
+}
+
+async function apiParcial(reqDatos){
+    let _datos = {
+        orderId : reqDatos.idOrder,
+        numOrder: reqDatos.ordernumber,
+        area_id : reqDatos.area_id,
+        idUser  : reqDatos.idUser
+    }
+    //console.log(_datos);
+    let res = await apiMasterPost(_datos, 'parcialPed')
     return res;
 }
 
 async function apiAgregarPed(reqDatos){
     //console.log(reqDatos);
+    
     let _datos = {
         area    : reqDatos.area,
         idUser  : reqDatos.userId,
-        numOrder: reqDatos.numOrder
+        numOrder: reqDatos.numOrder, 
+        emp     : reqDatos.emp
     }
-    //console.log(_datos);
-    var res = fetch(urlBase+'agregarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
+    let res = await apiMasterPost(_datos, 'agregarPed');
 
     return res;
 }
@@ -497,18 +539,7 @@ async function apiRechazarPed(reqDatos){
         orderId  : reqDatos.orderId,
         msg: reqDatos.msg
     }
-    var res = fetch(urlBase+'rechazarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
-
+    let res = await apiMasterPost(_datos, 'rechazarPed');
     return res;
 }
 
@@ -519,18 +550,7 @@ async function apiAvanzaPedido(reqDatos){
         idUser  : reqDatos.idUser,
         idOrder : reqDatos.idOrder
     }
-    var res = await fetch(urlBase+'asignarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));
-
+    let res = await apiMasterPost(_datos, 'asignarPed');
     return res;
 }
 
@@ -540,7 +560,8 @@ async function apiAceptarPed(reqDatos){
         orderNumber : reqDatos.orderNumber,
         userId      : reqDatos.userId
     }
-    var res = await fetch(urlBase+'aceptarPed', {
+    let res = await apiMasterPost(_datos, 'aceptarPed');
+    /* var res = await fetch(urlBase+'aceptarPed', {
         method: "POST",
         body: JSON.stringify(_datos),
         headers: {'Access-Control-Allow-Origin': '*',
@@ -550,8 +571,28 @@ async function apiAceptarPed(reqDatos){
     .then(function(json) {
         return json;
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log(err));*/
 
+    return res;
+}
+
+async function apiEliminarPed(reqDatos){
+    let _datos = {
+        idOrder : reqDatos.idOrder
+    }
+
+    let res = await apiMasterPost(_datos, 'eliminarPed');
+
+    return res;
+}
+
+async function apiCancelarPed(reqDatos){
+    let _datos = {
+        idOrder     : reqDatos.idOrder,
+        idUser      : reqDatos.idUser
+    }
+    console.log("idUser ",_datos.idUser);
+    let res = await apiMasterPost(_datos, 'cancelarPed');
     return res;
 }
 
@@ -658,17 +699,15 @@ async function apiAceptar(area){
 }
 
 async function apiSolTodPed(){
-    document.getElementById('app').innerHTML = '';
     const url = urlBase+'solTodPed';
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
+        method: 'GET',
+        mode: 'cors'
     };
-    var solTodPed = [];
-    solTodPed = await fetch(url, options)
+    var solTodPedidos = [];
+    solTodPedidos = await fetch(url, options)
     .then(response => {
         if (response.ok) {
             return response.json();
@@ -683,11 +722,12 @@ async function apiSolTodPed(){
     .catch(error => {
         console.error(error);
     });
-    return solTodPed;
+    return solTodPedidos;
 }
 
 async function apiRegAVentas(reqDatos){
-    
+    let res = await apiMasterPost(reqDatos, 'regresarVent');
+    return res;
 }
 
 async function recargar(){
@@ -702,8 +742,20 @@ async function recargar(){
 let jArea;
 let jUsuarios;
 let userIdGlobal;
+
+let incrementoR = 0;
+let jEncode;
+let jUsuarioGlobal;
+let cargaTodo = 0;
 async function home(jUsuario){
-    let jPedidos        = await apiPedidos(jUsuario.id);
+    jUsuarioGlobal = jUsuario;
+    let jPedidos
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
+        jPedidos        = await apiSolTodPed();
+    }else{
+        jPedidos        = await apiPedidos(jUsuario.id);
+    }
+    
     let GlojArea        = await apiArea();
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
@@ -714,6 +766,10 @@ async function home(jUsuario){
     jUsuarios           = GlojUsuarios;
     let contadorObjetos = 0;
     userIdGlobal        = jUsuario.id;
+
+    const jsonString = JSON.stringify(jUsuario);
+    jEncode = btoa(jsonString);
+    //console.log(jEncode);
 
     Object.keys(jPedidos).forEach((clave) => {
         if (typeof jPedidos[clave] === "object") {
@@ -754,26 +810,28 @@ async function home(jUsuario){
     //console.log("usuIdGlobal",usuIdGlobal," jUsuario.id ",jUsuario.id);
     document.getElementById('app').innerHTML = '';
 
-    var sVentana = `<nav class="navbar bg-body-tertiary"> <!--Inicio del nav-->
+    var sVentana = `<nav class="navbar bg-body-tertiary border-bottom" id="topNav"> <!--Inicio del nav-->
                         <div class="container-fluid">
-                            <a class="navbar-brand ms-4" href="#">
+                            <a class="navbar-brand ms-4" id="idLogo">
                                 <img src="./img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
                             </a>
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Pedidos</button>
+                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true"><i class="bi bi-123"></i> Pedidos</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="home-tab"  type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true" onclick="pestanaNva(1)"><i class="bi bi-card-checklist"></i> Lista</button>
                                 </li>`;
     arGlobal = jUsuario.user_rol_id;
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){
+        jPedidosGlobal = jPedidos
+        sVentana = sVentana + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaNva(2)" >Actualizar lista</button>
+                                </li>`
+    }
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         
         sVentana = sVentana + ` <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnModanNuevoP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="pills-aceptar" aria-selected="false" onclick='tablaTodosAdm(`+jUsuario+`)'><i class="bi bi-plus-circle"></i> Nuevo Pedido</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnTodosP" data-bs-toggle="modal" data-bs-target="#modalTodPed" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="tablaTodosAdm()" >Todos los Pedidos</button>
-                                </li>
-                                
-                                <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -802,7 +860,7 @@ async function home(jUsuario){
                         <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <!--Inicio del menu de los pedidos-->
                             <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
-    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="pills-Todos-tab" data-bs-toggle="pill" data-bs-target="#pills-Todos" type="button" role="tab" aria-controls="pills-Todos" aria-selected="true"><i class="bi bi-list-nested"></i> Todos</button>
                                 </li>
@@ -816,7 +874,7 @@ async function home(jUsuario){
                                     <button class="nav-link" id="pills-finalizados-tab" data-bs-toggle="pill" data-bs-target="#pills-finalizados" type="button" role="tab" aria-controls="pills-finalizados" aria-selected="false"><i class="bi bi-emoji-smile"></i> Finalizados</button>
                                 </li>`
     }
-    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0){
+    if(jUsuario.user_rol_id != 3 && jUsuario.user_rol_id != 2 && jUsuario.user_rol_id != 0 && jUsuario.user_rol_id != 6){
         sVentana = sVentana +`  <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="pills-aceptados-tab" data-bs-toggle="pill" data-bs-target="#pills-aceptados" type="button" role="tab" aria-controls="pills-aceptados" aria-selected="false"><i class="bi bi-check2-circle"></i> Aceptados</button>
                                 </li>`;
@@ -845,22 +903,35 @@ async function home(jUsuario){
                                 </li>
                             </ul>
                             <!--Fin del menu de los pedidos-->
+                            
                             <!--Inicio de tablas-->
                                 <div class="container-xxl">
+                                    
                                     <div class="tab-content" id="pills-tabContent">`
-    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 | jUsuario.user_rol_id == 0){
+    if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana + `
                                         <!--Inicio de tabla de Todos-->
                                         <div class="tab-pane fade show active" id="pills-Todos" role="tabpanel" aria-labelledby="pills-Todos-tab" tabindex="0">
-                                            <table class="table table-hover border">
+                                                                                
+                                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                    <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                                    <input type="text" id="searchTerm" class="form-control" onkeyup="doSearch(1)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                </div>
+                                            </div>
+                                            
+                                            <table class="table table-hover border" id="tablaTodosT">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">N° pedido</th>
                                                         <th scope="col">Estatus</th>
                                                         <th scope="col">Fecha de creación</th>
                                                         <th scope="col">Responsable</th>
-                                                        <th scope="col">Área</th>
-                                                    </tr>
+                                                        <th scope="col">Área</th>`;
+        if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){
+            sVentana = sVentana + `                     <th scope="col">Funciones</th>`;
+        }
+        sVentana = sVentana + `                     </tr>
                                                 </thead>
                                                 <tbody class="table-group-divider" id="tablaTodos">`;
 
@@ -868,21 +939,57 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    for(j = 0; j < contUsuarios; j++){
-                        if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
-                    }
-                    for(k = 0; k < contArea; k++){
-                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                    }
-                    sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                        <td>`+responsable+`</td>
-                                                        <td>`+area+`</td>
-                                                    </tr>`
+                for(j = 0; j < contUsuarios; j++){
+                    if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
                 }
+                for(k = 0; k < contArea; k++){
+                    if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                }
+                sVentana = sVentana + `         <tr>
+                                                    <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
+                                                    <td `;
+                if(jPedidos[i].status == "Finalizado"){
+                    sVentana = sVentana + `               style="background: rgba(32, 211, 59 , 0.4);"`;
+                }else if(jPedidos[i].status == "Parcial"){
+                    sVentana = sVentana + `               style="background: rgba(232, 165, 30 , 0.4);"`;
+                }else if(jPedidos[i].status == "Cancelado"){
+                    sVentana = sVentana + `               style="background: rgba(232, 30, 30 , 0.4);"`;
+                }
+                sVentana = sVentana + `                  >`+jPedidos[i].status+`</td>
+                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                    <td>`+responsable+`</td>
+                                                    <td>`+area+`</td>`;
+                //if(jPedidos[i].status == "Finalizado")
+                if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
+                    sVentana = sVentana + `         <td>`;
+                    if(jPedidos[i].status != "Finalizado" && jPedidos[i].status != "Cancelado"){ //Si es diferente a Finalizado y Cancelado aparecerán estas opciones
+                        sVentana = sVentana +`          <button type="button" class="btn btn-info" onclick='editarPedView(`+i+`, `+jUsuario.id+`)'>
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 5)'>
+                                                            <i class="bi bi-arrow-left-right"></i>
+                                                        </button>`;
+                        if(jPedidos[i].status != 'Parcial'){
+                            sVentana = sVentana +`      <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jPedidos[i].area_id+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-columns-gap"></i>
+                                                        </button>`;
+                        }
+                        
+                        sVentana = sVentana +`          <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-inbox"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='cancelarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                            <i class="bi bi-x-octagon"></i>
+                                                        </button>`;
+                    }
+                    
+                    sVentana = sVentana +`              <button type="button" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='eliminarView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`)'>
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>`;
+                }
+                sVentana = sVentana + `
+                                                </tr>`
             }
         }
         
@@ -910,22 +1017,20 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Activo'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Activo'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
@@ -952,26 +1057,24 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Parcial'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Parcial'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
-
+ 
         sVentana = sVentana + `</tbody>
                                                     </table>
                                                 </div>
@@ -994,22 +1097,20 @@ async function home(jUsuario){
             let responsable = '';
             let area = '';
             for(i=0; i < contadorObjetos; i++){
-                if(jPedidos[i].who_id_created == jUsuario.id ){
-                    if(jPedidos[i].status == 'Finalizado'){
-                        for(j = 0; j < contUsuarios; j++){
-                            if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
-                        }
-                        for(k = 0; k < contArea; k++){
-                            if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
-                        }
-                        sVentana = sVentana + `<tr>
-                                                            <th scope="row">`+jPedidos[i].ordernumber+`</th>
-                                                            <td>`+jPedidos[i].status+`</td>
-                                                            <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                            <td>`+responsable+`</td>
-                                                            <td>`+area+`</td>
-                                                        </tr>`
+                if(jPedidos[i].status == 'Finalizado'){
+                    for(j = 0; j < contUsuarios; j++){
+                        if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
+                    for(k = 0; k < contArea; k++){
+                        if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
+                    }
+                    sVentana = sVentana + `<tr>
+                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
+                                                        <td>`+jPedidos[i].status+`</td>
+                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+responsable+`</td>
+                                                        <td>`+area+`</td>
+                                                    </tr>`
                 }
             }
         }
@@ -1028,7 +1129,14 @@ async function home(jUsuario){
                                             <!-- Inicio de la tabla Aceptados-->
                                             <div class="tab-pane fade" id="pills-aceptados" role="tabpanel" aria-labelledby="pills-aceptados-tab" tabindex="0">`
     }
-        sVentana = sVentana + `             <table class="table table-hover border border-info">
+        sVentana = sVentana + `             
+                                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                    <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                                    <input type="text" id="searchAceptados" class="form-control" onkeyup="doSearch(3)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                </div>
+                                            </div>
+                                            <table class="table table-hover border border-info" id="tablaAceptado">
                                                     <thead>
                                                         <tr>
                                                             <th scope="col">N° pedido</th>
@@ -1053,15 +1161,46 @@ async function home(jUsuario){
                         if(jArea[k].id == jAceptados[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jAceptados[i].ordernumber+`</th>
+                                                        <th scope="row">`+jAceptados[i].company+` `+jAceptados[i].ordernumber+`</th>
                                                         <td>`+jAceptados[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 1)'>`+new Date(jAceptados[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
                                                         <td>
-                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
+                                                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
+                                                            </button>`;
+                    if(jUsuario.user_rol_id == 5){
+                        if(jAceptados[i].status != 'Parcial'){
+                            sVentana = sVentana +`
+                                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-columns-gap"></i>
                                                             </button>
+                                                            `;
+                        }
+                        sVentana = sVentana +`              
+                                                            <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='finalizarView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-inbox"></i>
+                                                            </button>`;
+                        
+                        sVentana = sVentana +`
+                                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='cancelarView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-x-octagon"></i>
+                                                            </button>`;
+                    }                                      
+                    if(jUsuario.user_rol_id == 7){
+                        if(jAceptados[i].status != 'Parcial'){
+                            sVentana = sVentana +`          <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-columns-gap"></i>
+                                                            </button>`;
+                        }
+                        if(jAceptados[i].status != 'Finalizado'){
+                            sVentana = sVentana +`          <button type="button" class="btn btn-outline-success" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Parcial" onclick='parcialView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`,`+jAceptados[i].area_id+`,`+jUsuario.id+`)'>
+                                                                <i class="bi bi-inbox"></i>
+                                                            </button>`;
+                        }
+                    }
+                    sVentana = sVentana +`
                                                         </td>
                                                     </tr>`
                 }
@@ -1075,7 +1214,13 @@ async function home(jUsuario){
                                                 <!-- Fin de la tabla Aceptados-->
                                                 <!-- Inicio de la tabla por Aceptar-->
                                                 <div class="tab-pane fade" id="pills-aceptar" role="tabpanel" aria-labelledby="pills-aceptar-tab" tabindex="0">
-                                                    <table class="table table-hover border border-black">
+                                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                                        <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                                            <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                                            <input type="text" id="searchPorAceptar" class="form-control" onkeyup="doSearch(2)" min=0 placeholder="Buscar pedido" aria-label="Username" aria-describedby="basic-addon1" maxlength="9">
+                                                        </div>
+                                                    </div>
+                                                    <table class="table table-hover border border-black" id="tablaAceptar">
                                                         <thead>
                                                             <tr>
                                                                 <th scope="col">N° pedido</th>
@@ -1086,7 +1231,7 @@ async function home(jUsuario){
                                                                 <th scope="col">Funciones</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody class="table-group-divider" id="tablaAceptar">`;
+                                                        <tbody class="table-group-divider" >`;
 
     if(contAceptar > 0){
         let responsable = '';
@@ -1102,7 +1247,7 @@ async function home(jUsuario){
                         if(jArea[k].id == jAceptar[i].area_id) area = jArea[k].name;
                     }
                     sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jAceptar[i].ordernumber+`</th>
+                                                        <th scope="row">`+jAceptar[i].company+` `+jAceptar[i].ordernumber+`</th>
                                                         <td>`+jAceptar[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 1)'>`+new Date(jAceptar[i].startdate).toLocaleDateString()+`</button></td>
                                                         <td>`+responsable+`</td>
@@ -1123,25 +1268,341 @@ async function home(jUsuario){
 
     sVentana = sVentana + `</tbody>
                                         </table>
-
                                     </div>
                         </div>
-
                     </div>
                     </div>
                         <div class="tab-pane fade" id="home-tab-Todos" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <div class="container-xxl" >
-                                
                             </div>
                         </div>
-                    </div>`;
+                    </div>
+                    
+                    <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
-    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-       //let esperar = await tablaTodosAdm();
-       //setTimeout(tablaTodosAdm, 5000);
+
+    if(cargaTodo == 0){
+        cargaTodo = 1;
+        let resul = recargarTodo(jUsuario.user_rol_id);
     }
+    
     loading(2);
+    return 1;
 }
+
+async function recargarTodo(rol){
+    setTimeout(async () => {
+        if(noRecargar == 0){
+            if(rol == 0 || rol == 2 || rol == 6){
+                //let esperar = await tablaTodosAdm();
+                let = await home(jUsuarioGlobal);
+                recargarTodo(rol);
+            }
+        }
+      }, 60000);
+}
+
+let noRecargar = 0;
+function doSearch(opc){
+    var tableReg;
+    var searchText;
+    switch(opc){
+        case 1:
+            tableReg      = document.getElementById('tablaTodosT');
+            searchText    = document.getElementById('searchTerm').value.toLowerCase();
+            break;
+        case 2:
+            tableReg      = document.getElementById('tablaAceptar');
+            searchText    = document.getElementById('searchPorAceptar').value.toLowerCase();
+            break;
+        case 3:
+            tableReg      = document.getElementById('tablaAceptado');
+            searchText    = document.getElementById('searchAceptados').value.toLowerCase();
+            break;
+    }
+    noRecargar          = searchText.length;
+    let total           = 0;
+    // Recorremos todas las filas con contenido de la tabla
+    for (let i = 1; i < tableReg.rows.length; i++) {
+        // Si el td tiene la clase "noSearch" no se busca en su cntenido
+        if (tableReg.rows[i].classList.contains("noSearch")) {
+            continue;
+        }
+        let found = false;
+        const cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
+        // Recorremos todas las celdas
+        for (let j = 0; j < cellsOfRow.length && !found; j++) {
+            const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+            // Buscamos el texto en el contenido de la celda
+            if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
+                found = true;
+                total++;
+            }
+        }
+        if (found) {
+            tableReg.rows[i].style.display = '';
+        } else {
+            // si no ha encontrado ninguna coincidencia, esconde la
+            // fila de la tabla
+            tableReg.rows[i].style.display = 'none';
+        }
+    }
+    // mostramos las coincidencias
+    const lastTR = tableReg.rows[tableReg.rows.length - 1];
+    const td = lastTR.querySelector("td");
+    lastTR.classList.remove("hide", "red");
+    if (searchText == "") {
+        lastTR.classList.add("hide");
+    } else if (total) {
+        //td.innerHTML = "Se ha encontrado " + total + " coincidencia" + ((total > 1) ? "s" : "");
+    } else {
+        lastTR.classList.add("red");
+        td.innerHTML = "No se han encontrado coincidencias";
+    }
+    if(opc == 1){
+        if(noRecargar == 0){
+            home(jUsuarioGlobal);
+        }
+    }
+
+}
+
+async function parcialView(idOrder, ordernumber, area, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' está en parcial?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con preacución que el pedido se va a PARCIAL",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, a parcial'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                ordernumber : ordernumber,
+                area_id     : area,
+                idUser      : idUser
+            }
+            console.log(_reqDatos);
+            let resParcial = await parcialFun(_reqDatos);
+            console.log(resParcial);
+            if(resParcial == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha ido a parcial',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha ido a parcial',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function parcialFun(_reqDatos){
+    let resParcialFun = await apiParcial(_reqDatos);
+    //console.log("El res es: ",resParcialFun.status);
+    //console.log(resParcialFun.status == 200 ? 200 : 500);
+    return resParcialFun.status;
+}
+
+async function finalizarView(idOrder, ordernumber, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' está finalizado?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución que el pedido este FINALIZADO",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, finalizar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                idUser      : idUser
+            }
+            //console.log(_reqDatos);
+            let resParcial = await apiFinalizarPed(_reqDatos);
+            console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha ido a finalizado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha podido finalizar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function cancelarView(idOrder, ordernumber, idUser){
+    let sMensaje = '¿El pedido '+ordernumber+' se cancelará?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución que el pedido este CANCELADO",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Salir",
+        confirmButtonText: 'Si, cancelar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+                area_id     : 100,
+                idUser      : idUser
+            }
+            console.log(_reqDatos);
+            let resParcial = await apiCancelarPed(_reqDatos);
+            console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' se ha cancelado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha cancelado',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function eliminarView(idOrder, ordernumber){
+    let sMensaje = '¿El pedido '+ordernumber+' será eliminado?'
+    Swal.fire({
+        title: sMensaje,
+        text: "Revisa con precaución el pedido. Si se elimina no se podrá recuperar",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, eliminar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let _reqDatos = {
+                idOrder     : idOrder,
+            }
+            let resParcial = await apiEliminarPed(_reqDatos);
+            //console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido '+ordernumber+' ha sido eliminado',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+ordernumber+' no se ha podido eliminar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
+async function editarPedView(pos, idUSer){
+    //console.log(jPedidosGlobal[pos]);
+    let sHtml = '';
+    if(jPedidosGlobal[pos].company == "P"){
+        sHtml = `<div class="form-check form-check-inline mt-3">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio1" value="P" checked>
+                    <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio2" value="M">
+                    <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                </div>`;
+    }else{
+        sHtml = `<div class="form-check form-check-inline mt-3">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio1" value="P">
+                    <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="radioCmp" id="inlineRadio2" value="M" checked>
+                    <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                </div>`;
+    }
+    sHtml = sHtml + `       
+                <div class="form-floating mt-3">
+                    <input type="number" class="form-control" id="changeOrderNumber" name="" value="`+jPedidosGlobal[pos].ordernumber+`">
+                    <label for="floatingPassword">Numéro de orden </label>
+                </div>
+            `;
+    Swal.fire({
+        title: 'Modificar el pedido <strong>'+jPedidosGlobal[pos].ordernumber+'</strong>',
+        html:   sHtml,
+        icon:  'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b68d2c',
+        cancelButtonColor: '#d33',
+        cancelButtonText: "Cancelar",
+        confirmButtonText: 'Si, modificar'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            var cmp     = document.getElementsByName("radioCmp");
+            var orderN  = document.getElementById("changeOrderNumber").value;
+            for (i = 0; i < cmp.length; i++) {
+                if(cmp[i].checked == true ){
+                    resCheck = cmp[i].value;
+                }
+            }
+            let _reqDatos = {
+                idUser         : idUSer,
+                idOrder        : jPedidosGlobal[pos].id,
+                company        : resCheck, 
+                ordernumber    : orderN,
+                oldOrderNumber : jPedidosGlobal[pos].ordernumber,
+                oldCompany     : jPedidosGlobal[pos].company,
+                area           : jPedidosGlobal[pos].area_id,
+                acepted        : jPedidosGlobal[pos].acepted,
+            }
+            let resParcial = await apiEditarPed(_reqDatos);
+            //console.log(resParcial);
+            if(resParcial.status == 200){
+                Swal.fire(
+                    '¡Exito!',
+                    'El pedido se ha modificado el pedido',
+                    'success'
+                )
+            }else{
+                Swal.fire(
+                    '¡Error!',
+                    'El pedido '+orderN+' no se ha podido modificar',
+                    'error'
+                )
+            }
+            recargar();
+        }
+    })
+}
+
 let tModal = 0;
 function tamanomodal(vswitch){
     //vswitch en 0 significa que es para que regerse a su tamaño real
@@ -1155,93 +1616,20 @@ function tamanomodal(vswitch){
         document.getElementById('modalClass').classList.add('modal-xl');
         tModal = 0;
     }
-    /*
-    document.getElementById("btnModanNuevoP")
-    .addEventListener("click", function(event) {
-        alert("Submit button is clicked!");
-        event.preventDefault();
-    });
-    */
 }
 
-async function tablaTodosAdm(jUsuarioTodo){ 
-
-    /* Veremos esto el lunes xD
-    // Simula un JSON con datos
-    let jsonDatos = await apiSolTodPed();
-
-
-    // Accede al elemento recién creado
-    const miElemento = document.querySelector('#tablaTodoPedAb');
-
-    // Borra el contenido actual del elemento
-    miElemento.innerHTML = '';
-
-    // Crea la tabla y sus elementos
-    const tabla = document.createElement('table');
-    const encabezado = document.createElement('thead');
-    const cuerpo = document.createElement('tbody');
-
-    // Crea el encabezado de la tabla
-    const encabezadoFila = document.createElement('tr');
-    encabezadoFila.innerHTML = '<th>Nombre</th><th>Edad</th>';
-    encabezado.appendChild(encabezadoFila);
-
-    // Itera sobre el JSON y crea las filas y celdas de datos
-    jsonDatos.forEach(datos => {
-    const fila = document.createElement('tr');
-    fila.innerHTML = `<td>${datos.nombre}</td><td>${datos.edad}</td>`;
-    cuerpo.appendChild(fila);
-    });
-
-    // Agrega el encabezado y el cuerpo a la tabla
-    tabla.appendChild(encabezado);
-    tabla.appendChild(cuerpo);
-
-    // Agrega la tabla al elemento HTML deseado
-    miElemento.appendChild(tabla);
-    */
-
-
-    /*document.getElementById('tablaTodoPed').innerHTML = '';
-
-    
-    let jTodos = await apiSolTodPed();
-    console.log(jTodos);
-    var sTablaTodosPed = '';
-    let countTodosPed = 0;
-
-    Object.keys(jTodos).forEach((clave) => {
-        if (typeof jTodos[clave] === "object") {
-            countTodosPed++;
-        }
-    });
-    sTablaTodosPed = sTablaTodosPed + `<table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">N° pedido</th>
-                                                    <th scope="col">Estatus</th>
-                                                    <th scope="col">Fecha de creación</th>
-                                                    <th scope="col">Responsable</th>
-                                                    <th scope="col">Área</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tablaTodosAdmB">   `;
-   // document.getElementById('tablaTodosAdmB').innerHTML = '';
-    for(i = 0; i < countTodosPed; i++){
-        sTablaTodosPed = sTablaTodosPed + `     <tr>
-                                                    <th scope="row">`+jTodos[i].ordernumber+`</th>
-                                                    <td>`+jTodos[i].status+`</td>
-                                                    <td>`+jTodos[i].startdate+`</td>
-                                                    <td>`+jTodos[i].user_id+`</td>
-                                                    <td>`+jTodos[i].area_id+`</td>
-                                                </tr>`;
+async function pestanaNva(opc){
+    switch(opc){
+        case 1:
+            //let url ="http://192.168.1.74:81/spfg/lista/?data="+jEncode+"";
+            let url ="http://localhost/spfg/lista/?data="+jEncode+"";
+            window.open(url, '_blank');
+            break;
+        case 2:
+            location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
+            break;
     }
-
-    sTablaTodosPed = sTablaTodosPed + `     </tbody>
-                                        </table>`;
-    document.getElementById('tablaTodoPed').innerHTML = sTablaTodosPed;
-    //setTimeout(home(jUsuarioTodo), 5000);*/
+    
 }
 
 async function aceptar(orderId, orderNumber, userId){
@@ -1254,13 +1642,28 @@ async function aceptar(orderId, orderNumber, userId){
     //console.log(resulP);
     if(resulP.status == 200){
         loading(2);
-        Swal.fire({
+        const Toast = Swal.mixin({
+            toast: true,
             position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer)
+              toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+          })
+          
+          Toast.fire({
+            icon: 'success',
+            title: 'El pedido <strong>'+orderNumber+'</strong> a sido aceptado'
+          })
+        /*Swal.fire({
             icon: 'success',
             title: 'Se ha creado el pedido',
             showConfirmButton: false,
             timer: 1500
-        })
+        })*/
     }else{
         loading(2);
         Swal.fire({
@@ -1336,7 +1739,11 @@ async function modalView(idOrder, orderNumber, opc, userId){
                 let canceled    = '';
                 let asigned     = '';
                 let rechazado   = '';
-
+                let finalizado  = '';
+                let modificado  = '';
+                let regreso     = '';
+                let asigado     = '';
+                
                 for(i=0; i < contHistorial; i++){ 
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jHistorial[i].user_id)        responsable = jUsuarios[j].name;
@@ -1344,6 +1751,10 @@ async function modalView(idOrder, orderNumber, opc, userId){
                         if(jUsuarios[j].id == jHistorial[i].canceled_by)    canceled    = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].asigned_id)     asigned     = jUsuarios[j].name;
                         if(jUsuarios[j].id == jHistorial[i].rejected_by)    rechazado   = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].finished_by)    finalizado  = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].modificed_by)   modificado  = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].return_by)      regreso     = jUsuarios[j].name;
+                        if(jUsuarios[j].id == jHistorial[i].redirect_by)    asigado     = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jHistorial[i].area_id) area = jArea[k].name;
@@ -1352,7 +1763,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
                         else if(jHistorial[i].status == 'Parcial') sModalVentana = sModalVentana + `<tr class="table-warning">`; //Si es parcial se pone en naranja
                             else if(jHistorial[i].status == 'Finalizado') sModalVentana = sModalVentana + `<tr class="table-success">`; //Si es finalizado se pone en verde
                                 else if(jHistorial[i].canceled_by != null) sModalVentana = sModalVentana + `<tr class="table-danger">`; //Si es cancelado se pone en Rojo
-                                    else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
+                                    else if(jHistorial[i].modificed_by != null) sModalVentana = sModalVentana + `<tr class="table-info">`; //Si es cancelado se pone en Rojo
+                                        else sModalVentana = sModalVentana + `<tr">`; //Si no es nimguno de los anteriores se pone de color por defecto
                     sModalVentana = sModalVentana + `<td scope="row">`+new Date(jHistorial[i].changed_date).toLocaleString()+`</td>
                                             <td>`+area+`</td>
                                             <td>`+responsable+`</td>`;
@@ -1360,7 +1772,12 @@ async function modalView(idOrder, orderNumber, opc, userId){
                     else if(jHistorial[i].acepted_by != null) sModalVentana = sModalVentana + `<td>Aceptado por: <strong>`+acepted+`</strong></td>`;//Valida si esta Aceptado
                         else if(jHistorial[i].asigned_to == 0) sModalVentana = sModalVentana + `<td>Asignado al area: <strong>`+area+`</strong></td>`;//Valida si esta Asignado
                             else if(jHistorial[i].rejected_by != null) sModalVentana = sModalVentana + `<td>Rechazado por: <strong>`+rechazado+`</strong></td>`;//Valida si esta Asignado
-                                else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                else if(jHistorial[i].partially_by != null) sModalVentana = sModalVentana + `<td>Parcial por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                    else if(jHistorial[i].finished_by != null) sModalVentana = sModalVentana + `<td>Finalizado por <strong>`+finalizado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                        else if(jHistorial[i].modificed_by != null) sModalVentana = sModalVentana + `<td>Modificado por <strong>`+modificado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                            else if(jHistorial[i].return_by != null) sModalVentana = sModalVentana + `<td>Regresó a ventas por: <strong>`+regreso+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
+                                                else if(jHistorial[i].redirect_by != null) sModalVentana = sModalVentana + `<td>Se asignó por: <strong>`+asigado+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido    
+                                                    else sModalVentana = sModalVentana + `<td>Creado por <strong>`+responsable+`</strong></td>`;//Si no es niguna de las otras validaciones es creado el pedido
                     if(jHistorial[i].cancellation_details != null) sModalVentana = sModalVentana + `<td>`+jHistorial[i].cancellation_details+`</td>`;//Valida si tiene un mensaje el pedido
                     else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
@@ -1399,6 +1816,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
         case 3://Modal para nuevo pedido
             varGlobal = 3;
             tamanomodal(1);
+            
             let jUserP = await apiUsuario(usuIdGlobal);
             //console.log(jUserP[0].name);
             sModalVentana = sModalVentana + `
@@ -1408,9 +1826,18 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>
                                             <div class="modal-body">
                                                 <div class="containerModal">
-                                                    <div class="input-group mb-3">
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="radioEmp" id="inlineRadio1" value="P" checked>
+                                                        <label class="form-check-label" for="inlineRadio1">Proveedor</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="radioEmp" id="inlineRadio2" value="M">
+                                                        <label class="form-check-label" for="inlineRadio2">Maria Raquel</label>
+                                                    </div>
+                                                    
+                                                    <div class="input-group mb-3 mt-3">
                                                         <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
-                                                        <input type="int" class="form-control" id="nuevoPedidoInput" min="1" pattern="[0-9]+" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" placeholder="Ejemplo: 45055">
+                                                        <input type="int" class="form-control" autofocus id="nuevoPedidoInput" min="9000" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;" placeholder="Ejemplo: 45055">
                                                     </div>
                                                 </div>
                                           
@@ -1478,8 +1905,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
             let jUserS = await apiUsuario(usuIdGlobal);
             //console.log(jUserS[0].name);
             let areaS        = '';
-            console.log(jUserS);
-            console.log("usuIdGlobal",usuIdGlobal,"arGlobal ",arGlobal, "orderNumber", orderNumber, "IdOrder", idOrder, "jUserS[0].id",jUserS.id);
+            //console.log(jUserS);
+            //console.log("usuIdGlobal",usuIdGlobal,"arGlobal ",arGlobal, "orderNumber", orderNumber, "IdOrder", idOrder, "jUserS[0].id",jUserS.id);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
                                                 <h1 class="modal-title fs-5" id="staticBackdropLabel">Reasignar pedido: <strong>`+orderNumber+`</strong></h1>
@@ -1495,20 +1922,28 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                         </li>
                                                         <li class="nav-item" role="presentation">
                                                             <button class="nav-link" onclick="segPedido(2,0,0)" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-si" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Si</button>
-                                                        </li>
-                                                    </ul>
+                                                        </li>`
+            if(arGlobal == 0 || arGlobal == 2){
+                sModalVentana = sModalVentana +`        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link" onclick="segPedido(3,0,0)" id="pills-user-tab" data-bs-toggle="pill" data-bs-target="#pills-todosUsuarios" type="button" role="tab" aria-controls="pills-user" aria-selected="false">Todos los usuarios</button>
+                                                        </li>`
+            }
+            sModalVentana = sModalVentana + `       </ul>
                                                     <div class="tab-content" id="pills-tabContent">
-                                                    <div class="tab-pane fade show active" id="pills-no" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">`;
-                                                    sModalVentana = sModalVentana + asignarModalOpc(2);
-                                                    sModalVentana = sModalVentana + `                                          
-                                                    </div>
-                                                    <div class="tab-pane fade" id="pills-si" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">`;
-                                                    sModalVentana = sModalVentana + asignarModalOpc(1);
-                                                    sModalVentana = sModalVentana + `
-                                                    <label for="floatingTextarea" class="mt-3">Comentarios</label>  
-                                                    <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="msgRegVentas"></textarea>
-                                                       
-                                                    </div>
+                                                        <div class="tab-pane fade show active" id="pills-no" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(2);
+                                                            sModalVentana = sModalVentana + `                                          
+                                                        </div>
+                                                        <div class="tab-pane fade" id="pills-si" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(1);
+                                                            sModalVentana = sModalVentana + `
+                                                            <label for="floatingTextarea" class="mt-3">Comentarios</label>  
+                                                            <textarea class="form-control mt-3" style="max-height: 200px; min-height: 150px;" placeholder="Comentario de regreso a ventas" id="msgRegVentas"></textarea>
+                                                        </div>
+                                                        <div class="tab-pane fade" id="pills-todosUsuarios" role="tabpanel" aria-labelledby="pills-user-tab" tabindex="0">`;
+                                                            sModalVentana = sModalVentana + asignarModalOpc(3);
+                                                            sModalVentana = sModalVentana + `                                          
+                                                        </div>
                                                     </div>
                                                 </div>`;
             }else{
@@ -1521,42 +1956,64 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>`;
             break;
     }
-
     document.getElementById('modalInfo').innerHTML = sModalVentana;
-
+    if(opc == 3){
+        document.getElementById('nuevoPedidoInput').focus();
+    }
 }
 
 async function nuevoPed(area, userId){
 
-    loading(1);
-    let datosP = {
-        area    : area,
-        userId  : userId,
-        numOrder : document.getElementById('nuevoPedidoInput').value
+    var x = document.getElementsByName("radioEmp");
+    let resCheck = '';
+    for (i = 0; i < x.length; i++) {
+    	if(x[i].checked == true ){
+            resCheck = x[i].value;
+        }
     }
-    let resultP = await apiAgregarPed(datosP);
-    
-    if(resultP.status == 200){
-        recargar();
-        loading(2);
-        document.querySelector('#cerrarMoNuevo').click();
-        document.querySelector('#cerrarMoNuevo').click();
-        Swal.fire({
-            icon: 'success',
-            title: 'Se ha creado el pedido',
-            showConfirmButton: false,
-            timer: 1500
-        })
+    loading(1);
+    let numOrder = document.getElementById('nuevoPedidoInput').value.trim();
+    if(numOrder != ''){
+        let datosP = {
+            area     : area,
+            userId   : userId,
+            numOrder : numOrder,
+            emp      : resCheck
+        }
+        //console.log(datosP);
+        let resultP = await apiAgregarPed(datosP);
+
+        if(resultP.status == 200){
+            recargar();
+            loading(2);
+            document.querySelector('#cerrarMoNuevo').click();
+            document.querySelector('#cerrarMoNuevo').click();
+            Swal.fire({
+                icon: 'success',
+                title: 'Se ha creado el pedido',
+                showConfirmButton: false,
+                timer: 1500
+            })
+        }else{
+            loading(2);
+            document.querySelector('#cerrarMoNuevo').click();
+            Swal.fire({
+                icon: 'warning',
+                title: 'El N° de pedido '+numOrder+' ya existe',
+                showConfirmButton: false,
+                timer: 1500
+            })
+
+        }
     }else{
         loading(2);
-        document.querySelector('#cerrarMoNuevo').click();
+        document.querySelector("#nuevoPedidoInput").focus();
         Swal.fire({
             icon: 'warning',
-            title: 'Ha ocurrido un error',
+            title: 'El N° de pedido no puede estar vacio',
             showConfirmButton: false,
             timer: 1500
         })
-        
     }
 }
 async function rechazar(orderId, acepted){
@@ -1582,36 +2039,97 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
     //console.log("opcM ",opcM);
     if(opcM != 0){ modMenu = opcM;}
     else{
-        if(modMenu == 1){
-            let selectArea = document.getElementById('selectedArea').value;
-            //console.log(selectArea);
-            let datos = {
-                area    : selectArea,
-                numOrder: numOrder,
-                idUser  : idUser,
-                idOrder : idOrder
-            }
-            let result = await apiAvanzaPedido(datos);
-            if(result.status == 200){
-                recargar();
-                document.querySelector('#cerrarModal').click();
-            }
-        }
-        if(modMenu == 2){
-            let selectVendedor = document.getElementById('selectedVendedor').value;
-            let msgRegVentas   = document.getElementById('msgRegVentas').value;
-            let datos = {
-                vendedor: selectVendedor,
-                msg     : msgRegVentas,
-                numOrder: numOrder,
-                idUser  : idUser,
-                idOrder : idOrder
-            }
-            let result = await apiRegAVentas(datos);
-            if(result.status == 200){
-                recargar();
-                document.querySelector('#cerrarModal').click();
-            }
+        let datos;
+        let result;
+        switch(modMenu){
+            case 1:
+                let selectArea = document.getElementById('selectedArea').value;
+                //console.log(selectArea);
+                datos = {
+                    area    : selectArea,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectArea != 0){
+                    result = await apiAvanzaPedido(datos);
+                    if(result.status == 200){
+                        recargar();
+                        document.querySelector('#cerrarModal').click();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione una área',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedArea").focus();
+                }
+            break;
+            case 2:
+                let selectVendedor = document.getElementById('selectedVendedor').value;
+                let msgRegVentas   = document.getElementById('msgRegVentas').value;
+                datos = {
+                    vendedor: selectVendedor,
+                    msg     : msgRegVentas,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectVendedor != 0){
+                    if(msgRegVentas != ''){
+                        result = await apiRegAVentas(datos);
+                        if(result.status == 200){
+                            recargar();
+                            document.querySelector('#cerrarModal').click();
+                        }
+                    }else{
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Por favor ingrese el detalle porque regresa el pedido al vendedor',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        document.getElementById("msgRegVentas").focus();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione a un vendedor',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedVendedor").focus();
+                }
+            break;
+            case 3:
+                let selectUsuario = document.getElementById('selectedUsuario').value;
+                //console.log(selectArea);
+                datos = {
+                    user    : selectUsuario,
+                    numOrder: numOrder,
+                    idUser  : idUser,
+                    idOrder : idOrder
+                }
+                if(selectUsuario != 0){
+                    //result = await apiAsignarDir(datos);
+                    result = await apiMasterPost(datos,'asignarDir');
+
+                    if(result.status == 200){
+                        recargar();
+                        document.querySelector('#cerrarModal').click();
+                    }
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione a un usuario',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                    document.getElementById("selectedUsuario").focus();
+                }
+            break;
         }
     }
 }
@@ -1634,27 +2152,43 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     let sModalVentana = '';
     switch(opc){
         case 1:
+            //Caso para ver a los vendedores
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedVendedor" aria-label="Default select example">
-                                        <option value="99" >Seleccione a un vendedor</option>`
+                                        <option value="0" >Seleccione a un vendedor</option>`
             for(i = 0; i < contUsuarios; i++){
-                if(jUsuarios[i].user_rol_id == 3){
+                if(jUsuarios[i].user_rol_id == 3){//validamos que los que se van a mostrar sean unicamente del área de vendedores
                     sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
                 }
             }
             sModalVentana = sModalVentana +`</select>`;
             break;
         case 2:
+            //Caso para mostrar las áreas
             sModalVentana = sModalVentana + `<select class="form-select" id="selectedArea" aria-label="Default select example">
-                                        <option >Seleccione una área</option>`
-            for(i = 0; i < contArea; i++){
-                if(jArea[i].id != 3 && jArea[i].id != 0) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
+                                        <option value="0">Seleccione una área</option>`
+            for(i = 0; i < contArea; i++){//Iniciamos un ciclo para mostrar las áreas
+                if(jArea[i].id != 3 && jArea[i].id != 0 && jArea[i].id != 100 && jArea[i].id != 101 && jArea[i].id != 7 && jArea[i].id != 6) sModalVentana = sModalVentana + `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`; //Se valida para que el áre administrador, ventas y Cancelado se muestren
             }
             sModalVentana = sModalVentana +`</select>`;
-            
             break;
-        
+        case 3:
+            sModalVentana = sModalVentana + `<select class="form-select" id="selectedUsuario" aria-label="Default select example">
+                                        <option value="0">Seleccione a un usuario a asignar el pedido</option>`
+            for(i = 0; i < contUsuarios; i++){
+                sModalVentana = sModalVentana + `<option value="`+jUsuarios[i].id+`">`+jUsuarios[i].name+`</option>`;
+            }
+            sModalVentana = sModalVentana +`</select>`;
+            break;
     }
-
     return sModalVentana;
-    
+}
+
+window.onscroll = function() {myFunction()};
+
+function myFunction() {
+  if (document.documentElement.scrollTop > 50) {
+    $("#goup").css("display", "block");
+  } else {
+    $("#goup").css("display", "none");
+  }
 }

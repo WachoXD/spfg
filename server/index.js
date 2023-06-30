@@ -52,29 +52,7 @@ app.use('/api', router);
  
 var mysql = require('mysql');
 
-/*
-var conexion= mysql.createConnection({
-    host : 'localhost',
-    database : 'spfg',
-    user : 'pfg',
-    password : '(fEnebs[i_HIskp-',
-}); 
 
-/*var conexion= mysql.createConnection({
-    host : 'localhost',
-    database : 'spfg',
-    user : 'root',
-    password : '',
-});*/
-
-/*conexion.connect(function(err) {
-    if (err) {
-        console.error('Error de conexion: ' + err.stack);
-        return;
-    }
-    console.log('Conectado con el identificador ' + conexion.threadId);
-});
-*/
 const logger = winston.createLogger({
     level: 'error', // Nivel de registro: error
     format: winston.format.simple(), // Formato del mensaje de error
@@ -90,10 +68,16 @@ const logger = winston.createLogger({
 });
 var db_config = {
     host: 'localhost',
-      user: 'pfg',
-      password: '(fEnebs[i_HIskp-',
-      database: 'spfg'
-  };
+    user: 'pfg',
+    password: '(fEnebs[i_HIskp-',
+    database: 'spfg'
+};
+/*var db_config = {
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'spfg'
+};*/
   
   var conexion;
   
@@ -102,19 +86,19 @@ var db_config = {
                                                     // the old one cannot be reused.
   
     conexion.connect(function(err) {              // The server is either down
-      if(err) {                                     // or restarting (takes a while sometimes).
-        console.log('error when connecting to db:', err);
-        setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
-      }                                     // to avoid a hot loop, and to allow our node script to
+        if(err) {                                     // or restarting (takes a while sometimes).
+            console.log('error when connecting to db:', err);
+            setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+        }                                     // to avoid a hot loop, and to allow our node script to
     });                                     // process asynchronous requests in the meantime.
                                             // If you're also serving http, display a 503 error.
     conexion.on('error', function(err) {
-      console.log('db error', err);
-      if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
-        handleDisconnect();                         // lost due to either server restart, or a
-      } else {                                      // connnection idle timeout (the wait_timeout
-        throw err;                                  // server variable configures this)
-      }
+        console.log('db error', err);
+        if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+            handleDisconnect();                         // lost due to either server restart, or a
+        } else {                                      // connnection idle timeout (the wait_timeout
+            throw err;                                  // server variable configures this)
+        }
     });
   }
   
@@ -125,7 +109,7 @@ var db_config = {
     
         // Reinicia el servicio de nodemon
         const nodemonProcess = spawn('nodemon', ['index.js'], {
-        stdio: 'inherit',
+            stdio: 'inherit',
         });
         
         // Cierra el proceso actual
@@ -139,27 +123,29 @@ async function timeNow(){
 }
 //Nuestro primer WS Get
 app.get('/', (req, res) => {
-    let img = {
-        uno: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
-        dos: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwradio.com.mx%2Fradio%2F2017%2F05%2F31%2Fdeportes%2F1496248133_037699.html&psig=AOvVaw1XdV8hYBAGgVVrfTPU6fiM&ust=1685484409888000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCLC66be3m_8CFQAAAAAdAAAAABAI",
-        tres: "https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg"
-    }
-    //logger.log("error", "Hello, Winston!");    
-    res.send(`
-<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>¿?</title>
-    </head>
-    <body>
-    <br><br><br>
-        <center><h1>Ya Gonzalo</h1><br><img src="https://wrmx00.epimg.net/radio/imagenes/2017/05/31/deportes/1496248133_037699_1496249946_noticia_normal.jpg" width="900px" alt="Miloco"></center>
-        <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
-    </body>
-</html>`);
+    let img = [  "","https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
+                "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwradio.com.mx%2Fradio%2F2017%2F05%2F31%2Fdeportes%2F1496248133_037699.html&psig=AOvVaw1XdV8hYBAGgVVrfTPU6fiM&ust=1685484409888000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCLC66be3m_8CFQAAAAAdAAAAABAI",
+                "https://i.ytimg.com/vi/fuG-gNV2oDM/maxresdefault.jpg"
+            ]
+    //logger.log("error", "Hello, Winston!");
+    const numeroAlAzar = Math.floor(Math.random() * 2) + 1;  
+    console.log("numeroAlAzar ",numeroAlAzar);
+    let sVista = `
+    <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>¿?</title>
+        </head>
+        <body>
+        <br><br><br>
+            <center><h1>Ya Gonzalo</h1><br><img src="`+img[numeroAlAzar]+`" width="900px" alt="Miloco"></center>
+            <META HTTP-EQUIV="REFRESH" CONTENT="5;URL=http://192.168.1.74:81/spfg/"> 
+        </body>
+    </html>`
+    res.send(sVista);
 })
 
 router.post('/login', (req, res) => { 
@@ -294,7 +280,7 @@ router.get('/usuarios', (req, res) => {
 })
 
 router.get('/solTodPed', (req, res) => {
-    conexion.query('SELECT * FROM orders', (error, results, fields) => {
+    conexion.query('SELECT * FROM orders ORDER BY id DESC', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -316,6 +302,7 @@ router.get('/area', (req, res) => {
         res.send(jsonData);
     });
 })
+
 router.post('/actualizarPedido',(req, res)=>{
     let area        = req.body.area;
     let numOrder    = req.body.numOrder;
@@ -337,12 +324,39 @@ router.post('/actualizarPedido',(req, res)=>{
     }); 
 })
 
+router.post('/parcialPed' ,(req, res)=>{
+    let numOrder    = req.body.numOrder;
+    let orderId     = req.body.orderId;
+    //console.log("Api orderId ",orderId);
+    conexion.query(`UPDATE orders SET status = 'Parcial' WHERE id = ?`,[orderId], function (error, results, fields) {
+        if(error){
+            console.log(error);
+            res.json({
+                "status": 500
+            });
+        }else{
+            let datosRes = {
+                area        : req.body.area_id,
+                orderId     : req.body.orderId,
+                idUser      : req.body.idUser,
+                opc         : 5,
+            }
+            //console.log(datosRes);
+            let resultado = actHistorial(datosRes);
+            res.json({
+                "status": 200,
+            });
+        }
+        //res.send(results);
+    });
+})
+
 router.post('/aceptarPed', (req, res) => {
     let userId      = req.body.userId;
     let orderId     = req.body.orderId;
     let acepted     = userId;
     var resu = '';
-    console.log("El usuario: ",userId," la orden: ",orderId);
+    //console.log("El usuario: ",userId," la orden: ",orderId);
     conexion.query("UPDATE orders SET `acepted` = '1', `user_id` = '"+userId+"', `updated_at` = NOW(), `before_area` = `area_id`,  `before_user` = '"+userId+"'  WHERE id = '"+orderId+"'", function (error, results, fields) {
         if (error) {
             throw error;
@@ -470,6 +484,201 @@ router.post('/rechazarPed',(req, res)=>{
     }); 
 })
 
+router.post('/finalizarPed', (req, res) => {
+    let idUser      = req.body.idUser;
+    let idOrder     = req.body.idOrder;
+    conexion.query("UPDATE orders SET `status` = 'Finalizado', `acepted` = '0', `area_id` = '101', `user_id` = '"+idUser+"', `updated_at` = NOW() WHERE id = '"+idOrder+"'", function (error, results, fields) {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            console.log(resul);
+            let datosRes = {
+                opc         : 6,
+                area        : 101,
+                orderId     : idOrder,
+                idUser      : idUser,
+                acepted     : 0,
+                msg         : 'El pedido ha sido finalizado',
+            }
+            let resultado = actHistorial(datosRes);
+            //console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        }
+    });
+
+})
+
+router.post('/eliminarPed', (req, res) => {
+    let idOrder     = req.body.idOrder;
+    conexion.query("DELETE FROM orders WHERE orders.id = '"+idOrder+"'", function (error, results, fields){
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            conexion.query("DELETE FROM order_record WHERE `order_record`.`order_id` = '"+idOrder+"'", function (error, results, fields){
+                if (error) {
+                    console.log(error.code);
+                    throw error;
+                }else{
+                    res.json({ 
+                        "status":       200,
+                    }); 
+                }
+            })
+            
+        }
+    })
+})
+
+router.post('/cancelarPed', (req, res) => {
+    let idOrder     = req.body.idOrder;
+    let ordernumber = req.body.ordernumber;
+    let area_id     = req.body.area_id;
+    let idUser      = req.body.idUser;
+    conexion.query("UPDATE orders SET `status` = 'Cancelado', `acepted` = '0', `area_id` = '100', `user_id` = '"+idUser+"', `updated_at` = NOW() WHERE id = '"+idOrder+"'", function (error, results, fields) {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            const jsonData = JSON.stringify(results);
+            let resul = JSON.parse(jsonData);
+            console.log(resul);
+            let datosRes = {
+                opc         : 7,
+                area        : 100,
+                orderId     : idOrder,
+                idUser      : idUser,
+                acepted     : 0,
+                msg         : 'El pedido ha sido cancelado',
+            }
+            let resultado = actHistorial(datosRes);
+            //console.log(resultado);
+            if( resultado == 200){
+                res.json({ 
+                    "status":       200,
+                }); 
+            }
+        }
+    });
+})
+
+router.post('/modificarPed', (req, res) => {
+    let area           = req.body.area;
+    let acepted        = req.body.acepted;
+    let idUser         = req.body.idUser;
+    let idOrder        = req.body.idOrder;
+    let company        = req.body.company;    
+    let ordernumber    = req.body.ordernumber;
+    let oldOrderNumber = req.body.oldOrderNumber;
+    let oldCompany     = req.body.oldCompany;
+    //console.log("area ",area," acepted ",acepted," idUser ", idUser, " idOrder ",idOrder, " company ",company," ordernumber ",ordernumber," oldOrderNumber ",oldOrderNumber," oldCompany ",oldCompany);
+
+    conexion.query("SELECT id FROM `orders` WHERE `company` = '"+company+"' AND `ordernumber` = '"+ordernumber+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            if (results.length > 0) {
+                console.log("Result: ",results.length);
+                res.json({
+                    "status":       500,
+                })
+            }else{
+                conexion.query("UPDATE `orders` SET `company`='"+company+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
+                    if (error) {
+                        console.log(error.code);
+                        throw error;
+                    }else{
+                        let datosRes = {
+                            opc         : 8,
+                            area        : area,
+                            orderId     : idOrder,
+                            idUser      : idUser,
+                            acepted     : acepted,
+                            msg         : 'El pedido ha sido modificado de N° '+oldOrderNumber+' a N° '+ordernumber+' y de '+oldCompany+' a '+company+'',
+                        }
+                        let resultado = actHistorial(datosRes);
+                        res.json({ 
+                            "status":  200,
+                        });
+                    }
+                });
+            }   
+        }
+    });   
+})
+
+router.post('/regresarVent', (req, res) => {
+    let vendedor = req.body.vendedor;
+    let msg      = req.body.msg;
+    let numOrder = req.body.numOrder;
+    let idUser   = req.body.idUser;
+    let idOrder  = req.body.idOrder;
+    conexion.query("UPDATE `orders` SET  `acepted`='1',`area_id`='3',`user_id`='"+vendedor+"',`updated_at`= NOW() WHERE `id`='"+idOrder+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            let _datos = {
+                opc      : 9,
+                acepted  : idUser,
+                msg      : msg     ,
+                numOrder : numOrder,
+                idUser   : vendedor,
+                orderId  : idOrder ,
+                area     : 3
+            }
+            let resHist = actHistorial(_datos);
+            res.json({ 
+                "status":  200,
+            });
+        }
+    });
+});
+
+router.post('/asignarDir', (req, res) => {
+    let user     = req.body.user;
+    let numOrder = req.body.numOrder;
+    let idUser   = req.body.idUser;
+    let idOrder  = req.body.idOrder;
+
+    conexion.query("SELECT `user_rol_id` FROM `users` WHERE `id` = '"+user+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
+        }else{
+            let area = results[0].user_rol_id;
+            conexion.query("UPDATE `orders` SET  `acepted`='1',`area_id`='"+area+"',`user_id`='"+user+"',`updated_at`= NOW() WHERE `id`='"+idOrder+"'", (error, results) => {
+                if (error) {
+                    console.log(error.code);
+                    throw error;
+                }else{
+                    let _datos = {
+                        area     : area,
+                        opc      : 10,
+                        acepted  : idUser,
+                        numOrder : numOrder,
+                        idUser   : user,
+                        orderId  : idOrder ,
+                    }
+                    let resHist = actHistorial(_datos);
+                    res.json({ 
+                        "status":  200,
+                    });
+                }
+            });
+            
+        }
+    });
+});
+
 function actHistorial(reqDatos){
 
     let area        = reqDatos.area;
@@ -477,22 +686,10 @@ function actHistorial(reqDatos){
     let idUser      = reqDatos.idUser;
     let aceptado    = reqDatos.acepted;
     let numOrder    = reqDatos.numOrder;
+    let msg         = reqDatos.msg;
     var resu;
-    /*
-    conexion.query('SELECT id FROM orders WHERE ordernumber = ?',[numOrder], (error, results, fields) => {
-        if (error) {
-          console.error('Error al ejecutar la consulta: ', error);
-          throw error;
-        }
-        // Convertir los resultados en formato JSON
-        const jsonData = JSON.stringify(results);
-        let resJson = JSON.parse(jsonData);
-        //console.log(jsonData);
-        resu = resJson;
-    });
-    */
     let sqlCon = '';
-    //console.log(reqDatos);
+    console.log("aceptado ",aceptado);
     switch(reqDatos.opc){
         /*
         1: Nuevo
@@ -501,10 +698,13 @@ function actHistorial(reqDatos){
         4: Rechazado
         5: Parcial
         6: Finalizado
+        7: Cancelado
+        8: Modificar
+        9: Se regresa a ventas
         */
         case 1:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, created_at) 
-            VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`',NOW())`;
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,    user_id,       order_id,       created_at) 
+            VALUES (                            'Activo', NOW(),    '`+area+`', '`+idUser+`',   '`+orderId+`',  NOW())`;
             break;
         case 2:
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, asigned_to, order_id, created_at) 
@@ -515,30 +715,47 @@ function actHistorial(reqDatos){
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',NOW())`;
             break;
         case 4: 
-            let msg    = reqDatos.msg;
             sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, rejected_by, cancellation_details, created_at) 
             VALUES ('Activo', NOW(),'`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`', NOW())`;
             break;
         case 5:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, created_at) 
-            VALUES ('Parcial', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', NOW())`;
+            sqlCon = `INSERT INTO order_record(status,  changed_date, area_id,       user_id,        order_id,       changed_status_by,  	partially_by, created_at ) 
+            VALUES (                           'Parcial', NOW(),       '`+area+`',    '`+idUser+`',    '`+orderId+`',    '`+idUser+`',       '`+idUser+`', NOW())`
             break;
         case 6:
-            sqlCon = `INSERT INTO order_record(status, changed_date, area_id, user_id, order_id, change_status_by, created_at) 
-            VALUES ('Finalizado', NOW(),'`+area+`','`+idUser+`','`+orderId+`','`+orderId+`', NOW())`;
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	finished_by, created_at) 
+            VALUES (                        'Finalizado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
+        case 7:
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	canceled_by, created_at) 
+            VALUES (                        'Cancelado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
+        case 8:
+            sqlCon = `INSERT INTO order_record(status,      changed_date, area_id,  user_id,        order_id,   changed_status_by,   cancellation_details,  	modificed_by, created_at) 
+            VALUES (                        'Modificado',    NOW(),     '`+area+`','`+idUser+`','`+orderId+`',  '`+idUser+`',      '`+msg+`',              '`+idUser+`',     NOW())`;
+            break;
+        case 9: 
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,   user_id,        order_id,    	return_by,    cancellation_details, created_at) 
+            VALUES                          ('Regreso', NOW(),      '`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`', '`+msg+`',               NOW())`;
+            break;
+        case 10: 
+            sqlCon = `INSERT INTO order_record(status, changed_date, area_id,   user_id,        order_id,    	redirect_by,  created_at) 
+            VALUES                          ('Asignado', NOW(),      '`+area+`','`+idUser+`','`+orderId+`', '`+aceptado+`',  NOW())`;
             break;
     }
 
     let res = conexion.query(sqlCon, function (error, results, fields) {
         if(error){
+            
             console.log("error");
             console.log(error.code);
+            
             throw error;
             return 500;
         }
         console.log("No error");
         return 200;
-    }); 
+    });
     return 200;
 }
 
@@ -546,75 +763,296 @@ router.post('/agregarPed', (req, res) => {
     let area        = req.body.area;
     let idUser      = req.body.idUser;
     let numOrder    = req.body.numOrder;
+    let emp         = req.body.emp;
    //console.log("Area: ",area);
    //console.log("IdUser: ",idUser);
    //console.log("numOrder ",numOrder);
    //
-    conexion.query(`INSERT INTO orders (ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
-        /*
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
-            handleDisconnect();                         // lost due to either server restart, or a
-          } else {                                      // connnection idle timeout (the wait_timeout
-            throw err;                                  // server variable configures this)
-          }
-        */
-       // Captura los errores no capturados
-
-        if(error){
-            if (error.code === 'ER_DUP_ENTRY') {
-                reinicio();
-                handleDisconnect();
-                res.json({ 
-                    "status":       500,
-                });
-                return;
-            }
+    conexion.query("SELECT id FROM orders WHERE company = '"+emp+"' AND ordernumber = '"+numOrder+"'", (error, results) => {
+        if (error) {
+            console.log(error.code);
+            throw error;
         }else{
-      
-            const id = results.insertId; // Obtener el ID del nuevo dato agregado
-            let _datosHistorial = {
-                opc      : 1,
-                idOrder  : id,
-                area     : area,
-                idUser   : idUser,
-                numOrder : numOrder,
-                aceptado : 1
-            }
-            let resu = actHistorial(_datosHistorial);
-            //console.log(resu);
-            if(resu==200){
-                
-            }
-            //console.log('Dato agregado con éxito. ID:', id);
-            res.json({ 
-                "status":       200,
-            }); // Enviar el ID como respuesta en formato JSON
-            
-            /*
-            if(Object.keys(results).length === 0){
+            if (results.length > 0) {
                 res.json({
-                    "status": 500
-                });
+                    "status":       500,
+                })
             }else{
-                let _datosHistorial = {
-                    opc      : 1,
-                    area     : area,
-                    idUser   : idUser,
-                    numOrder : numOrder,
-                }
-                let resu = actHistorial(_datosHistorial);
-                if(resu.status==200){
-                    res.json({
-                        "status":       200,
-                    });
-                }
+                conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
+                    /*
+                    if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+                        handleDisconnect();                         // lost due to either server restart, or a
+                    } else {                                      // connnection idle timeout (the wait_timeout
+                        throw err;                                  // server variable configures this)
+                    }
+                    */
+                // Captura los errores no capturados
+            
+                    if(error){
+                        if (error.code === 'ER_DUP_ENTRY') {
+                            reinicio();
+                            handleDisconnect();
+                            res.json({ 
+                                "status":       500,
+                            });
+                            return;
+                        }
+                    }else{
+                        
+                        const id = results.insertId; // Obtener el ID del nuevo dato agregado
+                        let _datosHistorial = {
+                            opc      : 1,
+                            area     : area,
+                            orderId  : id,
+                            idUser   : idUser,
+                            numOrder : numOrder,
+                            aceptado : 1
+                        }
+                        let resu = actHistorial(_datosHistorial);
+                        //console.log(resu);
+                        if(resu==200){
+                            
+                        }
+                        //console.log('Dato agregado con éxito. ID:', id);
+                        res.json({ 
+                            "status":       200,
+                        }); // Enviar el ID como respuesta en formato JSON
+                    }
+                }); 
             }
-            */
-            //res.send(results); 
         }
-    }); 
+    })
+    
     
 })
+
+
+///////////////////////////////////////////////////////  Apis de adm ///////////////////////////
+router.get('/pm', (req, res) => {
+    conexion.query("SELECT * FROM orders WHERE company = ''", (error, results) => {
+        if (error) {
+            console.error('Error al verificar el producto:', error);
+        } else{
+            console.log(results.length);
+            for(i = 0; i < results.length; i++){
+                if(results[i].ordernumber < 40000){
+                    conexion.query("UPDATE `orders` SET `company`='M' WHERE `ordernumber`= "+results[i].ordernumber+"",(error, results) => {
+                        if (error) {
+                            console.error('Error al verificar el producto:', error);
+                        }
+                    })
+                }else{
+                    conexion.query("UPDATE `orders` SET `company`='P' WHERE `ordernumber`= "+results[i].ordernumber+"",(error, results) => {
+                        if (error) {
+                            console.error('Error al verificar el producto:', error);
+                        }
+                    })
+                }
+                console.log(i);
+            }
+            console.log("Ya terminó");
+        }
+    })
+})
+
+router.get('/actInvalido', (req, res) =>{
+    conexion.query("UPDATE `productos` SET `invalido`='0'",(error, results) =>{
+        if (error) {
+            console.error('Error al actualizar el invalido a 0:', error);
+        }
+    });
+})
+
+router.post('/agregarProd', (req, res) => {
+    //console.log(req.body);
+    let codigo       = req.body.codigo;
+    let codprov      = req.body.codprov;
+    let um           = req.body.um;
+    let descripcion  = req.body.descripcion;
+    let especial     = req.body.especial;
+    let costo        = req.body.costo;
+    let mon          = req.body.mon;
+    let prov         = req.body.prov;
+    let marca        = req.body.marca;
+    let fechaLista   = req.body.fechaLista;
+    let emp          = req.body.emp;
+    let sat          = req.body.sat;
+    let oferta       = req.body.oferta;
+    let invalido     = req.body.invalido;
+    // Consulta para verificar si el producto existe
+    
+    const consulta = `SELECT id FROM productos WHERE codigo = '`+codigo+`'`;
+
+    conexion.query(consulta, (error, results) => {
+        if (error) {
+            console.error('Error al verificar el producto:', error);
+        } else {
+            if (results.length > 0) {
+              // El producto existe, realizar la actualización
+                conexion.query("UPDATE `productos` SET `um`='"+um+"',`descripcion`='"+descripcion+"',`especial` = '"+especial+"' ,`costo`='"+costo+"',`fechalista`= NOW(), `invalido`='"+invalido+"' WHERE `codigo`='"+codigo+"'",(error, results) =>{
+                    if (error) {
+                        console.error('Error al actualizar el producto:', error);
+                    } else{
+                        res.json({
+                            "status" : 200
+                        })
+                    }
+                })
+            } else {
+              // El producto no existe, realizar la inserción
+              conexion.query(`INSERT INTO productos(codigo,       codprov,        um,     descripcion,       especial,     costo,       mon,      prov,      marca,      fechalista,     emp,       sat,        oferta,      invalido) 
+              VALUES (                            '`+codigo+`','`+codprov+`', '`+um+`','`+descripcion+`', '`+especial+`' , '`+costo+`','`+mon+`','`+prov+`','`+marca+`',NOW(),'`+emp+`','`+sat+`','`+oferta+`','`+invalido+`')`,(error, results) =>{
+                  if (error) {
+                      console.error('Error al ingresar el producto:', error);
+                  } else{
+                      res.json({
+                          "status" : 200
+                      })
+                  }
+              })
+            }
+        }
+    });
+});
+
+router.post('/resetInvalido', (req, results) => {
+    let prov       = req.body.prov;
+    let sQuery    = "";
+    //if(opc == 0){
+        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `prov` = '"+prov+"'; "
+    /*
+    }else{
+        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `especial` = (1); "
+    }
+    */
+    conexion.query(sQuery,(error, results) =>{
+        if (error) {
+            console.error('Error al resetear el invalido el producto:', error);
+        } else{
+            res.json({
+                "status" : 200
+            })
+        }
+    })
+});
+
+router.post('/agregarPorcen', (req, results) => {
+    let marca  = req.body.marca;
+    let lista1 = req.body.lista1;
+    let lista2 = req.body.lista2;
+    let lista3 = req.body.lista3;
+    sQuery = `INSERT INTO proveedores( marca,   lista1,         lista2,     lista3) 
+    VALUES (                        '`+marca+`','`+lista1+`','`+lista2+`','`+lista3+`') `;
+    conexion.query(sQuery,(error, results) =>{
+        if (error) {
+            console.error('Error al resetear el invalido el producto:', error);
+        } else{
+            res.json({
+                "status" : 200
+            })
+        }
+    })
+});
+
+/////////////////////////////////// APIs de lista de productos /////////////////////////////
+router.get('/solProductosSearch', (req, res) => {
+    let producto   = req.query.producto;
+    let prov       = req.query.prov;
+    //console.log("El order es: ",orderid);
+    conexion.query("SELECT * FROM `productos` WHERE `prov` LIKE '%"+prov+"%' AND (`codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%');", (error, results, fields) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.get('/solCoti', (req, res) =>{
+    let folio = req.query.folio;
+    conexion.query("SELECT * FROM `pedidos` WHERE `folio` = '"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }else{
+            if(results.length > 0){
+                const jsonData = JSON.stringify(results);
+                //console.log(jsonData);
+                res.send(jsonData);
+            }else{
+                res.json({
+                    "status": 0
+                });
+            }
+        }
+    });
+});
+
+router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
+    let productosJ   = req.body.productosJ;
+    let nomV         = req.body.nomV;
+    let telV         = req.body.telV;
+    let emailV       = req.body.emailV;
+    let razon        = req.body.razon;
+    let atencion     = req.body.atencion;
+    let departamento = req.body.departamento;
+    let idUser       = req.body.idUser;
+    conexion.query("SELECT `folio` FROM `pedidos` ORDER BY `id` DESC LIMIT 1", (error, results) => {//Solicitamos el ultimo registro ingresado el dato de folio y se suma 1 para la siguien cotización
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        let folio = 0;
+        
+        folio = (results[0].folio +1) * 1;
+        //console.log("folio: ",folio," results: ",results[0].folio);
+        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user) 
+                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`')`;
+        conexion.query(sQuery, (error, results) => {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+            }
+            res.json({
+                "status" : 200,
+                "folio"  : folio
+            })
+        });
+    });
+});
+
+router.post('/actCotizacion', (req, res) => {
+    let productosJ = req.body.productosJ;
+    let folio      = req.body.folio;
+
+    conexion.query("UPDATE `pedidos` SET `productosJ`='"+productosJ+"' WHERE `folio`='"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200,
+            "folio"  : folio
+        })
+    });
+});
+
+router.post('/eliminarCoti', (req, res) => {
+    let folio = req. body.folio;
+    conexion.query("DELETE FROM pedidos WHERE `pedidos`.`folio` = '"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200,
+        })
+    });
+});
+
 
 //Iniciando el servidor
 app.listen(app.get('port'),()=>{
