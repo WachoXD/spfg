@@ -864,6 +864,7 @@ router.get('/actInvalido', (req, res) =>{
 })
 
 router.post('/agregarProd', (req, res) => {
+    //console.log(req.body);
     let codigo       = req.body.codigo;
     let codprov      = req.body.codprov;
     let um           = req.body.um;
@@ -880,9 +881,9 @@ router.post('/agregarProd', (req, res) => {
     let invalido     = req.body.invalido;
     // Consulta para verificar si el producto existe
     
-    const consulta = `SELECT id FROM productos WHERE codigo = ?`;
+    const consulta = `SELECT id FROM productos WHERE codigo = '`+codigo+`'`;
 
-    conexion.query(consulta, [codigo], (error, results) => {
+    conexion.query(consulta, (error, results) => {
         if (error) {
             console.error('Error al verificar el producto:', error);
         } else {
@@ -918,7 +919,7 @@ router.post('/resetInvalido', (req, results) => {
     let prov       = req.body.prov;
     let sQuery    = "";
     //if(opc == 0){
-        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `prov` = "+prov+"; "
+        sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `prov` = '"+prov+"'; "
     /*
     }else{
         sQuery = "UPDATE `productos` SET `invalido`='0' WHERE `especial` = (1); "
@@ -956,11 +957,12 @@ router.post('/agregarPorcen', (req, results) => {
 /////////////////////////////////// APIs de lista de productos /////////////////////////////
 router.get('/solProductosSearch', (req, res) => {
     let producto   = req.query.producto;
+    let prov       = req.query.prov;
     //console.log("El order es: ",orderid);
-    conexion.query("SELECT * FROM `productos` WHERE `codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%';", (error, results, fields) => {
+    conexion.query("SELECT * FROM `productos` WHERE `prov` LIKE '%"+prov+"%' AND (`codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%');", (error, results, fields) => {
         if (error) {
-          console.error('Error al ejecutar la consulta: ', error);
-          throw error;
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
         }
         // Convertir los resultados en formato JSON
         const jsonData = JSON.stringify(results);
@@ -969,6 +971,87 @@ router.get('/solProductosSearch', (req, res) => {
     });
 });
 
+router.get('/solCoti', (req, res) =>{
+    let folio = req.query.folio;
+    conexion.query("SELECT * FROM `pedidos` WHERE `folio` = '"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }else{
+            if(results.length > 0){
+                const jsonData = JSON.stringify(results);
+                //console.log(jsonData);
+                res.send(jsonData);
+            }else{
+                res.json({
+                    "status": 0
+                });
+            }
+        }
+    });
+});
+
+router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
+    let productosJ   = req.body.productosJ;
+    let nomV         = req.body.nomV;
+    let telV         = req.body.telV;
+    let emailV       = req.body.emailV;
+    let razon        = req.body.razon;
+    let atencion     = req.body.atencion;
+    let departamento = req.body.departamento;
+    let idUser       = req.body.idUser;
+    conexion.query("SELECT `folio` FROM `pedidos` ORDER BY `id` DESC LIMIT 1", (error, results) => {//Solicitamos el ultimo registro ingresado el dato de folio y se suma 1 para la siguien cotización
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        let folio = 0;
+        
+        folio = (results[0].folio +1) * 1;
+        //console.log("folio: ",folio," results: ",results[0].folio);
+        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user) 
+                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`')`;
+        conexion.query(sQuery, (error, results) => {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+            }
+            res.json({
+                "status" : 200,
+                "folio"  : folio
+            })
+        });
+    });
+});
+
+router.post('/actCotizacion', (req, res) => {
+    let productosJ = req.body.productosJ;
+    let folio      = req.body.folio;
+
+    conexion.query("UPDATE `pedidos` SET `productosJ`='"+productosJ+"' WHERE `folio`='"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200,
+            "folio"  : folio
+        })
+    });
+});
+
+router.post('/eliminarCoti', (req, res) => {
+    let folio = req. body.folio;
+    conexion.query("DELETE FROM pedidos WHERE `pedidos`.`folio` = '"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200,
+        })
+    });
+});
 
 
 //Iniciando el servidor

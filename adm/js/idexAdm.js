@@ -3,7 +3,7 @@ var URLactual = window.location;
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 }
-if(URLactual.href.substring(0,28) == 'http://localhost/spfg/'){
+if(URLactual.href.substring(0,22) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
 }
 if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
@@ -66,8 +66,8 @@ function loading(carga){
 }
 
 async function apiMasterPost(_datos, urlCont){ //Sintaxis de esta función let res = await apiMasterPost(json a mandar, api a enviar en string)
-    console.log(_datos);
-    console.log(urlCont);
+    //console.log(_datos);
+    //console.log(urlBase+urlCont);
     var res = await fetch(urlBase+urlCont, {
         method: "POST",
         body: JSON.stringify(_datos),
@@ -93,13 +93,18 @@ async function apiResetInvalido(prov){
 
 async function apiAgregarProd(jProducto, opc){
     //El opc 0 es producto en general y el 1 es producto especial
-    
+    let desc = '';
+    if(jProducto[3].indexOf('"') > 0){
+        desc = jProducto[3].replace(`"`,`PUL`);
+    }else{
+        desc = jProducto[3];
+    }
 
     let _datos = {
         codigo       : jProducto[0],
         codprov      : jProducto[1],
         um           : jProducto[2],
-        descripcion  : jProducto[3],
+        descripcion  : desc,
         especial     : opc,
         industria    : jProducto[4],
         mon          : jProducto[5],
@@ -274,14 +279,17 @@ function convertirXLSXToJson(file) {
   
 async function productosEnBD(jsonData, opc) {
     loading(1);
+    console.log("hola");
+    console.log(jsonData[0]);
     // Lógica para verificar si los datos ya existen en la base de datos
     // Retorna true si los datos existen, o false si no existen
     let jsonArray = 0;
     let validar;
     jsonArray = Object.keys(jsonData).length;
     let resInv;
-    if(opc != 3)  resInv = await apiResetInvalido(jsonData.prov);
+    //if(opc != 3)  resInv = await apiResetInvalido(jsonData.prov);
     for(i = 1; i < jsonArray; i++){
+        console.log("codigo: ",jsonData[i].codigo," num: ",i);
         switch(opc){
             case 1: //Ingresa o actualiza pedidos
                 validar = await apiAgregarProd(jsonData[i], 0);

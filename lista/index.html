@@ -27,8 +27,7 @@
                         <i class="bi bi-person-circle"></i>  <span id="nomUser"></span>
                     </button>
                     <ul class="dropdown-menu" id="dropPerfil">
-                        <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
-                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                        <li><span> <i class="bi bi-emoji-frown"></i> Aquí no hay nada</span></li>
                     </ul>
                 </div>
             </div>
@@ -41,49 +40,57 @@
                     <div class="row g-0 text-center">
                         <div class="col-sm-6 col-md-5">
                             <p class="text-center fs-2">Datos del cliente</p>
-                            <div class="input-group mb-4 ">
+                            <div class="input-group mb-2 ">
                                 <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Razón social</span>
-                                <input type="text" autofocus class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                                <input type="text" autofocus class="form-control me-2 border border-primary" id="inRazon" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
                             </div>
-                            <div class="input-group mb-4">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Atención a</span>
-                                <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                                <input type="text" class="form-control me-2 border border-primary" id="inAtencion" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
                             </div>
-                            <div class="input-group mb-4">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text border border-primary" style="width:125px;" id="inputGroup-sizing-default">Departamento</span>
-                                <input type="text" class="form-control me-2 border border-primary" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                                <input type="text" class="form-control me-2 border border-primary" id="inDep" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
                             </div>
                         </div>
                         <div class="col-sm-6 col-md-5">
                             <p class="text-center fs-2">Datos del vendedor</p>
-                            <div class="input-group mb-4">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Nombre</span>
-                                <input type="text" class="form-control border border-primary" aria-label="Sizing example input" id="nomVend" aria-describedby="inputGroup-sizing-default" disabled>
+                                <input type="text" class="form-control border border-primary"  aria-label="Sizing example input" id="nomVend" aria-describedby="inputGroup-sizing-default" disabled>
                             </div>
-                            <div class="input-group mb-4">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Teléfono</span>
-                                <input type="text" class="form-control border border-primary" aria-label="Sizing example input" id="telVend" aria-describedby="inputGroup-sizing-default">
+                                <input type="text" class="form-control border border-primary"  aria-label="Sizing example input" id="telVend" aria-describedby="inputGroup-sizing-default">
                             </div>
-                            <div class="input-group mb-4">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text border border-primary" style="width:100px;" id="inputGroup-sizing-default">Correo</span>
                                 <input type="email" class="form-control border border-primary" aria-label="Sizing example input" id="correoVend" aria-describedby="inputGroup-sizing-default" disabled>
                             </div>
                         </div>
                         <div class="col-sm-6 col-md-2"><br><br>
-                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
-                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button>
-                            <button type="button" class="btn btn-primary mb-1" style="width:150px;" onclick="generarPDF()"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
-                            <button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-send"></i> Enviar</button>
+                            <button type="button" class="btn btn-primary mb-2" style="width:150px;" onclick="nvoPed()"><i class="bi bi-file-earmark-plus"></i> Nuevo pedido</button>
+                            <!--button type="button" class="btn btn-primary mb-1" style="width:150px;"><i class="bi bi-trash"></i> Eliminar Ped</button-->
+                            <button type="button" class="btn btn-primary mb-2" style="width:150px;" onclick="verificarCamposPDF(1)"><i class="bi bi-filetype-pdf"></i> Imprimir</button><br>
+                            <!--button type="button" class="btn btn-primary mb-1" style="width:150px;" onclick="enviarCorreo()"><i class="bi bi-send"></i> Enviar</button-->
                         </div>
                     </div>
                 </blockquote>
             </div>
         </div>
-        <div class="d-grid gap-2 d-md-flex mb-3 justify-content-md-end">
-            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Agregar un producto
-            </button>
+        <div class="row g-0">
+            <div class="col-sm-6 col-md-8" id="btnBuscar">
+                
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="d-grid gap-2 d-md-flex mb-3 justify-content-md-end">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <i class="bi bi-plus-circle"></i> Agregar un producto
+                    </button>
+                </div>
+            </div>
         </div>
+        
         <table class="table table-hover border border-success table-bordered">
             <tr>
                 <th scope="col">Código</th>
@@ -100,6 +107,10 @@
             <tbody id="tablaProductosPed">
             </tbody>
         </table>
+        <div class="row g-0 text-end">
+            <div class="col-sm-6 col-md-8"></div>
+            <div class="col-6 col-md-4" id="tablaTotal"></div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -170,6 +181,7 @@
     <script src="../js/jquery.min.js"></script>
     <script src="./js/pdfmake.min.js"></script>
     <script src="./js/vfs_fonts.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script src="./js/indexLista.js"></script>
 </body>
 </html>
