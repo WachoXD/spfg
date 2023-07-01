@@ -268,7 +268,7 @@ router.get('/solAceptar', (req,res) => { //Solo muestra los que le van a mandar
 });
 
 router.get('/usuarios', (req, res) => {
-    conexion.query('SELECT id, name, user_rol_id FROM users', (error, results, fields) => {
+    conexion.query('SELECT id, name, user_rol_id, email FROM users', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;

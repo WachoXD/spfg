@@ -11,6 +11,7 @@ var arGlobal      = 0;
 var modMenu       = 1;
 var usuIdGlobal   = 0;
 var todoModGlobal = 0;
+let jUsuarioGlobal;
 let jPedidosGlobal;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
@@ -150,7 +151,9 @@ function iniciarSesion(){
                 }else{
                     if(json.if_update != 0){
                         //console.log(json);
-                        home(json);
+                        jUsuarioGlobal = json;
+                        inicio();
+                        //home();
                     }else{
                         changePasswordView(1, json.id);
                     }
@@ -286,6 +289,8 @@ function changePassword(id){
 }
 
 async function apiMasterPost(_datos, urlCont){
+    //sintaxis 
+    //return await apiMasterPost(«Objeto con los datos a enviar», «Api a solicitar, sin /»)
     var res = fetch(urlBase+urlCont, {
         method: "POST",
         body: JSON.stringify(_datos),
@@ -301,23 +306,27 @@ async function apiMasterPost(_datos, urlCont){
     return res;
 }
 
-async function apiPedidos(id){   
-    const url = urlBase+'solPedidos';
-    const data = {
-        id: id,
-    };
-    const params = new URLSearchParams(data);
-    const apiUrl = url + '?' + params;
-
-    const headers = new Headers();
+async function apiMasterGET(data, urlF){ //API "master" en GET a utilizar para todas las solicitaciones en get
+    /*sintaxis 
+        return await apiMasterGET(«Objeto con los datos a enviar», «Api a solicitar, sin /»)
+        NOTA: Si la api GET a solicitar no se necesitan datos, crea un objeto vacio y envialo como la sintxis
+        EJEMPLO de objeto vacio:
+        let data = {
+            id:''
+        }
+    */
+    let url       = urlBase+urlF; //Anidamos la url a la API seleccionada
+    const params  = new URLSearchParams(data);//Convertimos el objeto a parametros get
+    const apiUrl  = url + '?' + params; //Los anidamos a la url ya creada
+    const headers = new Headers();//Creamos los heades que se necesitan
     headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
+    const options = {//Las carcateristicas que tendrán los heaaders
+        method: 'GET',//Metodo a utilizar
+        mode: 'cors',//Permitimos los cors
+        headers: headers,
     };
-    var solPedidos = [];
-    solPedidos = await fetch(apiUrl, options)
+    var solPeticion = [];//Variable donde guardaremos el json que nos responda
+    solPeticion = await fetch(apiUrl, options)//Hacemos la peticion con la funcion fetch
     .then(response => {
         if (response.ok) {
             return response.json();
@@ -326,142 +335,49 @@ async function apiPedidos(id){
         }
     })
     .then(function(json) {
-        // Hacer algo con los datos recibidos
+        //Regresamos a la variable solPeticion el son que nos regresó
         return json;
     })
     .catch(error => {
         console.error(error);
     });
-    return solPedidos;
+    //console.log(solPeticion);
+    return solPeticion;
+}
+
+async function apiPedidos(id){ 
+    const data = {
+        id: id,
+    };
+    return await apiMasterGET(data, 'solPedidos');
 }
 
 async function apiUsuarios(){
-    const url = urlBase+'usuarios';
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
+    const data = {
+        id: '',
     };
-    var solUsuaros = [];
-    solUsuaros = await fetch(url, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solUsuaros;
+    return await apiMasterGET(data, 'usuarios');
 }
 
 async function apiArea(){
-
-    const url = urlBase+'area';
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
+    const data = {
+        id: '',
     };
-    var solArea = [];
-    solArea = await fetch(url, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solArea;
+    return await apiMasterGET(data, 'area');
 }
 
 async function apiHistorial(orderId){
-    const url = urlBase+'historial';
     const data = {
         orderid: orderId,
     };
-
-    const params = new URLSearchParams(data);
-    const apiUrl = url + '?' + params;
-    //console.log(apiUrl)
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
-    };
-    var solHistorial = [];
-    solHistorial = await fetch(apiUrl, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solHistorial;
+    return await apiMasterGET(data, 'historial');
 }
 
 async function apiUsuario(id){
-    const url = urlBase+'perfil';
     const data = {
         id: id,
     };
-
-    const params = new URLSearchParams(data);
-    const apiUrl = url + '?' + params;
-    //console.log(apiUrl)
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
-    };
-    var solHistorial = [];
-    solHistorial = await fetch(apiUrl, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solHistorial;
+    return await apiMasterGET(data, 'perfil');
 }
 
 async function apiActualizarPedido(reqDatos){
@@ -472,18 +388,6 @@ async function apiActualizarPedido(reqDatos){
         idOrder : reqDatos.idOrder
     }
     let res = await apiMasterPost(_datos, 'actualizarPedido');
-    /*var res = fetch(urlBase+'actualizarPedido', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));*/
-
     return res;
 }
 
@@ -521,8 +425,7 @@ async function apiParcial(reqDatos){
 }
 
 async function apiAgregarPed(reqDatos){
-    //console.log(reqDatos);
-    
+    //console.log(reqDatos); 
     let _datos = {
         area    : reqDatos.area,
         idUser  : reqDatos.userId,
@@ -530,7 +433,6 @@ async function apiAgregarPed(reqDatos){
         emp     : reqDatos.emp
     }
     let res = await apiMasterPost(_datos, 'agregarPed');
-
     return res;
 }
 async function apiRechazarPed(reqDatos){
@@ -561,18 +463,6 @@ async function apiAceptarPed(reqDatos){
         userId      : reqDatos.userId
     }
     let res = await apiMasterPost(_datos, 'aceptarPed');
-    /* var res = await fetch(urlBase+'aceptarPed', {
-        method: "POST",
-        body: JSON.stringify(_datos),
-        headers: {'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',}
-    })
-    .then(response => response.json()) 
-    .then(function(json) {
-        return json;
-    })
-    .catch(err => console.log(err));*/
-
     return res;
 }
 
@@ -580,9 +470,7 @@ async function apiEliminarPed(reqDatos){
     let _datos = {
         idOrder : reqDatos.idOrder
     }
-
     let res = await apiMasterPost(_datos, 'eliminarPed');
-
     return res;
 }
 
@@ -628,101 +516,26 @@ async function apiActuaHistorial(reqDatos){
     return res2;
 }
 
-async function apiAceptados(id){  
-    const url = urlBase+'solAceptados';
+async function apiAceptados(id){ 
     const data = {
         id: id,
     };
-    const params = new URLSearchParams(data);
-    const apiUrl = url + '?' + params;
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
-    };
-    var solPedidos = [];
-    solPedidos = await fetch(apiUrl, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solPedidos;
+    return await apiMasterGET(data, 'solAceptados');
 }
 
 async function apiAceptar(area){  
     loading(1);
-    const url = urlBase+'solAceptar';
     const data = {
         area: area,
     };
-    const params = new URLSearchParams(data);
-    const apiUrl = url + '?' + params;
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-    method: 'GET',
-    mode: 'cors',
-    headers: headers,
-    };
-    var solPedidos = [];
-    solPedidos = await fetch(apiUrl, options)
-    .then(response => {
-        if (response.ok) {
-            loading(2);
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solPedidos;
+    return await apiMasterGET(data, 'solAceptar');
 }
 
 async function apiSolTodPed(){
-    const url = urlBase+'solTodPed';
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    const options = {
-        method: 'GET',
-        mode: 'cors'
+    const data = {
+        id: '',
     };
-    var solTodPedidos = [];
-    solTodPedidos = await fetch(url, options)
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Error en la solicitud.');
-        }
-    })
-    .then(function(json) {
-        // Hacer algo con los datos recibidos
-        return json;
-    })
-    .catch(error => {
-        console.error(error);
-    });
-    return solTodPedidos;
+    return await apiMasterGET(data, 'solTodPed');
 }
 
 async function apiRegAVentas(reqDatos){
@@ -735,7 +548,7 @@ async function recargar(){
     let jUserHome = await apiUsuario(userIdGlobal);
     //console.log(jUserHome);
     if(jUserHome != null){
-        home(jUserHome[0]);
+        home();
     }
 }
 
@@ -745,13 +558,66 @@ let userIdGlobal;
 
 let incrementoR = 0;
 let jEncode;
-let jUsuarioGlobal;
+
 let cargaTodo = 0;
-async function home(jUsuario){
-    jUsuarioGlobal = jUsuario;
+async function inicio(){
+    let jUsuario = jUsuarioGlobal;
+
+    var sVentanaNav = `<nav class="navbar bg-body-tertiary border-bottom" id="topNav"> <!--Inicio del nav-->
+                        <div class="container-fluid">
+                            <a class="navbar-brand ms-4" id="idLogo" href="`+URLactual+`">
+                                <img src="./img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
+                            </a>
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true" onclick="noRecMenu(0)"><i class="bi bi-123"></i> Pedidos</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="home-tab"  type="button" role="tab" onclick="pestanaNva(1)"><i class="bi bi-card-checklist"></i> Lista</button>
+                                </li>`;
+    arGlobal = jUsuario.user_rol_id;
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){//Para mostrar el boton para actualizar lista, solo aparecen para sistemas y administrador
+        
+        sVentanaNav = sVentanaNav + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" onclick="pestanaNva(2)" >Actualizar lista</button>
+                                </li>`
+    }
+    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){//Botones para ver usuarios, solo lo ven admin, sistemas y administrativos
+        
+        sVentanaNav = sVentanaNav + ` <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="noRecMenu(100)">Permisos</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false" onclick="noRecMenu(100)">Roles</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#users-tab-pane" type="button" role="tab" aria-controls="disabled-tab-pane" aria-selected="false" onclick="noRecMenu(100)">Usuarios</button>
+                                </li>`;
+    }
+    sVentanaNav = sVentanaNav + `</ul>
+                            <div class="d-flex" role="search">
+                                <div class="btn-group dropstart">
+                                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-person-circle"></i>  `+jUsuario.name+`
+                                    </button>
+                                    <ul class="dropdown-menu" id="dropPerfil">
+                                        <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
+                                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </nav><!--Fin del nav-->`;
+    document.getElementById('navIni').innerHTML = sVentanaNav;
+    await home()
+}
+
+async function home(){
+    let jUsuario = jUsuarioGlobal;
     let jPedidos
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
         jPedidos        = await apiSolTodPed();
+        jPedidosGlobal = jPedidos;
     }else{
         jPedidos        = await apiPedidos(jUsuario.id);
     }
@@ -764,6 +630,7 @@ async function home(jUsuario){
     //console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
+    console.log(jUsuarios.length);
     let contadorObjetos = 0;
     userIdGlobal        = jUsuario.id;
 
@@ -809,54 +676,9 @@ async function home(jUsuario){
     usuIdGlobal = jUsuario.id;
     //console.log("usuIdGlobal",usuIdGlobal," jUsuario.id ",jUsuario.id);
     document.getElementById('app').innerHTML = '';
-
-    var sVentana = `<nav class="navbar bg-body-tertiary border-bottom" id="topNav"> <!--Inicio del nav-->
-                        <div class="container-fluid">
-                            <a class="navbar-brand ms-4" id="idLogo">
-                                <img src="./img/logo_web.45818d48.png" alt="PFG" width="160" height="70">
-                            </a>
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true"><i class="bi bi-123"></i> Pedidos</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="home-tab"  type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true" onclick="pestanaNva(1)"><i class="bi bi-card-checklist"></i> Lista</button>
-                                </li>`;
-    arGlobal = jUsuario.user_rol_id;
-    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2){
-        jPedidosGlobal = jPedidos
-        sVentana = sVentana + ` <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="btnTodosP" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false" onclick="pestanaNva(2)" >Actualizar lista</button>
-                                </li>`
-    }
-    if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-        
-        sVentana = sVentana + ` <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#permisos-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Permisos</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Roles</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled-tab-pane" type="button" role="tab" aria-controls="disabled-tab-pane" aria-selected="false" >Usuarios</button>
-                                </li>`;
-    }
-    sVentana = sVentana + `</ul>
-                            <div class="d-flex" role="search">
-                                <div class="btn-group dropstart">
-                                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-person-circle"></i>  `+jUsuario.name+`
-                                    </button>
-                                    <ul class="dropdown-menu" id="dropPerfil">
-                                        <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
-                                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </nav><!--Fin del nav-->
+    var sVentana = '';
+    sVentana = sVentana +`
                     <div class="tab-content" id="myTabContent">
-                        
                         <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
                             <!--Inicio del menu de los pedidos-->
                             <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
@@ -1272,15 +1094,55 @@ async function home(jUsuario){
                         </div>
                     </div>
                     </div>
-                        <div class="tab-pane fade" id="home-tab-Todos" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                            <div class="container-xxl" >
+                        <div class="tab-pane fade" id="users-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                            <div class="container-xxl mt-3" >
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <div class="input-group align-items-end mb-3" style="width: 30%;">
+                                        <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
+                                        <input type="text" id="searchUser" class="form-control" onkeyup="doSearch(4)" placeholder="Buscar usuario">
+                                    </div>
+                                </div>
+                                <table class="table table-hover border border-primary" id="tablaUserT">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Nombre</th>
+                                            <th scope="col">Correo</th>
+                                            <th scope="col">Area</th>
+                                            <th scope="col">Funciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+    for(i = 0; i < jUsuarios.length; i++){
+        for(k = 0; k < contArea; k++){
+            if(jArea[k].id == jUsuarios[i].user_rol_id) area = jArea[k].name;
+        }
+        sVentana = sVentana +`
+                                        <tr>
+                                            <td scope="row">`+(i+1)+`</th>
+                                            <td>`+jUsuarios[i].name+`</td>
+                                            <td>`+jUsuarios[i].email+`</td>
+                                            <td>`+area+`</td>
+                                            <td>Botones</td>
+                                        </tr>`;
+    }
+    
+    sVentana = sVentana +`
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
+                    <!--/div> Este es un ejemplo de donde van el tap del menu principal, debe de ir hasta el final de acá
+                        <div class="tab-pane fade" id="users-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                            <div class="container-xxl" >
+                                
+                            </div>
+                        </div>
+                    </div-->
                     
                     <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
-
     if(cargaTodo == 0){
         cargaTodo = 1;
         let resul = recargarTodo(jUsuario.user_rol_id);
@@ -1289,15 +1151,19 @@ async function home(jUsuario){
     loading(2);
     return 1;
 }
+let iNoRecMenu = 0;
+function noRecMenu(opc){
+    iNoRecMenu = opc;
+}
 
 async function recargarTodo(rol){
     setTimeout(async () => {
         if(noRecargar == 0){
-            if(rol == 0 || rol == 2 || rol == 6){
+            if((rol == 0 || rol == 2 || rol == 6) && iNoRecMenu == 0){
                 //let esperar = await tablaTodosAdm();
-                let = await home(jUsuarioGlobal);
-                recargarTodo(rol);
+                let = await home();
             }
+            recargarTodo(rol);
         }
       }, 60000);
 }
@@ -1318,6 +1184,10 @@ function doSearch(opc){
         case 3:
             tableReg      = document.getElementById('tablaAceptado');
             searchText    = document.getElementById('searchAceptados').value.toLowerCase();
+            break;
+        case 4:
+            tableReg      = document.getElementById('tablaUserT');
+            searchText    = document.getElementById('searchUser').value.toLowerCase();
             break;
     }
     noRecargar          = searchText.length;
@@ -1361,7 +1231,7 @@ function doSearch(opc){
     }
     if(opc == 1){
         if(noRecargar == 0){
-            home(jUsuarioGlobal);
+            home();
         }
     }
 
