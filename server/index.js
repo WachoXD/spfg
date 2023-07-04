@@ -194,6 +194,32 @@ router.post('/changePass', (req, res) => {
     
 });
 
+router.post('/resetPassUser', (req, res) => {
+    let id     = req.body.id;
+    let pass   = 'pfg2023';
+    let cambio = 0;
+    conexion.query("UPDATE `users` SET `password`= ?, `if_update`= ? WHERE `id`= ?" ,[pass, cambio, id], function (error, results, fields){
+        if (error){
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        })
+    });
+});
+
+router.post('/deleteUser', (req, res) => {
+    let id = req.body.id;
+    conexion.query("DELETE FROM users WHERE `users`.`id` = "+id+"", function (error, results, fields){
+        if (error){
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        })
+    });
+});
+
 router.get('/perfil', (req, res) => {
     let id   = req.query.id;
     //conexion.query('SELECT id, name, user_rol_id, email, created_at, updated_at, if_update, urlPic FROM users WHERE  id = '+id+'', (error, results, fields) => {
@@ -268,7 +294,7 @@ router.get('/solAceptar', (req,res) => { //Solo muestra los que le van a mandar
 });
 
 router.get('/usuarios', (req, res) => {
-    conexion.query('SELECT id, name, user_rol_id, email FROM users', (error, results, fields) => {
+    conexion.query('SELECT id, name, user_rol_id, email FROM users ORDER BY user_rol_id ASC', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;

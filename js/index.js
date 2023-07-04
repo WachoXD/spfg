@@ -1099,16 +1099,16 @@ async function home(){
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                     <div class="input-group align-items-end mb-3" style="width: 30%;">
                                         <span class="input-group-text" id="basic-search" style="background: rgba(182, 141, 44, 0.7);"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="searchUser" class="form-control" onkeyup="doSearch(4)" placeholder="Buscar usuario">
+                                        <input type="text" id="searchUser" class="form-control border border-primary" onkeyup="doSearch(4)" placeholder="Buscar usuario">
                                     </div>
                                 </div>
                                 <table class="table table-hover border border-primary" id="tablaUserT">
                                     <thead>
                                         <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Nombre</th>
-                                            <th scope="col">Correo</th>
-                                            <th scope="col">Area</th>
+                                            <th scope="col" class="border-end border-primary">#</th>
+                                            <th scope="col" class="border-end border-primary">Nombre</th>
+                                            <th scope="col" class="border-end border-primary">Correo</th>
+                                            <th scope="col" class="border-end border-primary">Area</th>
                                             <th scope="col">Funciones</th>
                                         </tr>
                                     </thead>
@@ -1123,7 +1123,16 @@ async function home(){
                                             <td>`+jUsuarios[i].name+`</td>
                                             <td>`+jUsuarios[i].email+`</td>
                                             <td>`+area+`</td>
-                                            <td>Botones</td>
+                                            <td>
+                                                <button type="button" class="btn btn-primary me-2" onclick="optionUser(0, `+i+`, '`+jUsuarios[i].name+`')"><i class="bi bi-arrow-clockwise"></i></button>`;
+        if(jUsuarios[i].user_rol_id != 0){
+            sVentana = sVentana +           `
+                                                <button type="button" class="btn btn-info me-2" onclick="viewEditUser(`+i+`)" data-bs-toggle="modal" data-bs-target="#modalTotal"><i class="bi bi-pencil-square"></i></button>
+                                                <button type="button" class="btn btn-danger" onclick="optionUser(1, `+i+`, '`+jUsuarios[i].name+`')"><i class="bi bi-trash3"></i></button>`;
+        }else{
+            sVentana = sVentana + `Los Admin no de pueden editar`
+        }
+        sVentana = sVentana +           `   </td>
                                         </tr>`;
     }
     
@@ -1154,6 +1163,101 @@ async function home(){
 let iNoRecMenu = 0;
 function noRecMenu(opc){
     iNoRecMenu = opc;
+}
+
+async function optionUser(opc, i, name){
+    msgTitle = ['¿Desea restablecer la contraseña de <strong>'+name+'</strong>?', '¿Desea eliminar al usuario <strong>'+name+'</strong>?'];
+    msgTitle2= ['La contraseña se restableció a <strong>pfg2023</strong>', 'El usuario a sido eliminado']
+    mstText  = ["Se restablecerá a la contraseña inicial", "Si se elimina no se podrá recuperar"];
+    msgBtn   = ['Si, restablecerla', 'Si, eliminarlo'];
+    Swal.fire({
+        title: msgTitle[opc],
+        text: mstText[opc],
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: msgBtn[opc]
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let datos = {
+                id : jUsuarios[i].id
+            }
+            let res;
+            if(opc == 0) res = await apiMasterPost(datos, 'resetPassUser');
+            else res = await apiMasterPost(datos, 'deleteUser');
+            if(res.status == 200){
+                Swal.fire({
+                    icon: 'success',
+                    title: msgTitle2[opc],
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+        }
+    })
+}
+
+async function viewEditUser(i){
+    jUsuarios[i]
+    let sModalVentana = '';
+    tamanomodal(1);
+    sModalVentana = sModalVentana + `
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Editar usuario</strong></h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarModal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text" id="basic-addon1"><i class="bi bi-person-circle"></i></span>
+                                            <input type="text" class="form-control" id="inEdNom" placeholder="Nombre de usuario" value="`+jUsuarios[i].name+`">
+                                        </div>
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text" id="basic-addon1">@</span>
+                                            <input type="email" class="form-control" placeholder="Correo" id="inEdEmail" value="`+jUsuarios[i].email+`">
+                                        </div>
+                                        <div class="input-group mb-3">
+                                            <select class="form-select" id="selEdArea">
+                                                <option selected value="1000">Selecciona un área</option>`
+    for(i = 0; i < (jArea.length-2); i++){
+        sModalVentana = sModalVentana +        `<option value="`+jArea[i].id+`">`+jArea[i].name+`</option>
+        `
+    }
+    sModalVentana = sModalVentana + `       </select>
+                                        </div>
+                                        `;
+    sModalVentana = sModalVentana +`</div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        <button type="button" class="btn btn-primary" onclick="editUser()">Aceptar</button>
+                                    </div>`;
+    document.getElementById('modalInfo').innerHTML = sModalVentana;
+}
+
+async function editUser(){
+    let datos = {
+        nom   : document.getElementById('inEdNom').value.trim(),
+        email : document.getElementById('inEdEmail').value.trim(),
+        area  : document.getElementById('selEdArea').value,
+    }
+    if(datos.nom != '' && datos.email != '' && datos.area != 1000){
+        let res = await apiMasterPost(datos, 'actUser');
+        if(res.status == 200){
+            Swal.fire({
+                icon: 'success',
+                title: 'El usuario <strong>'+datos.email+'</strong> a sido actualizado',
+                showConfirmButton: false,
+                timer: 1500
+            })
+        }
+    }else{
+        Swal.fire({
+            icon: 'warning',
+            title: 'Por favor llene todos los campos',
+            showConfirmButton: false,
+            timer: 1500
+        })
+    }
 }
 
 async function recargarTodo(rol){
@@ -1772,6 +1876,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
             break;
 
         case 5://Modal asignar
+            tamanomodal(1);
             let jUserS = await apiUsuario(usuIdGlobal);
             //console.log(jUserS[0].name);
             let areaS        = '';
@@ -1824,6 +1929,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                                                 <button type="button" class="btn btn-primary" onclick="segPedido(0,`+orderNumber+`,`+jUserS[0].id+`,`+idOrder+`)">Aceptar</button>
                                             </div>`;
+            break;
+        case 6:
+            
             break;
     }
     document.getElementById('modalInfo').innerHTML = sModalVentana;
