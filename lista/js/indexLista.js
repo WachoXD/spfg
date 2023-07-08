@@ -499,7 +499,7 @@ async function generarPDF(cmp, folio) {//Generar un pdf con la cotización
                 table: {//Se integra una tabla de folio y fecha
                     widths: ["auto",60,"auto",100],//La tabla tendrá 4 columnas y se ponen los tamaños de estas
                     body: [//El cuerpo de la tabla
-                        [{ text: "Folio:", bold: true }, { text: folio },{ text: "Fecha: ", bold: true }, { text: fechaActual.getDate() + "/" + fechaActual.toLocaleString('default', { month: 'long' }) + "/" + fechaActual.getFullYear() }],
+                        [{ text: "Folio:", bold: true, fillColor: '#d9d9d9'}, { text: folio },{ text: "Fecha: ", bold: true, fillColor: '#d9d9d9' }, { text: fechaActual.getDate() + "/" + fechaActual.toLocaleString('default', { month: 'long' }) + "/" + fechaActual.getFullYear() }],
                     ]
                 },
                 style: "min",//El estilo qie se le de, como si fuese css
@@ -510,9 +510,9 @@ async function generarPDF(cmp, folio) {//Generar un pdf con la cotización
                 table: {// Tabla de datos del vendedor y del cliente
                     widths: [75, 183,50, 175],
                     body: [
-                        [{ text: "Razón Social:", bold: true }, { text: cmp[0] }, { text: "Nombre:", bold: true }, { text: jUsuarioGlobal.name, style: "min" }],
-                        [{ text: "Atención a: ", bold: true },  { text: cmp[1] }, { text: "Tel:", bold: true }, { text: "33 1578 0535", style: "min" }],
-                        [{ text: "Departamento:", bold: true }, { text: cmp[3] }, { text: "Correo:", bold: true }, { text: jUsuarioGlobal.email, style: "min" }]
+                        [{ text: "Razón Social:", bold: true, fillColor: '#d9d9d9'}, { text: cmp[0] }, { text: "Nombre:", bold: true, fillColor: '#d9d9d9' }, { text: jUsuarioGlobal.name, style: "min" }],
+                        [{ text: "Atención a: ", bold: true, fillColor: 'rgba( 217, 217, 217, 0.5)' },  { text: cmp[1] }, { text: "Tel:", bold: true, fillColor: '#d9d9d9' }, { text: "33 1578 0535", style: "min" }],
+                        [{ text: "Departamento:", bold: true , fillColor: '#d9d9d9'}, { text: cmp[3] }, { text: "Correo:", bold: true, fillColor: '#d9d9d9' }, { text: jUsuarioGlobal.email, style: "min" }]
                     ]
                 },
                 style: "tables",
@@ -522,7 +522,7 @@ async function generarPDF(cmp, folio) {//Generar un pdf con la cotización
                 table: { //Tabla de comentario
                     widths: [511],
                     body: [
-                        [{ text: "Comentario:", bold: true }],
+                        [{ text: "Comentario:", bold: true, fillColor: '#d9d9d9' }],
                         [{ text: text}],
                     ]
                 },
@@ -536,7 +536,32 @@ async function generarPDF(cmp, folio) {//Generar un pdf con la cotización
                     widths: [80, 217, 25, 77, 77],
                     style: "ejem",
                     body: [
-                        ["Código", "Descipción", "Cant","Costo U", "Costo T"]
+                        [
+                            {
+                                text:"Código",
+                                bold: true,
+                                fillColor: '#d9d9d9'
+                            }, 
+                            {
+                                text:"Descipción",
+                                bold: true,
+                                fillColor: '#d9d9d9'
+                            }, 
+                            {
+                                text:"Cant",
+                                bold: true,
+                                fillColor: '#d9d9d9'
+                            },
+                            {
+                                text:"Costo U",
+                                bold: true,
+                                fillColor: '#d9d9d9'
+                            }, 
+                            {
+                                text:"Costo T",
+                                bold: true,
+                                fillColor: '#d9d9d9'
+                            }]
                     ].concat(data.tabla.map(producto => [//Es dinamico con respecto lo que tiene la lista de pedidos
                         producto.codigo,//Se van agregando en orden como qqueremos que se manden
                         producto.descripcion,
@@ -553,9 +578,9 @@ async function generarPDF(cmp, folio) {//Generar un pdf con la cotización
                 table: {// tabla de total
                     widths: ["auto", 102],
                     body: [
-                        [{ text: "Subtotal:", bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla)).toFixed(2) }],//Se llama la función que suma el precio de todos los productos
-                        [{ text: "16% IVA: ", bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 0.16).toFixed(2) }],//Se llama la función que suma el precio de todos los productos y se multiplica por .16 para sacar solo el iva
-                        [{ text: "Total: ",   bold: true }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 1.16).toFixed(2) }]//Se llama la función que suma el precio de todos los productos y se multiplica por 1.16 que suma el total y el iva
+                        [{ text: "Subtotal:", bold: true, fillColor: '#d9d9d9' }, { text: "$ "+parseFloat(precioTotal(data.tabla)).toFixed(2) }],//Se llama la función que suma el precio de todos los productos
+                        [{ text: "16% IVA: ", bold: true, fillColor: '#d9d9d9' }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 0.16).toFixed(2) }],//Se llama la función que suma el precio de todos los productos y se multiplica por .16 para sacar solo el iva
+                        [{ text: "Total: ",   bold: true, fillColor: '#d9d9d9' }, { text: "$ "+parseFloat(precioTotal(data.tabla) * 1.16).toFixed(2) }]//Se llama la función que suma el precio de todos los productos y se multiplica por 1.16 que suma el total y el iva
                     ]
                 },
                 style: "min",

@@ -208,6 +208,22 @@ router.post('/resetPassUser', (req, res) => {
     });
 });
 
+router.post('/actUser', (req, res) =>{
+    let nom   = req.body.nom;
+    let email = req.body.email;
+    let area  = req.body.area;
+    
+    conexion.query("UPDATE `users` SET `name`='"+nom+"',`user_rol_id`='"+area+"',`updated_at`= NOW() WHERE `email` = '"+email+"'", function (error, results) {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        });
+    });
+});
+
 router.post('/deleteUser', (req, res) => {
     let id = req.body.id;
     conexion.query("DELETE FROM users WHERE `users`.`id` = "+id+"", function (error, results, fields){
@@ -847,10 +863,155 @@ router.post('/agregarPed', (req, res) => {
                 }); 
             }
         }
-    })
-    
-    
+    })  
 })
+
+// JSON donde se agregarán los resultados de la consulta
+let jsonResultados = {
+    datos: []
+};
+  
+  // Número de veces que se realizará la consulta
+let nCon = 0;
+
+router.get('/grafArea', async (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let area       = req.query.area;
+    conexion.query('SELECT id, name, user_rol_id, email FROM users WHERE user_rol_id = '+area+'', async (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        let resName= '';
+        console.log("results ",results.length);
+        nCon = results.length;
+        for(i = 0; i < results.length; i++){
+            console.log("results[i].id", results[i].id);
+            var cantidadRes = 0;
+            resName = results[i].name
+            var cantidad; conexion.query("SELECT * FROM orders WHERE area_id = '"+area+"' AND user_id = '"+results[i].id+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", (error, results) => {
+                if (error) {
+                    console.error('Error al ejecutar la consulta: ', error);
+                    throw error;
+                }
+                console.log("Cant ", results.length);
+                cantidad = results.length;
+                return cantidadRes;
+            }); 
+            console.log(cantidad);
+            var jArray ={
+                cantidad : cantidad,
+                vendedor : resName,
+            } 
+            jResultados = jResultados.concat(jArray); 
+        }
+       
+        console.log("hola");
+        console.log(jResultados);
+        res.send(jResultados);
+    });
+});
+
+async function realizarConsulta() {
+    conexion.query('SELECT nombre, email, area FROM usuarios', function (error, results, fields) {
+      if (error) throw error;
+  
+      // Construir el JSON array para los datos de esta consulta
+      const jsonArray = results.map(user => {
+        return {
+          nombre: user.nombre,
+          email: user.email,
+          area: user.area
+        };
+      });
+  
+      // Agregar el JSON array al JSON de resultados
+      jsonResultados.datos = jsonResultados.datos.concat(jsonArray);
+  
+      // Verificar si se han completado todas las consultas
+      if (jsonResultados.datos.length / 3 === nCon) {
+        // Todas las consultas han sido completadas
+        console.log(jsonResultados); // Mostrar los resultados en la consola
+        return 200;
+      } else {
+        // Todavía hay consultas pendientes, realizar la siguiente consulta
+        realizarConsulta();
+      }
+    });
+  }
+
+router.get('/grafGeneral', (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let resD = 0;
+    let datos = {
+        status      : 0,
+        ventas      : 0,
+        compras     : 0,
+        almacen     : 0,
+        cyc         : 0,
+        facturacion : 0,
+        sistemas    : 0 
+    }
+    conexion.query(//compras
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '1') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.compras = results[0].cantidad;
+            resD += 1;
+        }
+    );
+    
+    conexion.query(//Sistemas
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '2') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.sistemas = results[0].cantidad;
+            resD += 1;
+        }
+    );
+    
+    conexion.query(//Ventas
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.ventas = results[0].cantidad;
+            resD += 1;
+        }
+    );
+
+    conexion.query(//Almacén
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '4') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.almacen = results[0].cantidad;
+            resD += 1;
+        }
+    );
+
+    conexion.query(//Facturación
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '5') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.facturacion = results[0].cantidad;
+            resD += 1;
+        }
+    );
+
+    conexion.query(//CyC
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            datos.cyc = results[0].cantidad;
+            resD += 1;
+            datos.status = resD;
+            console.log(datos);
+            res.send(datos);
+        }
+    );
+    
+});
 
 
 ///////////////////////////////////////////////////////  Apis de adm ///////////////////////////
@@ -980,6 +1141,19 @@ router.post('/agregarPorcen', (req, results) => {
     })
 });
 
+router.get('/listMarcas', (req, res) => {
+    conexion.query("SELECT * FROM `list`", (error, results) =>{
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
 /////////////////////////////////// APIs de lista de productos /////////////////////////////
 router.get('/solProductosSearch', (req, res) => {
     let producto   = req.query.producto;
@@ -1014,6 +1188,53 @@ router.get('/solCoti', (req, res) =>{
                 });
             }
         }
+    });
+});
+
+router.post('/nuevProv', (req, res) => {
+    let prov = req.body.proveedor;
+    let list1 = req.body.lista1;
+    let list2 = req.body.lista2;
+    let list3 = req.body.lista3;
+    conexion.query("INSERT INTO `list` (`id`, `nameComp`, `list1`, `list2`, `list3`) VALUES (NULL, '"+prov+"', '"+list1+"', '"+list2+"', '"+list3+"')",  (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status":200
+        })
+    });
+});
+
+router.post('/eliminarProv', (req, res) => {
+    let id = req.body.id;
+    conexion.query("DELETE FROM `list` WHERE `list`.`id` = "+id+"", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status":200
+        })
+    });
+});
+
+router.post('/actProv', (req, res) => {
+    let id    = req.body.id;
+    let prov  = req.body.prov;
+    let list1 = req.body.lista1;
+    let list2 = req.body.lista2;
+    let list3 = req.body.lista3;
+
+    conexion.query("UPDATE `list` SET `nameComp`='"+prov+"',`list1`='"+list1+"',`list2`='"+list2+"',`list3`='"+list3+"' WHERE `id`='"+id+"'", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status": 200
+        });
     });
 });
 

@@ -24,6 +24,7 @@ if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
 }
 //alert(urlBase)
+
 //Crear cookies 
 function crearCookie(clave, valor, diasexpiracion) {
     var d = new Date();
@@ -630,7 +631,7 @@ async function home(){
     //console.log(jAceptar);
     jArea               = GlojArea;
     jUsuarios           = GlojUsuarios;
-    console.log(jUsuarios.length);
+    //console.log(jUsuarios.length);
     let contadorObjetos = 0;
     userIdGlobal        = jUsuario.id;
 
@@ -679,8 +680,27 @@ async function home(){
     var sVentana = '';
     sVentana = sVentana +`
                     <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                            <!--Inicio del menu de los pedidos-->
+                        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">`;
+    if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
+        sVentana = sVentana +`
+                            <div class="floating-container">
+                                <div class="floating-button"><i class="bi bi-bar-chart-line"></i></div>
+                                <div class="element-container">
+                                    <a style="cursor: pointer;" onclick="viewGrafica(0)" id="grafGeneral" data-bs-toggle="modal" data-bs-target="#modalTotal"> 
+                                        <span class="float-element tooltip-left">
+                                            <i class="bi bi-clipboard2-data"></i>
+                                        </span>
+                                    </a>
+                                    <span class="float-element" style="cursor: pointer;" onclick="viewGrafica(1)" id="grafGeneral" data-bs-toggle="modal" data-bs-target="#modalTotal">
+                                        <i class="bi bi-buildings-fill"></i>
+                                    </span>
+                                    <span class="float-element" style="cursor: pointer;" onclick="viewGrafica(2)" id="grafGeneral" data-bs-toggle="modal" data-bs-target="#modalTotal">
+                                        <i class="bi bi-clipboard2-pulse"></i>
+                                    </span>
+                                </div>
+                            </div> `;
+    }
+    sVentana = sVentana +`<!--Inicio del menu de los pedidos-->
                             <ul class="nav nav-pills mt-4 mb-3 justify-content-center" id="pills-tab" role="tablist">`
     if(jUsuario.user_rol_id == 3 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 6){
         sVentana = sVentana +`  <li class="nav-item" role="presentation">
@@ -1198,6 +1218,301 @@ async function optionUser(opc, i, name){
     })
 }
 
+async function viewGrafica(opc){
+    let sModalVentana = '';
+    var fechaActual = new Date();
+    let hoy = fechaActual.getFullYear()+"-"+(fechaActual.getMonth() + 1).toString().padStart(2, "0")+"-"+fechaActual.getDate().toString().padStart(2, "0");
+    tamanomodal(0);
+    sModalVentana = sModalVentana + `
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Mostrar gráficas generales</strong></h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarModal"></button>
+                                    </div>
+                                    <div class="modal-body" id="modal-body-chart">
+                                        
+                                            <div class="border-bottom">
+                                                <label for="start">De: </label>
+
+                                                <input type="date" class="mb-2" id="startDate" name="trip-start"
+                                                    value="`+hoy+`"
+                                                    min="2023-01-01" max="`+hoy+`">
+
+                                                <label for="start"> a:</label>
+
+                                                <input type="date" id="finishDate" name="trip-start"
+                                                    value="`+hoy+`"
+                                                    min="2023-01-01" max="`+hoy+`">`;
+    if(opc ==  1){
+        sModalVentana = sModalVentana + `
+                                                <select class="form-select border border-black" style="width: 200px; display: inline" id="seAreaChart">
+                                                    <option selected value="1000">Seleccione una área</option>`;
+        for(i = 0; i < (jArea.length-2); i++){
+            sModalVentana = sModalVentana + `        <option value="`+jArea[i].id+`">`+jArea[i].name+`</option>`;
+        }
+        sModalVentana = sModalVentana + `        </select>`;
+    }
+    sModalVentana = sModalVentana + `            <button type="button" class="btn btn-primary mb-2" onclick="genGraf(`+opc+`)"><i class="bi bi-pie-chart"></i> Generar gráfica</button>
+                                            </div>
+                                            <div class="row g-0">
+                                                <div class="col-sm-6 col-md-8" style="width:600px; height: 600px;" id="divgrafGeneral"></div>
+                                                <div class="col-6 col-md-4" id="divInfGeneral">.col-6 .col-md-4</div>
+                                            </div>
+                                        
+                                    </div>
+                                    <div class="modal-footer" id="modal-footer-chart">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                    </div>`;
+    document.getElementById('modalInfo').innerHTML = sModalVentana;
+    //document.querySelector('#cerrarModal').click();
+}
+let resChart;
+async function genGraf(opc){
+    //console.log("Hola");
+    let _datos = {
+        startDate  : document.getElementById('startDate').value.trim(),
+        finishDate : document.getElementById('finishDate').value.trim() + " 23:59:59"
+    }
+    if(opc==1) _datos.area = document.getElementById('seAreaChart').value;
+    let sApi = ['grafGeneral', 'grafArea'];
+    let res = await apiMasterGET(_datos, sApi[opc]);
+    if(res.status == 6){
+        resChart            = res;
+        resChart.startDate  = _datos.startDate;
+        resChart.finishDate = _datos.finishDate;
+        var suma            = res.ventas+res.compras+res.almacen+res.facturacion+res.cyc+res.sistemas;
+        resChart.suma       = suma;
+        //console.log(_datos.finishDate);
+        document.getElementById('divgrafGeneral').innerHTML     = '';
+        document.getElementById('divInfGeneral').innerHTML      = '';
+        document.getElementById('modal-footer-chart').innerHTML = '';
+        var graficaDiv = document.getElementById("divgrafGeneral");
+        
+        let sInfoGraf = [`   <p class="text-center fs-2">Datos</p>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-3 col-md-6 text-center rounded-4" style="background-color:#ff6384;">
+                                    <p class="text-start fs-4 ms-2"> Ventas: </p>
+                                </div>
+                                <div class="col-6 col-md-5 ms-2">
+                                    <p class="text-start fs-4 ">`+res.ventas+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#cd36eb;">
+                                    <p class="text-start fs-4 ms-2">Compras: </p>
+                                </div>
+                                <div class="col-6  col-md-5 ms-2">
+                                    <p class="text-start fs-4">`+res.compras+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#36a2eb;">
+                                    <p class="text-start fs-4 ms-2">Almacén: </p>
+                                </div>
+                                <div class="col-6 col-md-5 ms-2">
+                                    <p class="text-start fs-4">`+res.almacen+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#ffce56;">
+                                    <p class="text-start fs-4 ms-2">Facturación:</p>
+                                </div>
+                                <div class="col-6  col-md-5 ms-2">
+                                    <p class="text-start fs-4"> `+res.facturacion+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#36eb39;">
+                                    <p class="text-start fs-4 ms-2">CyC:</p>
+                                </div>
+                                <div class="col-6 col-md-5 ms-2">
+                                    <p class="text-start fs-4"> `+res.cyc+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#fa37b4;">
+                                    <p class="text-start fs-4 ms-2">Sistemas: </p>
+                                </div>
+                                <div class="col-6  col-md-5 ms-2">
+                                    <p class="text-start fs-4">`+res.sistemas+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4">
+                                    <p class="text-start fs-4 ms-2">Promedio/área:</p>
+                                </div>
+                                <div class="col-6  col-md-5 ms-2">
+                                    <p class="text-start fs-4"> `+parseFloat(suma/6).toFixed(2)+` pedidos</p>
+                                </div>
+                            </div>
+                            <div class="row g-0 mb-2 ">
+                                <div class="col-sm-6 col-md-6 text-center rounded-4">
+                                    <p class="text-start fs-4 ms-2">Total:</p>
+                                </div>
+                                <div class="col-6 col-md-5 ms-2">
+                                    <p class="text-start fs-4"> `+suma+` pedidos</p>
+                                </div>
+                            </div>`,
+                        ];
+
+        document.getElementById('divInfGeneral').innerHTML  = sInfoGraf[opc];
+        let sFooterMo = `   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="imprimirGraf(`+opc+`)">Imprimir</button>`;
+        document.getElementById('modal-footer-chart').innerHTML = sFooterMo;
+        // Crea el elemento <canvas> con el ancho y alto especificados
+        var canvas = document.createElement("canvas");
+        canvas.width = 250;
+        canvas.height = 250;
+
+        // Agrega el <canvas> al <div> utilizando appendChild
+        graficaDiv.appendChild(canvas);
+
+        // Crea el contexto para el gráfico
+        var ctx = canvas.getContext("2d");
+        //console.log("Ventas",res.ventas,"Compras", "Almacén", res.almacen, "Facturación", "CyC");
+        // Datos para la gráfica de ejemplo
+        var datos = [
+            {
+                datasets: [
+                    {
+                        data: [res.ventas, res.compras, res.almacen, res.facturacion, res.cyc, res.sistemas],
+                        backgroundColor: ["#ff6384", "#cd36eb", "#36a2eb", "#ffce56", "#36eb39", "#fa37b4"],
+                        hoverBackgroundColor: ["#ff6384", "#cd36eb", "#36a2eb", "#ffce56", "#36eb39", "#fa37b4"]
+                    }
+                ]
+            }
+        ];
+
+        // Crea la gráfica de pie
+        var grafica = new Chart(ctx, {
+            type: "doughnut",
+            data: datos[opc]
+        });
+    }
+}
+
+async function imprimirGraf(opc){
+    loading(1);
+    let nameId = ["divgrafGeneral"];
+    let jTable = [
+        {
+            widths: [56, 56, 56, 50, 65, 56, 56, 56],
+            body: [
+                [
+                    {
+                        text: 'Ventas', fillColor: '#ff6384'
+                    }, 
+                    {
+                        text:'Compras', fillColor: '#cd36eb'
+                    }, 
+                    {
+                        text:'Almacén', fillColor: '#36a2eb'
+                    }, 
+                    {
+                        text:'CyC', fillColor: '#36eb39'
+                    }, 
+                    {
+                        text:'Facturación', fillColor: '#ffce56'
+                    }, 
+                    {
+                        text:'Sistemas', fillColor: '#fa37b4'
+                    }, 
+                    {
+                        text:'Promedio', fillColor: '#d9d9d9'
+                    },
+                    {
+                        text:'Total', fillColor: '#d9d9d9'
+                    }
+                ],
+                [
+                    resChart.ventas, 
+                    resChart.compras,
+                    resChart.almacen,
+                    resChart.cyc,
+                    resChart.facturacion,
+                    resChart.sistemas,
+                    parseFloat(resChart.suma/6).toFixed(2),
+                    resChart.suma
+                ]
+            ],
+            margin: [0, 100, 0, 10], 
+        },
+        {
+            widths: [56, 56, 56, 50, 65, 56, 56, 56],
+            body: [
+                [
+                    {
+                        text: 'Ventas', fillColor: '#ff6384'
+                    }, 
+                    {
+                        text:'Compras', fillColor: '#cd36eb'
+                    }, 
+                    {
+                        text:'Almacén', fillColor: '#36a2eb'
+                    }, 
+                    {
+                        text:'CyC', fillColor: '#36eb39'
+                    }, 
+                    {
+                        text:'Facturación', fillColor: '#ffce56'
+                    }, 
+                    {
+                        text:'Sistemas', fillColor: '#fa37b4'
+                    }, 
+                    {
+                        text:'Promedio', fillColor: '#d9d9d9'
+                    },
+                    {
+                        text:'Total', fillColor: '#d9d9d9'
+                    }
+                ],
+                [
+                    resChart.ventas, 
+                    resChart.compras,
+                    resChart.almacen,
+                    resChart.cyc,
+                    resChart.facturacion,
+                    resChart.sistemas,
+                    parseFloat(resChart.suma/6).toFixed(2),
+                    resChart.suma
+                ]
+            ],
+            margin: [0, 100, 0, 10], 
+        },
+    ];
+    var contentElement = document.getElementById(nameId[opc]);
+    // Capturar una imagen de la etiqueta HTML utilizando html2canvas
+    html2canvas(contentElement).then(function (canvas) {
+        var imgData = canvas.toDataURL('image/png');
+        var content = [ 
+            {
+                text: 'Pedidos PFG de la fecha '+resChart.startDate+' a '+resChart.finishDate,
+                alignment: "center",
+                fontSize: 18,
+			    bold: true,
+                margin: [0, 0, 0, 30],
+            }, 
+            {
+                table: jTable[opc]
+            },
+            {
+                image: imgData,
+                width: 300,
+                margin: [0, 50, 0, 0],
+                alignment: "center",
+            },
+        ];
+        // Crear el contenido del PDF con la imagen capturada y la tabla
+        var docDefinition = {
+            pageSize: 'LETTER',//Tamaño de la hoja a hacer en pdf
+            content: content,
+        };
+        // Generar y descargar el archivo PDF utilizando pdfmake
+        pdfMake.createPdf(docDefinition).download('archivo.pdf');
+        loading(2);
+    });
+
+}
+
 async function viewEditUser(i){
     jUsuarios[i]
     let sModalVentana = '';
@@ -1208,15 +1523,15 @@ async function viewEditUser(i){
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarModal"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class="input-group mb-3">
+                                        <div class="input-group mb-3 border">
                                             <span class="input-group-text" id="basic-addon1"><i class="bi bi-person-circle"></i></span>
                                             <input type="text" class="form-control" id="inEdNom" placeholder="Nombre de usuario" value="`+jUsuarios[i].name+`">
                                         </div>
-                                        <div class="input-group mb-3">
+                                        <div class="input-group mb-3 border">
                                             <span class="input-group-text" id="basic-addon1">@</span>
                                             <input type="email" class="form-control" placeholder="Correo" id="inEdEmail" value="`+jUsuarios[i].email+`">
                                         </div>
-                                        <div class="input-group mb-3">
+                                        <div class="input-group mb-3 border">
                                             <select class="form-select" id="selEdArea">
                                                 <option selected value="1000">Selecciona un área</option>`
     for(i = 0; i < (jArea.length-2); i++){
@@ -1249,6 +1564,7 @@ async function editUser(){
                 showConfirmButton: false,
                 timer: 1500
             })
+            document.querySelector('#cerrarModal').click();
         }
     }else{
         Swal.fire({
@@ -2160,13 +2476,13 @@ function asignarModalOpc(opc){//Asignar la vista del modal con respecto al area 
     }
     return sModalVentana;
 }
-
+//Mostrar y usar el botón para ir arriba
 window.onscroll = function() {myFunction()};
 
 function myFunction() {
-  if (document.documentElement.scrollTop > 50) {
-    $("#goup").css("display", "block");
-  } else {
-    $("#goup").css("display", "none");
-  }
+    if (document.documentElement.scrollTop > 50) {
+        $("#goup").css("display", "block");
+    } else {
+        $("#goup").css("display", "none");
+    }
 }
