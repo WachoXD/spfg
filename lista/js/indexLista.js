@@ -35,6 +35,7 @@ async function apiMasterGET(data, urlF){
     let url       = urlBase+urlF;
     const params  = new URLSearchParams(data);
     const apiUrl  = url + '?' + params;
+    console.log(apiUrl);
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const options = {
@@ -67,7 +68,8 @@ async function apiProductosSearch(producto, prov){
         producto: producto,
         prov    : prov
     };
-    return  await apiMasterGET(data, 'solProductosSearch');;
+    console.log(await apiMasterGET(data, 'solProductosSearch'));
+    //return  await apiMasterGET(data, 'solProductosSearch');
 }
 
 async function apiSearchCoti(folio){   
@@ -149,7 +151,7 @@ async function inicio(jUsuario){
     <button type="button" class="btn btn-outline-primary" onclick="buscarCot()">
         <i class="bi bi-search"></i> Buscar cotización
     </button>
-    <button type="button" class="btn btn-outline-primary me-2" onclick="buscarMisCot()">
+    <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#modalMisCoti" onclick="buscarMisCot(`+jUsuario.id+`)">
         <i class="bi bi-archive"></i> Mis cotizaciones
     </button>`;
     jUsuarioGlobal = jUsuario;
@@ -355,7 +357,7 @@ async function mostrarProdAgreg(){
     <button type="button" class="btn btn-outline-primary me-2" onclick="buscarCot()">
         <i class="bi bi-search"></i> Buscar cotización
     </button>
-    <button type="button" class="btn btn-outline-primary me-2" onclick="buscarMisCot()">
+    <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#modalMisCoti" onclick="buscarMisCot(`+jUsuarioGlobal.id+`)">
         <i class="bi bi-archive"></i> Mis cotizaciones
     </button>
     <button type="button" class="btn btn-success me-2" onclick="verificarCamposPDF()">
@@ -369,6 +371,64 @@ async function mostrarProdAgreg(){
     document.getElementById('btnBuscar').innerHTML         = sBotones;
     document.getElementById('tablaTotal').innerHTML        = sTablaTotal;
     document.getElementById('tablaProductosPed').innerHTML = sProductosList;
+}
+
+async function buscarMisCot(id){
+    let datos = {
+        id : id
+    }
+    let res = await apiMasterGET(datos, 'sMisCoti');
+    console.log(res);
+    document.getElementById('bodyMisCoti').innerHTML = '';
+    let sModalBody = `
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Razón Social</th>
+                    <th>Nombre</th>
+                    <th>Fecha D/M/A</th>
+                    <th>Función</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    for(i = 0; i < res.length; i++){
+        sModalBody = sModalBody + `
+                <tr>
+                    <td>`+res[i].folio+`</td>
+                    <td>`+res[i].razonS+`</td>
+                    <td>`+res[i].nomAtencion+`</td>
+                    <td>`+new Date(res[i].startdate).toLocaleDateString()+`</td>
+                    <td>
+                        <button type="button" class="btn btn-outline-primary" onclick="impCoti(`+res[i].folio+`)"><i class="bi bi-box-arrow-in-right"></i> Aceptar</button>
+                    </td>
+                </tr>
+        `;
+    }
+    sModalBody = sModalBody + ` 
+            </tbody>
+        </table>
+    `;
+    if(res.status == 400){
+        sModalBody = `<center><h1>No tiene cotizaciones</h1></center>`
+    }
+    document.getElementById('bodyMisCoti').innerHTML = sModalBody;
+}
+
+async function impCoti(folio){
+    let res = await apiSearchCoti(folio); //Llamamos a la función para haceer la busqueda
+    if(res.status == 0){//Si  no encuentra el folio mandamos un mensaje de erro
+        Swal.fire({
+            icon: 'warning',
+            title: 'El número de folio <strong>'+resCot+'</strong> no existe',
+            showConfirmButton: false,
+            timer: 1500
+        })
+    }else{
+        document.getElementById('cerrarMisCoti').click();
+        document.getElementById('bodyMisCoti').innerHTML = '';
+        showJped(res[0]);//Si si lo encuentra, mandamos el json a la función para que este la muestre 
+    }
 }
 
 async function eliminarProd(pos,prod){

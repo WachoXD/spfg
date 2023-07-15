@@ -431,6 +431,7 @@ async function apiAgregarPed(reqDatos){
         area    : reqDatos.area,
         idUser  : reqDatos.userId,
         numOrder: reqDatos.numOrder, 
+        cd_area : reqDatos.cd_area,
         emp     : reqDatos.emp
     }
     let res = await apiMasterPost(_datos, 'agregarPed');
@@ -627,6 +628,7 @@ async function home(){
     let GlojUsuarios    = await apiUsuarios();
     let jAceptados      = await apiAceptados(jUsuario.id);
     let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
+    let fechaActual     = new Date();
     
     //console.log(jAceptar);
     jArea               = GlojArea;
@@ -768,8 +770,10 @@ async function home(){
                                                         <th scope="col">N° pedido</th>
                                                         <th scope="col">Estatus</th>
                                                         <th scope="col">Fecha de creación</th>
+                                                        <th scope="col">Área envío</th>
                                                         <th scope="col">Responsable</th>
-                                                        <th scope="col">Área</th>`;
+                                                        <th scope="col">Área</th>
+                                                        <th scope="col">Tiempo</th>`;
         if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){
             sVentana = sVentana + `                     <th scope="col">Funciones</th>`;
         }
@@ -780,7 +784,18 @@ async function home(){
         if(contadorObjetos > 0){
             let responsable = '';
             let area = '';
+            let diferenciaMs;
+            let dias;
+            let horas;
+            let minutos;
             for(i=0; i < contadorObjetos; i++){
+                if(jPedidos[i].updated_at != null) diferenciaMs = fechaActual - new Date(jPedidos[i].updated_at);
+                else diferenciaMs = fechaActual - new Date(jPedidos[i].startdate);
+                //console.log("diferenciaMs ",diferenciaMs);
+                dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
+                //console.log("dias ", dias," horas ", horas, " minutos ",minutos);
                 for(j = 0; j < contUsuarios; j++){
                     if(jUsuarios[j].id == jPedidos[i].user_id){ responsable = jUsuarios[j].name;}
                 }
@@ -796,11 +811,21 @@ async function home(){
                     sVentana = sVentana + `               style="background: rgba(232, 165, 30 , 0.4);"`;
                 }else if(jPedidos[i].status == "Cancelado"){
                     sVentana = sVentana + `               style="background: rgba(232, 30, 30 , 0.4);"`;
-                }
+                };
                 sVentana = sVentana + `                  >`+jPedidos[i].status+`</td>
-                                                    <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                    <td><button type="button" class="btn btn-outline-primary" style="width: 100px;" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                    <td>`+jPedidos[i].cd_area+`</td>
                                                     <td>`+responsable+`</td>
-                                                    <td>`+area+`</td>`;
+                                                    <td>`+area+`</td>
+                                                    <td `;
+                if(dias >= 1){//Valides de horas del pedido
+                    sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                }else if(horas >= 2 && dias == 0){
+                    sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                }else if(horas == 1 && dias == 0){
+                    sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                }
+                sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>`;
                 //if(jPedidos[i].status == "Finalizado")
                 if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
                     sVentana = sVentana + `         <td>`;
@@ -848,8 +873,10 @@ async function home(){
                                                 <th scope="col">N° pedido</th>
                                                 <th scope="col">Estatus</th>
                                                 <th scope="col">Fecha de creación</th>
+                                                <th scope="col">Área envío</th>
                                                 <th scope="col">Responsable</th>
                                                 <th scope="col">Área</th>
+                                                <th scope="col">Tiempo</th>
                                             </tr>
                                         </thead>
                                         
@@ -860,6 +887,12 @@ async function home(){
             let area = '';
             for(i=0; i < contadorObjetos; i++){
                 if(jPedidos[i].status == 'Activo'){
+                    if(jPedidos[i].updated_at != null) diferenciaMs = fechaActual - new Date(jPedidos[i].updated_at);
+                    else diferenciaMs = fechaActual - new Date(jPedidos[i].startdate);
+                    //console.log("diferenciaMs ",diferenciaMs);
+                    dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                    horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
@@ -870,9 +903,19 @@ async function home(){
                                                         <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+jPedidos[i].cd_area+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
-                                                    </tr>`
+                                                        <td `;
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>
+                                                    </tr>`;
                 }
             }
         }
@@ -889,8 +932,10 @@ async function home(){
                                                                 <th scope="col">N° pedido</th>
                                                                 <th scope="col">Estatus</th>
                                                                 <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Área envío</th>
                                                                 <th scope="col">Responsable</th>
                                                                 <th scope="col">Área</th>
+                                                                <th scope="col">Tiempo</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody class="table-group-divider" id="tablaParciales">`
@@ -900,19 +945,35 @@ async function home(){
             let area = '';
             for(i=0; i < contadorObjetos; i++){
                 if(jPedidos[i].status == 'Parcial'){
+                    if(jPedidos[i].updated_at != null) diferenciaMs = fechaActual - new Date(jPedidos[i].updated_at);
+                    else diferenciaMs = fechaActual - new Date(jPedidos[i].startdate);
+                    //console.log("diferenciaMs ",diferenciaMs);
+                    dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                    horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
-                    sVentana = sVentana + `<tr>
+                    sVentana = sVentana + `         <tr>
                                                         <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
                                                         <td>`+jPedidos[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+jPedidos[i].cd_area+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
-                                                    </tr>`
+                                                        <td `;
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>
+                                                    </tr>`;
                 }
             }
         }
@@ -929,8 +990,10 @@ async function home(){
                                                                 <th scope="col">N° pedido</th>
                                                                 <th scope="col">Estatus</th>
                                                                 <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Área envío</th>
                                                                 <th scope="col">Responsable</th>
                                                                 <th scope="col">Área</th>
+                                                                <th scope="col">Tiempo</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody class="table-group-divider" id="tablaFinalizado">`
@@ -940,19 +1003,36 @@ async function home(){
             let area = '';
             for(i=0; i < contadorObjetos; i++){
                 if(jPedidos[i].status == 'Finalizado'){
+                    if(jPedidos[i].updated_at != null) diferenciaMs = fechaActual - new Date(jPedidos[i].updated_at);
+                    else diferenciaMs = fechaActual - new Date(jPedidos[i].startdate);
+                    //console.log("diferenciaMs ",diferenciaMs);
+                    dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                    horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jPedidos[i].user_id) responsable = jUsuarios[j].name;
                     }
                     for(k = 0; k < contArea; k++){
                         if(jArea[k].id == jPedidos[i].area_id) area = jArea[k].name;
                     }
-                    sVentana = sVentana + `<tr>
-                                                        <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
-                                                        <td>`+jPedidos[i].status+`</td>
-                                                        <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
-                                                        <td>`+responsable+`</td>
-                                                        <td>`+area+`</td>
-                                                    </tr>`
+                    sVentana = sVentana + ` <tr>
+                                                <th scope="row">`+jPedidos[i].company+` `+jPedidos[i].ordernumber+`</th>
+                                                <td>`+jPedidos[i].status+`</td>
+                                                <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jPedidos[i].id+`,`+jPedidos[i].ordernumber+`, 1)'>`+new Date(jPedidos[i].startdate).toLocaleDateString()+`</button></td>
+                                                <td>`+jPedidos[i].cd_area+`</td>
+                                                <td>`+responsable+`</td>
+                                                <td>`+area+`</td>
+                                                <td `;
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `          >±`+dias+` d `+horas+`h `+minutos+` m
+                                                </td>
+                                            </tr>`;
                 }
             }
         }
@@ -984,8 +1064,10 @@ async function home(){
                                                             <th scope="col">N° pedido</th>
                                                             <th scope="col">Estatus</th>
                                                             <th scope="col">Fecha de creación</th>
+                                                            <th scope="col">Área envío</th>
                                                             <th scope="col">Responsable</th>
                                                             <th scope="col">Área</th>
+                                                            <th scope="col">Tiempo</th>
                                                             <th scope="col">Funciones</th>
                                                         </tr>
                                                     </thead>
@@ -996,6 +1078,12 @@ async function home(){
         for(i=0; i < contAceptados; i++){
             if(jAceptados[i].user_id == jUsuario.id && jAceptados[i].acepted == 1){
                 if(jAceptados[i].acepted == 1){
+                    if(jAceptados[i].updated_at != null) diferenciaMs = fechaActual - new Date(jAceptados[i].updated_at);
+                    else diferenciaMs = fechaActual - new Date(jAceptados[i].startdate);
+                    //console.log("diferenciaMs ",diferenciaMs);
+                    dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                    horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jAceptados[i].user_id) responsable = jUsuarios[j].name;
                     }
@@ -1006,8 +1094,18 @@ async function home(){
                                                         <th scope="row">`+jAceptados[i].company+` `+jAceptados[i].ordernumber+`</th>
                                                         <td>`+jAceptados[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 1)'>`+new Date(jAceptados[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+jAceptados[i].cd_area+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
+                                                        <td `;
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>;
                                                         <td>
                                                             <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptados[i].id+`,`+jAceptados[i].ordernumber+`, 5)'>
                                                                 <i class="bi bi-arrow-left-right"></i>
@@ -1068,8 +1166,10 @@ async function home(){
                                                                 <th scope="col">N° pedido</th>
                                                                 <th scope="col">Estatus</th>
                                                                 <th scope="col">Fecha de creación</th>
+                                                                <th scope="col">Área envío</th>
                                                                 <th scope="col">Responsable</th>
                                                                 <th scope="col">Área</th>
+                                                                <th scope="col">Tiempo</th>
                                                                 <th scope="col">Funciones</th>
                                                             </tr>
                                                         </thead>
@@ -1082,6 +1182,12 @@ async function home(){
         for(i=0; i < contAceptar; i++){
             if(jAceptar[i].area_id == jUsuario.user_rol_id && jAceptar[i].acepted == 0){
                 if(jAceptar[i].acepted == 0){
+                    if(jAceptar[i].updated_at != null) diferenciaMs = fechaActual - new Date(jAceptar[i].updated_at);
+                    else diferenciaMs = fechaActual - new Date(jAceptar[i].startdate);
+                    //console.log("diferenciaMs ",diferenciaMs);
+                    dias    = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+                    horas   = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));
                     for(j = 0; j < contUsuarios; j++){
                         if(jUsuarios[j].id == jAceptar[i].user_id) responsable = jUsuarios[j].name;
                     }
@@ -1092,8 +1198,18 @@ async function home(){
                                                         <th scope="row">`+jAceptar[i].company+` `+jAceptar[i].ordernumber+`</th>
                                                         <td>`+jAceptar[i].status+`</td>
                                                         <td><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalTotal" onclick='modalView(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`, 1)'>`+new Date(jAceptar[i].startdate).toLocaleDateString()+`</button></td>
+                                                        <td>`+jAceptar[i].cd_area+`</td>
                                                         <td>`+responsable+`</td>
                                                         <td>`+area+`</td>
+                                                        <td `;
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>
                                                         <td>
                                                             <button type="button" class="btn btn-outline-primary" onclick='aceptar(`+jAceptar[i].id+`,`+jAceptar[i].ordernumber+`,`+jUsuario.id+`) '>
                                                                 <i class="bi bi-check-lg"></i>
@@ -1150,7 +1266,11 @@ async function home(){
                                                 <button type="button" class="btn btn-info me-2" onclick="viewEditUser(`+i+`)" data-bs-toggle="modal" data-bs-target="#modalTotal"><i class="bi bi-pencil-square"></i></button>
                                                 <button type="button" class="btn btn-danger" onclick="optionUser(1, `+i+`, '`+jUsuarios[i].name+`')"><i class="bi bi-trash3"></i></button>`;
         }else{
-            sVentana = sVentana + `Los Admin no de pueden editar`
+            if(jUsuario.user_rol_id == 0){
+                sVentana = sVentana +           `
+                                                <button type="button" class="btn btn-info me-2" onclick="viewEditUser(`+i+`)" data-bs-toggle="modal" data-bs-target="#modalTotal"><i class="bi bi-pencil-square"></i></button>
+                                                <button type="button" class="btn btn-danger" onclick="optionUser(1, `+i+`, '`+jUsuarios[i].name+`')"><i class="bi bi-trash3"></i></button>`;
+            }else sVentana = sVentana + `Los Admin no se pueden editar`
         }
         sVentana = sVentana +           `   </td>
                                         </tr>`;
@@ -1251,11 +1371,22 @@ async function viewGrafica(opc){
         }
         sModalVentana = sModalVentana + `        </select>`;
     }
+    if(opc == 2){
+        sModalVentana = sModalVentana + `
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rEmpresaM" id="rEmpresaM1" value="P" checked>
+            <label class="form-check-label" for="rEmpresaM1">Proveedor</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rEmpresaM" id="rEmpresaM2" value="M">
+            <label class="form-check-label" for="rEmpresaM2">María Raquel</label>
+        </div>`;
+    }
     sModalVentana = sModalVentana + `            <button type="button" class="btn btn-primary mb-2" onclick="genGraf(`+opc+`)"><i class="bi bi-pie-chart"></i> Generar gráfica</button>
                                             </div>
                                             <div class="row g-0">
                                                 <div class="col-sm-6 col-md-8" style="width:600px; height: 600px;" id="divgrafGeneral"></div>
-                                                <div class="col-6 col-md-4" id="divInfGeneral">.col-6 .col-md-4</div>
+                                                <div class="col-6 col-md-4 overflow-auto" id="divInfGeneral" data-bs-spy="scroll " data-bs-smooth-scroll="true"></div>
                                             </div>
                                         
                                     </div>
@@ -1267,232 +1398,247 @@ async function viewGrafica(opc){
 }
 let resChart;
 async function genGraf(opc){
-    //console.log("Hola");
+    //console.log(opc);
     let _datos = {
         startDate  : document.getElementById('startDate').value.trim(),
         finishDate : document.getElementById('finishDate').value.trim() + " 23:59:59"
     }
-    if(opc==1) _datos.area = document.getElementById('seAreaChart').value;
-    let sApi = ['grafGeneral', 'grafArea'];
-    let res = await apiMasterGET(_datos, sApi[opc]);
-    if(res.status == 6){
-        resChart            = res;
-        resChart.startDate  = _datos.startDate;
-        resChart.finishDate = _datos.finishDate;
-        var suma            = res.ventas+res.compras+res.almacen+res.facturacion+res.cyc+res.sistemas;
-        resChart.suma       = suma;
-        //console.log(_datos.finishDate);
-        document.getElementById('divgrafGeneral').innerHTML     = '';
-        document.getElementById('divInfGeneral').innerHTML      = '';
-        document.getElementById('modal-footer-chart').innerHTML = '';
-        var graficaDiv = document.getElementById("divgrafGeneral");
-        
-        let sInfoGraf = [`   <p class="text-center fs-2">Datos</p>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-3 col-md-6 text-center rounded-4" style="background-color:#ff6384;">
-                                    <p class="text-start fs-4 ms-2"> Ventas: </p>
-                                </div>
-                                <div class="col-6 col-md-5 ms-2">
-                                    <p class="text-start fs-4 ">`+res.ventas+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#cd36eb;">
-                                    <p class="text-start fs-4 ms-2">Compras: </p>
-                                </div>
-                                <div class="col-6  col-md-5 ms-2">
-                                    <p class="text-start fs-4">`+res.compras+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#36a2eb;">
-                                    <p class="text-start fs-4 ms-2">Almacén: </p>
-                                </div>
-                                <div class="col-6 col-md-5 ms-2">
-                                    <p class="text-start fs-4">`+res.almacen+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#ffce56;">
-                                    <p class="text-start fs-4 ms-2">Facturación:</p>
-                                </div>
-                                <div class="col-6  col-md-5 ms-2">
-                                    <p class="text-start fs-4"> `+res.facturacion+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#36eb39;">
-                                    <p class="text-start fs-4 ms-2">CyC:</p>
-                                </div>
-                                <div class="col-6 col-md-5 ms-2">
-                                    <p class="text-start fs-4"> `+res.cyc+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4" style="background-color:#fa37b4;">
-                                    <p class="text-start fs-4 ms-2">Sistemas: </p>
-                                </div>
-                                <div class="col-6  col-md-5 ms-2">
-                                    <p class="text-start fs-4">`+res.sistemas+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4">
-                                    <p class="text-start fs-4 ms-2">Promedio/área:</p>
-                                </div>
-                                <div class="col-6  col-md-5 ms-2">
-                                    <p class="text-start fs-4"> `+parseFloat(suma/6).toFixed(2)+` pedidos</p>
-                                </div>
-                            </div>
-                            <div class="row g-0 mb-2 ">
-                                <div class="col-sm-6 col-md-6 text-center rounded-4">
-                                    <p class="text-start fs-4 ms-2">Total:</p>
-                                </div>
-                                <div class="col-6 col-md-5 ms-2">
-                                    <p class="text-start fs-4"> `+suma+` pedidos</p>
-                                </div>
-                            </div>`,
-                        ];
-
-        document.getElementById('divInfGeneral').innerHTML  = sInfoGraf[opc];
-        let sFooterMo = `   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-primary" onclick="imprimirGraf(`+opc+`)">Imprimir</button>`;
-        document.getElementById('modal-footer-chart').innerHTML = sFooterMo;
-        // Crea el elemento <canvas> con el ancho y alto especificados
-        var canvas = document.createElement("canvas");
-        canvas.width = 250;
-        canvas.height = 250;
-
-        // Agrega el <canvas> al <div> utilizando appendChild
-        graficaDiv.appendChild(canvas);
-
-        // Crea el contexto para el gráfico
-        var ctx = canvas.getContext("2d");
-        //console.log("Ventas",res.ventas,"Compras", "Almacén", res.almacen, "Facturación", "CyC");
-        // Datos para la gráfica de ejemplo
-        var datos = [
-            {
-                datasets: [
-                    {
-                        data: [res.ventas, res.compras, res.almacen, res.facturacion, res.cyc, res.sistemas],
-                        backgroundColor: ["#ff6384", "#cd36eb", "#36a2eb", "#ffce56", "#36eb39", "#fa37b4"],
-                        hoverBackgroundColor: ["#ff6384", "#cd36eb", "#36a2eb", "#ffce56", "#36eb39", "#fa37b4"]
-                    }
-                ]
+    if(opc == 1) _datos.area    = document.getElementById('seAreaChart').value;
+    if(opc == 2) {
+        var x = document.getElementsByName("rEmpresaM");
+        let resCheck = '';
+        for (i = 0; i < x.length; i++) {
+            if(x[i].checked == true ){
+                resCheck = x[i].value;
             }
-        ];
-
-        // Crea la gráfica de pie
-        var grafica = new Chart(ctx, {
-            type: "doughnut",
-            data: datos[opc]
-        });
+        }
+        _datos.company = resCheck;
     }
+    switch(opc){
+        case 0:
+            if (_datos.startDate > _datos.finishDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'La fecha inicial no puede ser mayor a la final',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                return;
+            }
+            break;
+        case 1:
+            if (_datos.startDate > _datos.finishDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'La fecha inicial no puede ser mayor a la final',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                return;
+            }else{
+                if(_datos.area == 1000){
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor seleccione un área',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    return;
+                }
+            }
+            break;
+        case 2:
+            if (_datos.startDate > _datos.finishDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'La fecha inicial no puede ser mayor a la final',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                return;
+            }
+            break;
+    }
+    let sApi = ['grafGeneral', 'grafArea', 'grafPed'];
+    let res  = await apiMasterGET(_datos, sApi[opc]);
+    let sInfoGraf;
+    var suma = 0;
+    
+    //console.log(_datos.finishDate);
+    document.getElementById('divgrafGeneral').innerHTML     = '';
+    document.getElementById('divInfGeneral').innerHTML      = '';
+    document.getElementById('modal-footer-chart').innerHTML = '';
+    var graficaDiv = document.getElementById("divgrafGeneral");
+    // Datos para la gráfica de ejemplo
+    var datos = {
+        datasets: [
+            {
+                data: [],
+                backgroundColor: [],
+                hoverBackgroundColor: []
+            }
+        ]
+    };
+    resChart            = res;
+    
+    sInfoGraf = `   <p class="text-center fs-2">Datos</p>`;
+    for(i = 0; i < res.length; i++){
+        var color = gColorHex();
+        resChart[i].startDate  = _datos.startDate;
+        resChart[i].finishDate = _datos.finishDate;
+        resChart[i].color      = color;
+        suma = suma + res[i].cantidad;
+        
+        datos.datasets[0].backgroundColor.push(color);
+        datos.datasets[0].hoverBackgroundColor.push(color);
+        datos.datasets[0].data.push(res[i].cantidad);
+        sInfoGraf = sInfoGraf + `
+                    <div class="row g-0 mb-2 ">
+                        <div class="col-sm-3 col-md-6 text-center rounded-4" style="background-color: `+datos.datasets[0].backgroundColor[i]+`;">
+                            <p class="text-start fs-4 ms-2"> `+res[i].name+` </p>
+                        </div>
+                        <div class="col-6 col-md-5 ms-2">
+                            <p class="text-start fs-4 ">`+res[i].cantidad+` pedidos</p>
+                        </div>
+                    </div>`;
+    }
+    sInfoGraf = sInfoGraf + `
+                    <div class="row g-0 mb-2 ">
+                        <div class="col-sm-6 col-md-6 text-center rounded-4">
+                            <p class="text-start fs-4 ms-2">Promedio/área:</p>
+                        </div>
+                        <div class="col-6  col-md-5 ms-2">
+                            <p class="text-start fs-4"> `+parseFloat(suma/res.length).toFixed(2)+` pedidos</p>
+                        </div>
+                    </div>
+                    <div class="row g-0 mb-2 ">
+                        <div class="col-sm-6 col-md-6 text-center rounded-4">
+                            <p class="text-start fs-4 ms-2">Total:</p>
+                        </div>
+                        <div class="col-6 col-md-5 ms-2">
+                            <p class="text-start fs-4"> `+suma+` pedidos</p>
+                        </div>
+                    </div>`;
+
+    document.getElementById('divInfGeneral').innerHTML  = sInfoGraf;
+    let sFooterMo = `   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" onclick="imprimirGraf(`+opc+`)">Imprimir</button>`;
+    document.getElementById('modal-footer-chart').innerHTML = sFooterMo;
+    // Crea el elemento <canvas> con el ancho y alto especificados
+    var canvas = document.createElement("canvas");
+    canvas.width = 250;
+    canvas.height = 250;
+
+    // Agrega el <canvas> al <div> utilizando appendChild
+    graficaDiv.appendChild(canvas);
+
+    // Crea el contexto para el gráfico
+    var ctx = canvas.getContext("2d");
+    //console.log("Ventas",res.ventas,"Compras", "Almacén", res.almacen, "Facturación", "CyC");
+    
+
+    // Crea la gráfica de pie
+    var grafica = new Chart(ctx, {
+        type: "doughnut",
+        data: datos
+    });
+    
+    
+    resChart.suma       = suma;
+    //console.log(resChart);
+    //console.log("suma: ",resChart.suma);
 }
+
+function gColorHex() {
+    var codigoColor = "#";
+  
+    // Generar componentes RGB aleatorios
+    var r = Math.floor(Math.random() * 256);
+    var g = Math.floor(Math.random() * 256);
+    var b = Math.floor(Math.random() * 256);
+  
+    // Obtener los componentes RGB opuestos
+    var rOpuesto = 255 - r;
+    var gOpuesto = 255 - g;
+    var bOpuesto = 255 - b;
+  
+    // Convertir los componentes opuestos a formato hexadecimal
+    var rHex = rOpuesto.toString(16).padStart(2, '0');
+    var gHex = gOpuesto.toString(16).padStart(2, '0');
+    var bHex = bOpuesto.toString(16).padStart(2, '0');
+  
+    // Construir el código de color hexadecimal opuesto
+    codigoColor += rHex + gHex + bHex;
+  
+    return codigoColor;
+  }
 
 async function imprimirGraf(opc){
     loading(1);
-    let nameId = ["divgrafGeneral"];
-    let jTable = [
-        {
-            widths: [56, 56, 56, 50, 65, 56, 56, 56],
-            body: [
-                [
-                    {
-                        text: 'Ventas', fillColor: '#ff6384'
-                    }, 
-                    {
-                        text:'Compras', fillColor: '#cd36eb'
-                    }, 
-                    {
-                        text:'Almacén', fillColor: '#36a2eb'
-                    }, 
-                    {
-                        text:'CyC', fillColor: '#36eb39'
-                    }, 
-                    {
-                        text:'Facturación', fillColor: '#ffce56'
-                    }, 
-                    {
-                        text:'Sistemas', fillColor: '#fa37b4'
-                    }, 
-                    {
-                        text:'Promedio', fillColor: '#d9d9d9'
-                    },
-                    {
-                        text:'Total', fillColor: '#d9d9d9'
-                    }
-                ],
-                [
-                    resChart.ventas, 
-                    resChart.compras,
-                    resChart.almacen,
-                    resChart.cyc,
-                    resChart.facturacion,
-                    resChart.sistemas,
-                    parseFloat(resChart.suma/6).toFixed(2),
-                    resChart.suma
-                ]
+    let nameId = "divgrafGeneral";
+    let jTable = {
+        body: [
+            [
+                /*{
+                    text: 'Ventas', fillColor: '#ff6384'
+                }, 
+                {
+                    text:'Compras', fillColor: '#cd36eb'
+                }, 
+                {
+                    text:'Almacén', fillColor: '#36a2eb'
+                }, 
+                {
+                    text:'CyC', fillColor: '#36eb39'
+                }, 
+                {
+                    text:'Facturación', fillColor: '#ffce56'
+                }, 
+                {
+                    text:'Sistemas', fillColor: '#fa37b4'
+                }, 
+                {
+                    text:'Promedio', fillColor: '#d9d9d9'
+                },
+                {
+                    text:'Total', fillColor: '#d9d9d9'
+                }*/
             ],
-            margin: [0, 100, 0, 10], 
-        },
-        {
-            widths: [56, 56, 56, 50, 65, 56, 56, 56],
-            body: [
-                [
-                    {
-                        text: 'Ventas', fillColor: '#ff6384'
-                    }, 
-                    {
-                        text:'Compras', fillColor: '#cd36eb'
-                    }, 
-                    {
-                        text:'Almacén', fillColor: '#36a2eb'
-                    }, 
-                    {
-                        text:'CyC', fillColor: '#36eb39'
-                    }, 
-                    {
-                        text:'Facturación', fillColor: '#ffce56'
-                    }, 
-                    {
-                        text:'Sistemas', fillColor: '#fa37b4'
-                    }, 
-                    {
-                        text:'Promedio', fillColor: '#d9d9d9'
-                    },
-                    {
-                        text:'Total', fillColor: '#d9d9d9'
-                    }
-                ],
-                [
-                    resChart.ventas, 
-                    resChart.compras,
-                    resChart.almacen,
-                    resChart.cyc,
-                    resChart.facturacion,
-                    resChart.sistemas,
-                    parseFloat(resChart.suma/6).toFixed(2),
-                    resChart.suma
-                ]
-            ],
-            margin: [0, 100, 0, 10], 
-        },
-    ];
-    var contentElement = document.getElementById(nameId[opc]);
+            [
+                /*'resChart.ventas,',
+                'resChart.compras',
+                'resChart.almacen',
+                'resChart.cyc',
+                'resChart.facturacion',
+                'resChart.sistemas',
+                'parseFloat(resChart.suma/6).toFixed(2)',
+                'resChart.sum'*/
+            ]
+        ],
+        margin: [0, 100, 0, 10], 
+    };
+    for (i = 0; i < resChart.length; i++){
+        jTable.body[0].push(JSON.parse('{"text": "'+resChart[i].name+'", "fillColor": "'+resChart[i].color+'"}'));
+        console.log(resChart[i].name," ",resChart[i].cantidad);
+        jTable.body[1].push(resChart[i].cantidad)
+    }    
+    jTable.body[1].push((resChart.suma/resChart.length));
+    jTable.body[1].push(resChart.suma);
+    console.log(jTable);
+    var contentElement = document.getElementById(nameId);
     // Capturar una imagen de la etiqueta HTML utilizando html2canvas
     html2canvas(contentElement).then(function (canvas) {
         var imgData = canvas.toDataURL('image/png');
         var content = [ 
             {
-                text: 'Pedidos PFG de la fecha '+resChart.startDate+' a '+resChart.finishDate,
+                text: 'Pedidos PFG de la fecha '+resChart[0].startDate+' a '+resChart[0].finishDate,
                 alignment: "center",
                 fontSize: 18,
 			    bold: true,
                 margin: [0, 0, 0, 30],
             }, 
             {
-                table: jTable[opc]
+                table: jTable
             },
             {
                 image: imgData,
@@ -1976,8 +2122,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
     4: Perfil
     */
     document.getElementById('modalInfo').innerHTML = '';
-   var sModalVentana = '';
-   let contArea = 0;
+    var sModalVentana = '';
+    let contArea = 0;
 
             Object.keys(jArea).forEach((clave) => {
                 if (typeof jArea[clave] === "object") {
@@ -1987,7 +2133,12 @@ async function modalView(idOrder, orderNumber, opc, userId){
     switch(opc){
         case 1: //Modal de historial de pedidos 
             tamanomodal(0);
-            let jHistorial = await apiHistorial(idOrder);
+            let jHistorial    = await apiHistorial(idOrder);
+            let datosHora     = {
+                idOrder : idOrder
+            }
+            let jHora         = await apiMasterGET(datosHora, 'horaOrder');
+            console.log(jHora[0].id);
             let contHistorial = 0;
 
             Object.keys(jHistorial).forEach((clave) => {
@@ -2072,15 +2223,44 @@ async function modalView(idOrder, orderNumber, opc, userId){
                     else sModalVentana = sModalVentana + `<td>N/A</td>`;//Si este no contiene un mensaje imprime N/A (No Aplica)
                     sModalVentana = sModalVentana + `</tr>`;                     
                 }
-            }                     
+            }
+            let fechaActual     = new Date();
+            let fechaProd;
+            if(jHora[0].updated_at != '')fechaProd = new Date(jHora[0].updated_at); else fechaProd = new Date(jHora[0].startdate);
+            let diferenciaMs = fechaActual - fechaProd;
+            //console.log("diferenciaMs ",diferenciaMs);
+            let dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
+            let horas = Math.floor((diferenciaMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutos = Math.floor((diferenciaMs % (1000 * 60 * 60)) / (1000 * 60));                 
                                     
             sModalVentana = sModalVentana + `
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                            <div class="">
+                                <div class="content-xl">
+                                    <div class="row g-0 mb-2 ms-2 me-2 border-top">
+                                        <div class="col-sm-6 col-md-7 text-start mt-2">
+                                            <span`;
+            if(dias >= 1){//Valides de horas del pedido
+                sModalVentana = sModalVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+            }else if(horas >= 2 && dias == 0){
+                sModalVentana = sModalVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+            }else if(horas == 1 && dias == 0){
+                sModalVentana = sModalVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+            }
+            sModalVentana = sModalVentana + ` class="fs-3 rounded">&nbsp;±`+dias+` días `+horas+`hrs `+minutos+` min&nbsp;</span> <span class="fs-4"> en este proceso</span>`;
+
+            sModalVentana = sModalVentana +`
+                                        </div>
+                                        <div class="col-6 col-md-5 text-end mt-2">
+                                            <button type="button" class="btn btn-danger text-end" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>`;
+            
+                                
 
             
             break;
@@ -2126,9 +2306,18 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                     </div>
                                                     
                                                     <div class="input-group mb-3 mt-3">
-                                                        <span class="input-group-text" id="inputGroup-sizing-default">Nuevo pedido</span>
-                                                        <input type="int" class="form-control" autofocus id="nuevoPedidoInput" min="9000" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;" placeholder="Ejemplo: 45055">
+                                                        <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Nuevo pedido</span>
+                                                        <input type="int" class="form-control border border-primary" autofocus id="nuevoPedidoInput" min="9000" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;" placeholder="Ejemplo: 45055">
                                                     </div>
+                                                    <select class="form-select border border-primary" aria-label="Default select example" id="selArEnvi">
+                                                        <option selected value="1000">Seleccione el área de envío</option>
+                                                        <option value="Foraneo">Foraneo</option>
+                                                        <option value="Paquetería">Paquetería</option>
+                                                        <option value="Tlajomulco de Zuñiga">Tlajomulco de Zuñiga</option>
+                                                        <option value="Zapopan">Zapopan</option>
+                                                        <option value="El salto">El salto</option>
+                                                        <option value="Zona industrial">Zona industrial</option>
+                                                    </select>
                                                 </div>
                                           
                                             </div>
@@ -2164,7 +2353,7 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                         <div class="col-6 col-md-6">
                                                             <div class="input-group mb-3 me-2">
                                                                 <span class="input-group-text" id="inputGroup-sizing-default">Correo</span>
-                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].email+`">
+                                                                <input id="emailProf" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].email+`">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2267,16 +2456,20 @@ async function nuevoPed(area, userId){
     }
     loading(1);
     let numOrder = document.getElementById('nuevoPedidoInput').value.trim();
-    if(numOrder != ''){
+    let cd_area  = document.getElementById('selArEnvi').value;
+    if(numOrder != '' && cd_area != '1000'){
         let datosP = {
             area     : area,
             userId   : userId,
             numOrder : numOrder,
+            cd_area  : cd_area,
             emp      : resCheck
         }
         //console.log(datosP);
-        let resultP = await apiAgregarPed(datosP);
-
+        //console.log(datosP);
+        let resultP = await apiMasterPost(datosP, 'agregarPed');
+        console.log(resultP);
+        
         if(resultP.status == 200){
             recargar();
             loading(2);
@@ -2297,14 +2490,13 @@ async function nuevoPed(area, userId){
                 showConfirmButton: false,
                 timer: 1500
             })
-
         }
     }else{
         loading(2);
         document.querySelector("#nuevoPedidoInput").focus();
         Swal.fire({
             icon: 'warning',
-            title: 'El N° de pedido no puede estar vacio',
+            title: 'Por favor llene los campos',
             showConfirmButton: false,
             timer: 1500
         })

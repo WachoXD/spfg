@@ -251,6 +251,22 @@ router.get('/perfil', (req, res) => {
     });
     
 });
+
+router.get("/horaOrder", (req, res) => {
+    let idOrder = req.query.idOrder;
+    //console.log(idOrder);
+    conexion.query("SELECT `id`, `startdate`, `updated_at` FROM `orders` WHERE `id` = '"+idOrder+"'", (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
 router.get('/historial', (req, res) => {
     let orderid   = req.query.orderid;
     //console.log("El order es: ",orderid);
@@ -803,13 +819,12 @@ function actHistorial(reqDatos){
 
 router.post('/agregarPed', (req, res) => {
     let area        = req.body.area;
-    let idUser      = req.body.idUser;
+    let idUser      = req.body.userId;
     let numOrder    = req.body.numOrder;
+    let cd_area     = req.body.cd_area;
     let emp         = req.body.emp;
-   //console.log("Area: ",area);
-   //console.log("IdUser: ",idUser);
-   //console.log("numOrder ",numOrder);
-   //
+    console.log("Area: ",area," IdUser: ",idUser," numOrder ",numOrder, " cd_area: ",cd_area," emp", emp);
+    
     conexion.query("SELECT id FROM orders WHERE company = '"+emp+"' AND ordernumber = '"+numOrder+"'", (error, results) => {
         if (error) {
             console.log(error.code);
@@ -820,7 +835,7 @@ router.post('/agregarPed', (req, res) => {
                     "status":       500,
                 })
             }else{
-                conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
+                conexion.query(`INSERT INTO orders (company, ordernumber, cd_area, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', '`+cd_area+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`')`, function (error, results, fields) {
                     /*
                     if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
                         handleDisconnect();                         // lost due to either server restart, or a
@@ -839,6 +854,7 @@ router.post('/agregarPed', (req, res) => {
                             });
                             return;
                         }
+                        console.log("El error es: ", error);
                     }else{
                         
                         const id = results.insertId; // Obtener el ID del nuevo dato agregado
@@ -866,85 +882,103 @@ router.post('/agregarPed', (req, res) => {
     })  
 })
 
-// JSON donde se agregarán los resultados de la consulta
-let jsonResultados = {
-    datos: []
-};
-  
-  // Número de veces que se realizará la consulta
-let nCon = 0;
+async function realizarConsulta() {
+    conexion.query('SELECT nombre, email, area FROM usuarios', function (error, results, fields) {
+        if (error) throw error;
+        
+        // Construir el JSON array para los datos de esta consulta
+        const jsonArray = results.map(user => {
+            return {
+                nombre: user.nombre,
+                email: user.email,
+                area: user.area
+            };
+        });
+      
+        // Agregar el JSON array al JSON de resultados
+        jsonResultados.datos = jsonResultados.datos.concat(jsonArray);
+      
+        // Verificar si se han completado todas las consultas
+        if (jsonResultados.datos.length / 3 === nCon) {
+            // Todas las consultas han sido completadas
+            console.log(jsonResultados); // Mostrar los resultados en la consola
+            return 200;
+        } else {
+          // Todavía hay consultas pendientes, realizar la siguiente consulta
+            realizarConsulta();
+        }
+    });
+}
 
 router.get('/grafArea', async (req, res) => {
     let startDate  = req.query.startDate;
     let finishDate = req.query.finishDate;
     let area       = req.query.area;
-    conexion.query('SELECT id, name, user_rol_id, email FROM users WHERE user_rol_id = '+area+'', async (error, results, fields) => {
+    let jOrders;
+    conexion.query("SELECT * FROM orders WHERE area_id = '"+area+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", (error, results) => {
         if (error) {
-          console.error('Error al ejecutar la consulta: ', error);
-          throw error;
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
         }
-        let resName= '';
-        console.log("results ",results.length);
-        nCon = results.length;
-        for(i = 0; i < results.length; i++){
-            console.log("results[i].id", results[i].id);
-            var cantidadRes = 0;
-            resName = results[i].name
-            var cantidad; conexion.query("SELECT * FROM orders WHERE area_id = '"+area+"' AND user_id = '"+results[i].id+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", (error, results) => {
-                if (error) {
-                    console.error('Error al ejecutar la consulta: ', error);
-                    throw error;
+        jOrders = results;
+        conexion.query('SELECT id, name, user_rol_id, email FROM users WHERE user_rol_id = '+area+'', async (error, results, fields) => {
+            if (error) {
+              console.error('Error al ejecutar la consulta: ', error);
+              throw error;
+            }
+            let jRes;
+            var objetos = [];
+            let contador = 0;
+            for(j = 0; j  < results.length; j++){
+                for(i = 0; i < jOrders.length; i++){
+                    if (jOrders[i].user_id === results[j].id) { contador++; }
                 }
-                console.log("Cant ", results.length);
-                cantidad = results.length;
-                return cantidadRes;
-            }); 
-            console.log(cantidad);
-            var jArray ={
-                cantidad : cantidad,
-                vendedor : resName,
-            } 
-            jResultados = jResultados.concat(jArray); 
-        }
-       
-        console.log("hola");
-        console.log(jResultados);
-        res.send(jResultados);
+                jRes = '{"cantidad":'+contador+', "name":"'+results[j].name+'"}';
+                var objeto = JSON.parse(jRes);
+                objetos.push(objeto);
+                contador = 0;
+            }
+            res.send(objetos);
+        });
     });
 });
 
-async function realizarConsulta() {
-    conexion.query('SELECT nombre, email, area FROM usuarios', function (error, results, fields) {
-      if (error) throw error;
-  
-      // Construir el JSON array para los datos de esta consulta
-      const jsonArray = results.map(user => {
-        return {
-          nombre: user.nombre,
-          email: user.email,
-          area: user.area
-        };
-      });
-  
-      // Agregar el JSON array al JSON de resultados
-      jsonResultados.datos = jsonResultados.datos.concat(jsonArray);
-  
-      // Verificar si se han completado todas las consultas
-      if (jsonResultados.datos.length / 3 === nCon) {
-        // Todas las consultas han sido completadas
-        console.log(jsonResultados); // Mostrar los resultados en la consola
-        return 200;
-      } else {
-        // Todavía hay consultas pendientes, realizar la siguiente consulta
-        realizarConsulta();
-      }
-    });
-  }
+router.get('/grafPed', (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let company    = req.query.company;
+    conexion.query(
+        "SELECT * FROM orders WHERE company = '"+company+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", 
+        function (error, results) {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+              }
+            var objetos    = [];
+            let jRes;
+            let status =["Activo", "Finalizado", "Parcial", "Cancelado"];
+            
+            for(i = 0; i < status.length; i++){
+                let resu = 0;
+                for(j = 0; j < results.length; j++){
+                    if(results[j].status == status[i]) resu++;
+                }
+                jRes = '{"cantidad":'+resu+', "name":"'+status[i]+'"}';
+                var objeto = JSON.parse(jRes);
+                objetos.push(objeto);
+            }
+            //console.log(objetos);
+            res.send(objetos);
+        }
+    );
+});
 
 router.get('/grafGeneral', (req, res) => {
     let startDate  = req.query.startDate;
     let finishDate = req.query.finishDate;
     let resD = 0;
+    let jRes;
+    var objetos = [];
     let datos = {
         status      : 0,
         ventas      : 0,
@@ -958,8 +992,11 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '1') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.compras = results[0].cantidad;
-            resD += 1;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Compras"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.compras = results[0].cantidad;
+            //resD += 1;
         }
     );
     
@@ -967,8 +1004,11 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '2') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.sistemas = results[0].cantidad;
-            resD += 1;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Sistemas"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.sistemas = results[0].cantidad;
+            //resD += 1;
         }
     );
     
@@ -976,8 +1016,11 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.ventas = results[0].cantidad;
-            resD += 1;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Ventas"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.ventas = results[0].cantidad;
+            //resD += 1;
         }
     );
 
@@ -985,8 +1028,11 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '4') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.almacen = results[0].cantidad;
-            resD += 1;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Almacén"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.almacen = results[0].cantidad;
+            //resD += 1;
         }
     );
 
@@ -994,8 +1040,11 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '5') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.facturacion = results[0].cantidad;
-            resD += 1;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Facturación"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.facturacion = results[0].cantidad;
+            //resD += 1;
         }
     );
 
@@ -1003,11 +1052,14 @@ router.get('/grafGeneral', (req, res) => {
         "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
-            datos.cyc = results[0].cantidad;
-            resD += 1;
-            datos.status = resD;
-            console.log(datos);
-            res.send(datos);
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"CyC"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.cyc = results[0].cantidad;
+            //resD += 1;
+            //datos.status = resD;
+            console.log(objetos);
+            res.send(objetos);
         }
     );
     
@@ -1154,43 +1206,6 @@ router.get('/listMarcas', (req, res) => {
     });
 });
 
-/////////////////////////////////// APIs de lista de productos /////////////////////////////
-router.get('/solProductosSearch', (req, res) => {
-    let producto   = req.query.producto;
-    let prov       = req.query.prov;
-    //console.log("El order es: ",orderid);
-    conexion.query("SELECT * FROM `productos` WHERE `prov` LIKE '%"+prov+"%' AND (`codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%');", (error, results, fields) => {
-        if (error) {
-            console.error('Error al ejecutar la consulta: ', error);
-            throw error;
-        }
-        // Convertir los resultados en formato JSON
-        const jsonData = JSON.stringify(results);
-        //console.log(jsonData);
-        res.send(jsonData);
-    });
-});
-
-router.get('/solCoti', (req, res) =>{
-    let folio = req.query.folio;
-    conexion.query("SELECT * FROM `pedidos` WHERE `folio` = '"+folio+"'", (error, results) => {
-        if(error){
-            console.error('Error al ejecutar la consulta: ', error);
-            throw error;
-        }else{
-            if(results.length > 0){
-                const jsonData = JSON.stringify(results);
-                //console.log(jsonData);
-                res.send(jsonData);
-            }else{
-                res.json({
-                    "status": 0
-                });
-            }
-        }
-    });
-});
-
 router.post('/nuevProv', (req, res) => {
     let prov = req.body.proveedor;
     let list1 = req.body.lista1;
@@ -1238,6 +1253,64 @@ router.post('/actProv', (req, res) => {
     });
 });
 
+/////////////////////////////////// APIs de lista de productos /////////////////////////////
+router.get('/solProductosSearch', (req, res) => {
+    let producto   = req.query.producto;
+    let prov       = req.query.prov;
+    //console.log("El order es: ",orderid);
+    conexion.query("SELECT * FROM `productos` WHERE `prov` LIKE '%"+prov+"%' AND (`codigo` LIKE '%"+producto+"%' OR `codprov` LIKE '%"+producto+"%' OR `descripcion` LIKE '%"+producto+"%');", (error, results, fields) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.get('/solCoti', (req, res) =>{
+    let folio = req.query.folio;
+    conexion.query("SELECT * FROM `pedidos` WHERE `folio` = '"+folio+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }else{
+            if(results.length > 0){
+                const jsonData = JSON.stringify(results);
+                //console.log(jsonData);
+                res.send(jsonData);
+            }else{
+                res.json({
+                    "status": 0
+                });
+            }
+        }
+    });
+});
+
+router.get('/sMisCoti', (req, res)  => {
+    let id = req.query.id;
+    conexion.query("SELECT id, nomV, startdate, id_user, razonS, nomAtencion, folio FROM `pedidos` WHERE `id_user` = '"+id+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        if(results.length > 0){
+            const jsonData = JSON.stringify(results);
+            //console.log(jsonData);
+            res.send(jsonData);
+        }else{
+            res.json({
+                "status": 400
+            });
+        }
+    });
+});
+
+
+
 router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
     let productosJ   = req.body.productosJ;
     let nomV         = req.body.nomV;
@@ -1256,8 +1329,8 @@ router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
         
         folio = (results[0].folio +1) * 1;
         //console.log("folio: ",folio," results: ",results[0].folio);
-        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user) 
-                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`')`;
+        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user,       startdate) 
+                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`', NOW())`;
         conexion.query(sQuery, (error, results) => {
             if (error) {
                 console.error('Error al ejecutar la consulta: ', error);
