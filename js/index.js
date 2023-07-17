@@ -818,14 +818,19 @@ async function home(){
                                                     <td>`+responsable+`</td>
                                                     <td>`+area+`</td>
                                                     <td `;
-                if(dias >= 1){//Valides de horas del pedido
-                    sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
-                }else if(horas >= 2 && dias == 0){
-                    sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
-                }else if(horas == 1 && dias == 0){
-                    sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                if(jPedidos[i].status != "Cancelado" && jPedidos[i].status != "Finalizado"){
+                    if(dias >= 1){//Valides de horas del pedido
+                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
+                    }else if(horas >= 2 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
+                    }else if(horas == 1 && dias == 0){
+                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
+                    }
+                    sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>`;
+                }else{
+                    sVentana = sVentana + `             > `+jPedidos[i].status+`</td>`;
                 }
-                sVentana = sVentana + `             >±`+dias+` d `+horas+`h `+minutos+` m</td>`;
+                
                 //if(jPedidos[i].status == "Finalizado")
                 if(jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 0){//Funciones de administrador y sistemas para todo lo de los pedidos 
                     sVentana = sVentana + `         <td>`;
@@ -1483,7 +1488,7 @@ async function genGraf(opc){
     
     sInfoGraf = `   <p class="text-center fs-2">Datos</p>`;
     for(i = 0; i < res.length; i++){
-        var color = gColorHex();
+        var color = gColorHexClar();
         resChart[i].startDate  = _datos.startDate;
         resChart[i].finishDate = _datos.finishDate;
         resChart[i].color      = color;
@@ -1549,29 +1554,20 @@ async function genGraf(opc){
     //console.log("suma: ",resChart.suma);
 }
 
-function gColorHex() {
-    var codigoColor = "#";
+function gColorHexClar() {
+    const r = Math.floor(Math.random() * 200) + 55; // Componente rojo (valores entre 55 y 255)
+    const g = Math.floor(Math.random() * 200) + 55; // Componente verde (valores entre 55 y 255)
+    const b = Math.floor(Math.random() * 200) + 55; // Componente azul (valores entre 55 y 255)
   
-    // Generar componentes RGB aleatorios
-    var r = Math.floor(Math.random() * 256);
-    var g = Math.floor(Math.random() * 256);
-    var b = Math.floor(Math.random() * 256);
+    // Convertir los componentes RGB a formato hex
+    const hexColor = rgbToHex(r, g, b);
+    return hexColor;
+}
   
-    // Obtener los componentes RGB opuestos
-    var rOpuesto = 255 - r;
-    var gOpuesto = 255 - g;
-    var bOpuesto = 255 - b;
-  
-    // Convertir los componentes opuestos a formato hexadecimal
-    var rHex = rOpuesto.toString(16).padStart(2, '0');
-    var gHex = gOpuesto.toString(16).padStart(2, '0');
-    var bHex = bOpuesto.toString(16).padStart(2, '0');
-  
-    // Construir el código de color hexadecimal opuesto
-    codigoColor += rHex + gHex + bHex;
-  
-    return codigoColor;
-  }
+  // Función para convertir RGB a hex
+function rgbToHex(r, g, b) {
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
 
 async function imprimirGraf(opc){
     loading(1);
@@ -1615,16 +1611,19 @@ async function imprimirGraf(opc){
                 'resChart.sum'*/
             ]
         ],
-        margin: [0, 100, 0, 10], 
+        alignment: "center",
+        margin: [10, 100, 0, 0], 
     };
     for (i = 0; i < resChart.length; i++){
         jTable.body[0].push(JSON.parse('{"text": "'+resChart[i].name+'", "fillColor": "'+resChart[i].color+'"}'));
-        console.log(resChart[i].name," ",resChart[i].cantidad);
+        //console.log(resChart[i].name," ",resChart[i].cantidad);
         jTable.body[1].push(resChart[i].cantidad)
     }    
-    jTable.body[1].push((resChart.suma/resChart.length));
+    jTable.body[0].push(JSON.parse('{"text": "Prom", "fillColor": "#e0e0e0"}'));
+    jTable.body[0].push(JSON.parse('{"text": "Total", "fillColor": "#e0e0e0"}'));
+    jTable.body[1].push(parseFloat(resChart.suma/resChart.length).toFixed(2));
     jTable.body[1].push(resChart.suma);
-    console.log(jTable);
+    //console.log(jTable.body[0]);
     var contentElement = document.getElementById(nameId);
     // Capturar una imagen de la etiqueta HTML utilizando html2canvas
     html2canvas(contentElement).then(function (canvas) {
@@ -1649,6 +1648,7 @@ async function imprimirGraf(opc){
         ];
         // Crear el contenido del PDF con la imagen capturada y la tabla
         var docDefinition = {
+            pageOrientation: 'landscape',
             pageSize: 'LETTER',//Tamaño de la hoja a hacer en pdf
             content: content,
         };
@@ -1988,7 +1988,19 @@ async function editarPedView(pos, idUSer){
     sHtml = sHtml + `       
                 <div class="form-floating mt-3">
                     <input type="number" class="form-control" id="changeOrderNumber" name="" value="`+jPedidosGlobal[pos].ordernumber+`">
-                    <label for="floatingPassword">Numéro de orden </label>
+                    <label for="floatingPassword">Número de orden </label>
+                </div>
+                <div class="form-floating mt-3">
+                    <select class="form-select border border-primary" id="selArEnvi">
+                        <option selected value="1000">Seleccione el área de envío</option>
+                        <option value="Foraneo">Foraneo</option>
+                        <option value="Paquetería">Paquetería</option>
+                        <option value="Tlajomulco de Zuñiga">Tlajomulco de Zuñiga</option>
+                        <option value="Zapopan">Zapopan</option>
+                        <option value="El salto">El salto</option>
+                        <option value="Zona industrial">Zona industrial</option>
+                    </select>
+                    <label for="floatingSelect">Área de envío</label>
                 </div>
             `;
     Swal.fire({
