@@ -84,12 +84,6 @@ function comprobarCookie() {
     }
 }
 
-function cerrarSesion(){
-    window.location.reload();
-}
-
-
-
 //Para reconocer el enter en el formulario
 window.addEventListener("keydown", (e) => {
     if(e.keyCode===13){
@@ -181,6 +175,11 @@ function iniciarSesion(){
         })
            comprobarCookie();
     }
+}
+
+function recargaForzadaConCtrlF5() {
+    // Crear un evento de teclas presionadas para "Ctrl + F5"
+    location.reload();
 }
 //Notificaciones, que al chile no se si jalan y los puse el 4 de mayo
 function notificacion(jNotifi){
@@ -604,7 +603,8 @@ async function inicio(){
                                     </button>
                                     <ul class="dropdown-menu" id="dropPerfil">
                                         <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
-                                        <li><a class="dropdown-item" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                                        <li><a class="dropdown-item" onclick="recPag()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
+                                        <li><a class="dropdown-item" onclick="recPag()"><i class="bi bi-git"></i> <span id="versionT">v `+jUsuario.version+`</span></a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1027,15 +1027,7 @@ async function home(){
                                                 <td>`+jPedidos[i].cd_area+`</td>
                                                 <td>`+responsable+`</td>
                                                 <td>`+area+`</td>
-                                                <td `;
-                    if(dias >= 1){//Valides de horas del pedido
-                        sVentana = sVentana + `             style="background: rgba(245, 0, 0, 0.8); font-weight: bold;"`;
-                    }else if(horas >= 2 && dias == 0){
-                        sVentana = sVentana + `             style="background: rgba(245, 130, 0, 0.8);"`;
-                    }else if(horas == 1 && dias == 0){
-                        sVentana = sVentana + `             style="background: rgba(245, 197, 0, 0.8);"`;
-                    }
-                    sVentana = sVentana + `          >±`+dias+` d `+horas+`h `+minutos+` m
+                                                <td> `+jPedidos[i].status+`
                                                 </td>
                                             </tr>`;
                 }
@@ -1294,9 +1286,41 @@ async function home(){
                             </div>
                         </div>
                     </div-->
-                    
+                    <div class="container-xl mb-2">
+                        <div class="text-end">
+                            <span id="versionB" style="font-weight: bold; cursor: pointer" onclick="recPag()">v `+jUsuario.version+`</span></a>
+                        </div>
+                    </div>
                     <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
     document.getElementById('app').innerHTML = sVentana;
+    let datosVer = {
+        id : ''
+    };
+    let resVer = await apiMasterGET(datosVer, 'solVersion');
+    console.log(resVer[0].version);
+    if(resVer[0].version != jUsuario.version){
+        noRecMenu(100);
+        Swal.fire({
+            title: 'Actualizar a versión '+resVer[0].version,
+            text: 'Actualmente tienes la version '+jUsuario.version+'',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar',
+            backdrop: 'static', // Evitar cierre dando clic afuera
+            allowOutsideClick: false, // Deshabilitar cierre dando clic afuera
+            allowEscapeKey: false, // Deshabilitar cierre con tecla "Esc"
+        }).then(async (result) => {
+            // Aquí puedes agregar cualquier acción después de que el usuario acepte la alerta
+            console.log('El usuario aceptó la alerta');
+            let datosActVer = {
+                id      : jUsuario.id,
+                version : resVer[0].version
+            }
+            let resActVer = await apiMasterGET(datosActVer, 'actVer');
+
+            noRecMenu(0);
+            recPag();
+        });
+    }
     if(cargaTodo == 0){
         cargaTodo = 1;
         let resul = recargarTodo(jUsuario.user_rol_id);
@@ -1305,6 +1329,11 @@ async function home(){
     loading(2);
     return 1;
 }
+
+function recPag(){
+    location.reload();
+}
+
 let iNoRecMenu = 0;
 function noRecMenu(opc){
     iNoRecMenu = opc;
@@ -1991,7 +2020,7 @@ async function editarPedView(pos, idUSer){
                     <label for="floatingPassword">Número de orden </label>
                 </div>
                 <div class="form-floating mt-3">
-                    <select class="form-select border border-primary" id="selArEnvi">
+                    <select class="form-select border border-primary" id="selArEnviEd">
                         <option selected value="1000">Seleccione el área de envío</option>
                         <option value="Foraneo">Foraneo</option>
                         <option value="Paquetería">Paquetería</option>
@@ -2016,6 +2045,7 @@ async function editarPedView(pos, idUSer){
         if (result.isConfirmed) {
             var cmp     = document.getElementsByName("radioCmp");
             var orderN  = document.getElementById("changeOrderNumber").value;
+            var sArea   = document.getElementById("selArEnviEd").value;
             for (i = 0; i < cmp.length; i++) {
                 if(cmp[i].checked == true ){
                     resCheck = cmp[i].value;
@@ -2026,12 +2056,13 @@ async function editarPedView(pos, idUSer){
                 idOrder        : jPedidosGlobal[pos].id,
                 company        : resCheck, 
                 ordernumber    : orderN,
+                cd_area        : sArea,
                 oldOrderNumber : jPedidosGlobal[pos].ordernumber,
                 oldCompany     : jPedidosGlobal[pos].company,
                 area           : jPedidosGlobal[pos].area_id,
                 acepted        : jPedidosGlobal[pos].acepted,
             }
-            let resParcial = await apiEditarPed(_reqDatos);
+            let resParcial = await apiMasterPost(_reqDatos, 'modificarPed');
             //console.log(resParcial);
             if(resParcial.status == 200){
                 Swal.fire(
@@ -2045,6 +2076,7 @@ async function editarPedView(pos, idUSer){
                     'El pedido '+orderN+' no se ha podido modificar',
                     'error'
                 )
+                console.log(resParcial);
             }
             recargar();
         }

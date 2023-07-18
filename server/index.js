@@ -53,6 +53,7 @@ app.use('/api', router);
 var mysql = require('mysql');
 
 
+/*
 const logger = winston.createLogger({
     level: 'error', // Nivel de registro: error
     format: winston.format.simple(), // Formato del mensaje de error
@@ -66,6 +67,7 @@ const logger = winston.createLogger({
         }) // Archivo de registro diario
     ]
 });
+*/
 var db_config = {
     host: 'localhost',
     user: 'pfg',
@@ -116,11 +118,7 @@ var db_config = {
         process.exit(1);
     });
   }
-  
-async function timeNow(){
-    var today = new Date();
-    return today;
-}
+
 //Nuestro primer WS Get
 app.get('/', (req, res) => {
     let img = [  "","https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
@@ -160,15 +158,17 @@ router.post('/login', (req, res) => {
                 "status": 400
             });
         }else{
+
             results.forEach(result => {
                 res.json({
-                    "status":       200,
-                    "id":           result.id,
-                    "email":        result.email,
-                    "user_rol_id":  result.user_rol_id,
-                    "name":         result.name,
-                    "created_at":   result.create_at,
-                    "if_update":    result.if_update
+                    "status"        : 200,
+                    "id"            : result.id,
+                    "email"         : result.email,
+                    "user_rol_id"   : result.user_rol_id,
+                    "name"          : result.name,
+                    "created_at"    : result.create_at,
+                    "if_update"     : result.if_update,
+                    "version"       : result.version
                 });
             });
         }
@@ -282,6 +282,33 @@ router.get('/historial', (req, res) => {
     });
     
 });//Seguir esta madre
+
+router.get('/solVersion', (req, res) => {
+    conexion.query("SELECT * FROM info WHERE `id` = '1'", function(error,results){
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.get('/actVer', (req, res) => {
+    let id      = req.query.id;
+    let version = req.query.version;
+    conexion.query("UPDATE `users` SET `version` = '"+version+"' WHERE `id` = '"+id+"'", function(error, results){
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200
+        })
+    });
+});
 
 router.get('/solPedidos', (req,res) => {
     let id   = req.query.id;
@@ -632,11 +659,16 @@ router.post('/modificarPed', (req, res) => {
     let acepted        = req.body.acepted;
     let idUser         = req.body.idUser;
     let idOrder        = req.body.idOrder;
+    let cd_area        = req.body.cd_area;
     let company        = req.body.company;    
     let ordernumber    = req.body.ordernumber;
     let oldOrderNumber = req.body.oldOrderNumber;
     let oldCompany     = req.body.oldCompany;
     //console.log("area ",area," acepted ",acepted," idUser ", idUser, " idOrder ",idOrder, " company ",company," ordernumber ",ordernumber," oldOrderNumber ",oldOrderNumber," oldCompany ",oldCompany);
+
+    conexion.query("UPDATE `orders` SET `company`='"+company+"', `cd_area` = '"+cd_area+"',`ordernumber`='"+ordernumber+"' WHERE `company` = '"+oldCompany+"' AND `ordernumber`='"+oldOrderNumber+"' ", function (error, results, fields) {
+
+    });
 
     conexion.query("SELECT id FROM `orders` WHERE `company` = '"+company+"' AND `ordernumber` = '"+ordernumber+"'", (error, results) => {
         if (error) {
@@ -649,7 +681,7 @@ router.post('/modificarPed', (req, res) => {
                     "status":       500,
                 })
             }else{
-                conexion.query("UPDATE `orders` SET `company`='"+company+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
+                conexion.query("UPDATE `orders` SET `company`='"+company+"', `cd_area` = '"+cd_area+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
                     if (error) {
                         console.log(error.code);
                         throw error;
