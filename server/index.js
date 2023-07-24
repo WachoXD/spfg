@@ -268,7 +268,7 @@ router.get("/horaOrder", (req, res) => {
 });
 
 router.get('/historial', (req, res) => {
-    let orderid   = req.query.orderid;
+    let orderid   = req.query.idOrder;
     //console.log("El order es: ",orderid);
     conexion.query('SELECT * FROM order_record WHERE  order_id = '+orderid+'', (error, results, fields) => {
         if (error) {
@@ -392,10 +392,10 @@ router.post('/actualizarPedido',(req, res)=>{
     let area        = req.body.area;
     let numOrder    = req.body.numOrder;
     let idUser      = req.body.idUser;
-    let isOrder     = req.body.isOrder;
+    let idOrder     = req.body.idOrder;
     //console.log("email: "+email+" pass: "+ pass);
     
-    conexion.query(`UPDATE orders SET acepted='0',area_id=?,updated_at=? WHERE id = ?`,[ area, idUser, isOrder], function (error, results, fields) {
+    conexion.query(`UPDATE orders SET acepted='0',area_id=?,updated_at=? WHERE id = ?`,[ area, idUser, idOrder], function (error, results, fields) {
         if(Object.keys(results).length === 0){
             res.json({
                 "status": 500
@@ -666,9 +666,6 @@ router.post('/modificarPed', (req, res) => {
     let oldCompany     = req.body.oldCompany;
     //console.log("area ",area," acepted ",acepted," idUser ", idUser, " idOrder ",idOrder, " company ",company," ordernumber ",ordernumber," oldOrderNumber ",oldOrderNumber," oldCompany ",oldCompany);
 
-    conexion.query("UPDATE `orders` SET `company`='"+company+"', `cd_area` = '"+cd_area+"',`ordernumber`='"+ordernumber+"' WHERE `company` = '"+oldCompany+"' AND `ordernumber`='"+oldOrderNumber+"' ", function (error, results, fields) {
-
-    });
 
     conexion.query("SELECT id FROM `orders` WHERE `company` = '"+company+"' AND `ordernumber` = '"+ordernumber+"'", (error, results) => {
         if (error) {
@@ -679,6 +676,7 @@ router.post('/modificarPed', (req, res) => {
                 console.log("Result: ",results.length);
                 res.json({
                     "status":       500,
+                    "msg"   : "El producto <strong>"+company+" "+ordernumber+"</strong> ya existe"
                 })
             }else{
                 conexion.query("UPDATE `orders` SET `company`='"+company+"', `cd_area` = '"+cd_area+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {

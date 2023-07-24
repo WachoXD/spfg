@@ -16,12 +16,15 @@ let jPedidosGlobal;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://192.168.1.74:81/'
 }
 if(URLactual.href.substring(0,22) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://localhost/'
 }
 if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://187.188.181.242/'
 }
 //alert(urlBase)
 
@@ -345,41 +348,6 @@ async function apiMasterGET(data, urlF){ //API "master" en GET a utilizar para t
     return solPeticion;
 }
 
-async function apiPedidos(id){ 
-    const data = {
-        id: id,
-    };
-    return await apiMasterGET(data, 'solPedidos');
-}
-
-async function apiUsuarios(){
-    const data = {
-        id: '',
-    };
-    return await apiMasterGET(data, 'usuarios');
-}
-
-async function apiArea(){
-    const data = {
-        id: '',
-    };
-    return await apiMasterGET(data, 'area');
-}
-
-async function apiHistorial(orderId){
-    const data = {
-        orderid: orderId,
-    };
-    return await apiMasterGET(data, 'historial');
-}
-
-async function apiUsuario(id){
-    const data = {
-        id: id,
-    };
-    return await apiMasterGET(data, 'perfil');
-}
-
 async function apiActualizarPedido(reqDatos){
     let _datos = {
         area    : reqDatos.area,
@@ -388,100 +356,6 @@ async function apiActualizarPedido(reqDatos){
         idOrder : reqDatos.idOrder
     }
     let res = await apiMasterPost(_datos, 'actualizarPedido');
-    return res;
-}
-
-async function apiFinalizarPed(reqDatos){
-    let _datos = {
-        idUser  : reqDatos.idUser,
-        idOrder : reqDatos.idOrder
-    }
-    let res = await apiMasterPost(_datos, 'finalizarPed');
-    return res;
-}
-
-/*
-async function apiAsignarDir(reqDatos){
-    let res = await apiMasterPost(reqDatos, 'asignarDir');
-    return res;
-}
-*/
-
-async function apiEditarPed(reqDatos){
-    let res = await apiMasterPost(reqDatos, 'modificarPed');
-    return res;
-}
-
-async function apiParcial(reqDatos){
-    let _datos = {
-        orderId : reqDatos.idOrder,
-        numOrder: reqDatos.ordernumber,
-        area_id : reqDatos.area_id,
-        idUser  : reqDatos.idUser
-    }
-    //console.log(_datos);
-    let res = await apiMasterPost(_datos, 'parcialPed')
-    return res;
-}
-
-async function apiAgregarPed(reqDatos){
-    //console.log(reqDatos); 
-    let _datos = {
-        area    : reqDatos.area,
-        idUser  : reqDatos.userId,
-        numOrder: reqDatos.numOrder, 
-        cd_area : reqDatos.cd_area,
-        emp     : reqDatos.emp
-    }
-    let res = await apiMasterPost(_datos, 'agregarPed');
-    return res;
-}
-async function apiRechazarPed(reqDatos){
-    let _datos = {
-        acepted  : reqDatos.acepted,
-        orderId  : reqDatos.orderId,
-        msg: reqDatos.msg
-    }
-    let res = await apiMasterPost(_datos, 'rechazarPed');
-    return res;
-}
-
-async function apiAvanzaPedido(reqDatos){
-    let _datos = {
-        area    : reqDatos.area,
-        numOrder: reqDatos.numOrder,
-        idUser  : reqDatos.idUser,
-        idOrder : reqDatos.idOrder
-    }
-    let res = await apiMasterPost(_datos, 'asignarPed');
-    return res;
-}
-
-async function apiAceptarPed(reqDatos){
-    let _datos = {
-        orderId     : reqDatos.orderId,
-        orderNumber : reqDatos.orderNumber,
-        userId      : reqDatos.userId
-    }
-    let res = await apiMasterPost(_datos, 'aceptarPed');
-    return res;
-}
-
-async function apiEliminarPed(reqDatos){
-    let _datos = {
-        idOrder : reqDatos.idOrder
-    }
-    let res = await apiMasterPost(_datos, 'eliminarPed');
-    return res;
-}
-
-async function apiCancelarPed(reqDatos){
-    let _datos = {
-        idOrder     : reqDatos.idOrder,
-        idUser      : reqDatos.idUser
-    }
-    console.log("idUser ",_datos.idUser);
-    let res = await apiMasterPost(_datos, 'cancelarPed');
     return res;
 }
 
@@ -517,36 +391,10 @@ async function apiActuaHistorial(reqDatos){
     return res2;
 }
 
-async function apiAceptados(id){ 
-    const data = {
-        id: id,
-    };
-    return await apiMasterGET(data, 'solAceptados');
-}
-
-async function apiAceptar(area){  
-    loading(1);
-    const data = {
-        area: area,
-    };
-    return await apiMasterGET(data, 'solAceptar');
-}
-
-async function apiSolTodPed(){
-    const data = {
-        id: '',
-    };
-    return await apiMasterGET(data, 'solTodPed');
-}
-
-async function apiRegAVentas(reqDatos){
-    let res = await apiMasterPost(reqDatos, 'regresarVent');
-    return res;
-}
-
 async function recargar(){
     //console.log(userIdGlobal);
-    let jUserHome = await apiUsuario(userIdGlobal);
+    let datos = { id: userIdGlobal }
+    let jUserHome = await apiMasterGET(datos, 'perfil');
     //console.log(jUserHome);
     if(jUserHome != null){
         home();
@@ -616,18 +464,20 @@ async function inicio(){
 
 async function home(){
     let jUsuario = jUsuarioGlobal;
-    let jPedidos
+    let jPedidos;
+    let datosPed = { id : jUsuario.id };
+    let datosSinD = {id:''};
     if(jUsuario.user_rol_id == 0 || jUsuario.user_rol_id == 2 || jUsuario.user_rol_id == 6){
-        jPedidos        = await apiSolTodPed();
+        jPedidos        = await apiMasterGET(datosSinD, 'solTodPed');
         jPedidosGlobal = jPedidos;
     }else{
-        jPedidos        = await apiPedidos(jUsuario.id);
+        jPedidos        = await apiMasterGET(datosPed, 'solPedidos');
     }
-    
-    let GlojArea        = await apiArea();
-    let GlojUsuarios    = await apiUsuarios();
-    let jAceptados      = await apiAceptados(jUsuario.id);
-    let jAceptar        = await apiAceptar(jUsuario.user_rol_id);
+    let dataArea = { area: jUsuario.user_rol_id };
+    let GlojArea        = await apiMasterGET(datosSinD, 'area');
+    let GlojUsuarios    = await apiMasterGET(datosSinD, 'usuarios');
+    let jAceptados      = await apiMasterGET(datosPed, 'solAceptados');
+    let jAceptar        = await apiMasterGET(dataArea, 'solAceptar');
     let fechaActual     = new Date();
     
     //console.log(jAceptar);
@@ -1290,14 +1140,12 @@ async function home(){
                         <div class="text-end">
                             <span id="versionB" style="font-weight: bold; cursor: pointer" onclick="recPag()">v `+jUsuario.version+`</span></a>
                         </div>
-                    </div>
-                    <a id="goup" href="#topNav" class="ir-arriba"><i class="bi bi-arrow-up-circle-fill"></i></a>`;
+                    </div>`;
     document.getElementById('app').innerHTML = sVentana;
     let datosVer = {
         id : ''
     };
     let resVer = await apiMasterGET(datosVer, 'solVersion');
-    console.log(resVer[0].version);
     if(resVer[0].version != jUsuario.version){
         noRecMenu(100);
         Swal.fire({
@@ -1570,17 +1418,13 @@ async function genGraf(opc){
     var ctx = canvas.getContext("2d");
     //console.log("Ventas",res.ventas,"Compras", "Almacén", res.almacen, "Facturación", "CyC");
     
-
     // Crea la gráfica de pie
     var grafica = new Chart(ctx, {
         type: "doughnut",
         data: datos
     });
     
-    
     resChart.suma       = suma;
-    //console.log(resChart);
-    //console.log("suma: ",resChart.suma);
 }
 
 function gColorHexClar() {
@@ -1606,38 +1450,10 @@ async function imprimirGraf(opc){
             [
                 /*{
                     text: 'Ventas', fillColor: '#ff6384'
-                }, 
-                {
-                    text:'Compras', fillColor: '#cd36eb'
-                }, 
-                {
-                    text:'Almacén', fillColor: '#36a2eb'
-                }, 
-                {
-                    text:'CyC', fillColor: '#36eb39'
-                }, 
-                {
-                    text:'Facturación', fillColor: '#ffce56'
-                }, 
-                {
-                    text:'Sistemas', fillColor: '#fa37b4'
-                }, 
-                {
-                    text:'Promedio', fillColor: '#d9d9d9'
                 },
-                {
-                    text:'Total', fillColor: '#d9d9d9'
-                }*/
             ],
             [
-                /*'resChart.ventas,',
-                'resChart.compras',
-                'resChart.almacen',
-                'resChart.cyc',
-                'resChart.facturacion',
-                'resChart.sistemas',
-                'parseFloat(resChart.suma/6).toFixed(2)',
-                'resChart.sum'*/
+                /*'resChart.ventas,*/
             ]
         ],
         alignment: "center",
@@ -1846,15 +1662,15 @@ async function parcialView(idOrder, ordernumber, area, idUser){
     }).then(async (result) => {
         if (result.isConfirmed) {
             let _reqDatos = {
-                idOrder     : idOrder,
+                orderId     : idOrder,
                 ordernumber : ordernumber,
                 area_id     : area,
                 idUser      : idUser
             }
             console.log(_reqDatos);
-            let resParcial = await parcialFun(_reqDatos);
+            let resParcial = await apiMasterPost(_reqDatos, 'parcialPed');
             console.log(resParcial);
-            if(resParcial == 200){
+            if(resParcial.status == 200){
                 Swal.fire(
                     '¡Exito!',
                     'El pedido '+ordernumber+' se ha ido a parcial',
@@ -1870,13 +1686,6 @@ async function parcialView(idOrder, ordernumber, area, idUser){
             recargar();
         }
     })
-}
-
-async function parcialFun(_reqDatos){
-    let resParcialFun = await apiParcial(_reqDatos);
-    //console.log("El res es: ",resParcialFun.status);
-    //console.log(resParcialFun.status == 200 ? 200 : 500);
-    return resParcialFun.status;
 }
 
 async function finalizarView(idOrder, ordernumber, idUser){
@@ -1897,7 +1706,7 @@ async function finalizarView(idOrder, ordernumber, idUser){
                 idUser      : idUser
             }
             //console.log(_reqDatos);
-            let resParcial = await apiFinalizarPed(_reqDatos);
+            let resParcial = await apiMasterPost(_reqDatos, 'finalizarPed');
             console.log(resParcial);
             if(resParcial.status == 200){
                 Swal.fire(
@@ -1935,8 +1744,8 @@ async function cancelarView(idOrder, ordernumber, idUser){
                 area_id     : 100,
                 idUser      : idUser
             }
-            console.log(_reqDatos);
-            let resParcial = await apiCancelarPed(_reqDatos);
+            //console.log(_reqDatos);
+            let resParcial = await apiMasterPost(_reqDatos, 'cancelarPed');
             console.log(resParcial);
             if(resParcial.status == 200){
                 Swal.fire(
@@ -1972,7 +1781,7 @@ async function eliminarView(idOrder, ordernumber){
             let _reqDatos = {
                 idOrder     : idOrder,
             }
-            let resParcial = await apiEliminarPed(_reqDatos);
+            let resParcial = await apiMasterPost(_reqDatos, 'eliminarPed');
             //console.log(resParcial);
             if(resParcial.status == 200){
                 Swal.fire(
@@ -2016,7 +1825,7 @@ async function editarPedView(pos, idUSer){
     }
     sHtml = sHtml + `       
                 <div class="form-floating mt-3">
-                    <input type="number" class="form-control" id="changeOrderNumber" name="" value="`+jPedidosGlobal[pos].ordernumber+`">
+                    <input type="text" class="form-control" id="changeOrderNumber" name="" value="`+jPedidosGlobal[pos].ordernumber+`" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;">
                     <label for="floatingPassword">Número de orden </label>
                 </div>
                 <div class="form-floating mt-3">
@@ -2073,7 +1882,7 @@ async function editarPedView(pos, idUSer){
             }else{
                 Swal.fire(
                     '¡Error!',
-                    'El pedido '+orderN+' no se ha podido modificar',
+                    resParcial.msg,
                     'error'
                 )
                 console.log(resParcial);
@@ -2102,11 +1911,11 @@ async function pestanaNva(opc){
     switch(opc){
         case 1:
             //let url ="http://192.168.1.74:81/spfg/lista/?data="+jEncode+"";
-            let url ="http://localhost/spfg/lista/?data="+jEncode+"";
+            let url = urlPrin + "spfg/lista/?data=" + jEncode+"";
             window.open(url, '_blank');
             break;
         case 2:
-            location.href ="http://192.168.1.74:81/spfg/adm/?data="+jEncode+"";
+            location.href = urlPrin + "/spfg/adm/?data=" + jEncode + "";
             break;
     }
     
@@ -2118,7 +1927,7 @@ async function aceptar(orderId, orderNumber, userId){
         orderNumber : orderNumber,
         userId      : userId
     }
-    let resulP = await apiAceptarPed(datos);
+    let resulP = await apiMasterPost(datos, 'aceptarPed');
     //console.log(resulP);
     if(resulP.status == 200){
         loading(2);
@@ -2168,21 +1977,22 @@ async function modalView(idOrder, orderNumber, opc, userId){
     document.getElementById('modalInfo').innerHTML = '';
     var sModalVentana = '';
     let contArea = 0;
+    let datosUsu = { id: 0 }
 
-            Object.keys(jArea).forEach((clave) => {
-                if (typeof jArea[clave] === "object") {
-                    contArea++;
-                }
-            });
+    Object.keys(jArea).forEach((clave) => {
+        if (typeof jArea[clave] === "object") {
+            contArea++;
+        }
+    });
     switch(opc){
         case 1: //Modal de historial de pedidos 
             tamanomodal(0);
-            let jHistorial    = await apiHistorial(idOrder);
-            let datosHora     = {
+            let datos     = {
                 idOrder : idOrder
             }
-            let jHora         = await apiMasterGET(datosHora, 'horaOrder');
-            console.log(jHora[0].id);
+            let jHistorial    = await apiMasterGET(datos, 'historial');
+            let jHora         = await apiMasterGET(datos, 'horaOrder');
+            //console.log(jHora[0].id);
             let contHistorial = 0;
 
             Object.keys(jHistorial).forEach((clave) => {
@@ -2198,8 +2008,6 @@ async function modalView(idOrder, orderNumber, opc, userId){
                     contUsuarios++;
                 }
             });
-
-            
 
             sModalVentana = `<div class="modal-header" >
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Historial del pedido: <strong>`+orderNumber+`</strong> <span class="ms-5 fs-6">Movimientos: `+contHistorial+`</span></h1>
@@ -2270,7 +2078,11 @@ async function modalView(idOrder, orderNumber, opc, userId){
             }
             let fechaActual     = new Date();
             let fechaProd;
-            if(jHora[0].updated_at != '')fechaProd = new Date(jHora[0].updated_at); else fechaProd = new Date(jHora[0].startdate);
+            if(jHora[0].updated_at != null){
+                fechaProd = new Date(jHora[0].updated_at); 
+            }else {
+                fechaProd = new Date(jHora[0].startdate);
+            }
             let diferenciaMs = fechaActual - fechaProd;
             //console.log("diferenciaMs ",diferenciaMs);
             let dias = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24));
@@ -2330,8 +2142,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
         case 3://Modal para nuevo pedido
             varGlobal = 3;
             tamanomodal(1);
-            
-            let jUserP = await apiUsuario(usuIdGlobal);
+            datosUsu.id = usuIdGlobal;
+            let jUserP = await apiMasterGET(datosUsu, 'perfil');
+        
             //console.log(jUserP[0].name);
             sModalVentana = sModalVentana + `
                                             <div class="modal-header">
@@ -2374,7 +2187,8 @@ async function modalView(idOrder, orderNumber, opc, userId){
         case 4: //Modal para perfil
             tamanomodal(0);
             //Aquí el idOrder recibe un json del usuario y ahí se usará con ese nombre
-            let jUser = await apiUsuario(idOrder);
+            datosUsu.id = idOrder;
+            let jUser = await apiMasterGET(datosUsu, 'perfil');
             //console.log(jUser[0].name);
             let area        = '';
             for(k = 0; k < contArea; k++){
@@ -2426,7 +2240,9 @@ async function modalView(idOrder, orderNumber, opc, userId){
 
         case 5://Modal asignar
             tamanomodal(1);
-            let jUserS = await apiUsuario(usuIdGlobal);
+            //let jUserS = await apiUsuario(usuIdGlobal);
+            datosUsu.id = usuIdGlobal;
+            let jUserS  = await apiMasterGET(datosUsu, 'perfil');
             //console.log(jUserS[0].name);
             let areaS        = '';
             //console.log(jUserS);
@@ -2553,7 +2369,7 @@ async function rechazar(orderId, acepted){
         orderId  : orderId,
         msg      : document.getElementById('msmRechazo').value
     }
-    let resulP = await apiRechazarPed(datosP);
+    let resulP = await apiMasterPost(datosP, 'rechazarPed');
     if(resulP.status == 200){
         recargar();
         loading(2);
@@ -2582,7 +2398,7 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
                     idOrder : idOrder
                 }
                 if(selectArea != 0){
-                    result = await apiAvanzaPedido(datos);
+                    result = await apiMasterPost(datos, 'asignarPed');
                     if(result.status == 200){
                         recargar();
                         document.querySelector('#cerrarModal').click();
@@ -2609,7 +2425,7 @@ async function segPedido(opcM, numOrder, idUser, idOrder){
                 }
                 if(selectVendedor != 0){
                     if(msgRegVentas != ''){
-                        result = await apiRegAVentas(datos);
+                        result = await apiMasterPost(datos, 'regresarVent');
                         if(result.status == 200){
                             recargar();
                             document.querySelector('#cerrarModal').click();
