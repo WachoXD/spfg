@@ -53,6 +53,7 @@ app.use('/api', router);
 var mysql = require('mysql');
 
 
+/*
 const logger = winston.createLogger({
     level: 'error', // Nivel de registro: error
     format: winston.format.simple(), // Formato del mensaje de error
@@ -66,6 +67,7 @@ const logger = winston.createLogger({
         }) // Archivo de registro diario
     ]
 });
+*/
 var db_config = {
     host: 'localhost',
     user: 'pfg',
@@ -116,11 +118,7 @@ var db_config = {
         process.exit(1);
     });
   }
-  
-async function timeNow(){
-    var today = new Date();
-    return today;
-}
+
 //Nuestro primer WS Get
 app.get('/', (req, res) => {
     let img = [  "","https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.facebook.com%2FCastlevaniarealm%2Fposts%2Fc%25C3%25B3rtese-el-pelo-gay-%25C3%25BAnete-al-grupocastlevania-realm%2F1285234034947983%2F&psig=AOvVaw2cPoRW6K8bh8W5no4DlBhs&ust=1685484348421000&source=images&cd=vfe&ved=0CA4QjRxqFwoTCMCH-pa3m_8CFQAAAAAdAAAAABAD",
@@ -160,15 +158,17 @@ router.post('/login', (req, res) => {
                 "status": 400
             });
         }else{
+
             results.forEach(result => {
                 res.json({
-                    "status":       200,
-                    "id":           result.id,
-                    "email":        result.email,
-                    "user_rol_id":  result.user_rol_id,
-                    "name":         result.name,
-                    "created_at":   result.create_at,
-                    "if_update":    result.if_update
+                    "status"        : 200,
+                    "id"            : result.id,
+                    "email"         : result.email,
+                    "user_rol_id"   : result.user_rol_id,
+                    "name"          : result.name,
+                    "created_at"    : result.create_at,
+                    "if_update"     : result.if_update,
+                    "version"       : result.version
                 });
             });
         }
@@ -194,6 +194,48 @@ router.post('/changePass', (req, res) => {
     
 });
 
+router.post('/resetPassUser', (req, res) => {
+    let id     = req.body.id;
+    let pass   = 'pfg2023';
+    let cambio = 0;
+    conexion.query("UPDATE `users` SET `password`= ?, `if_update`= ? WHERE `id`= ?" ,[pass, cambio, id], function (error, results, fields){
+        if (error){
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        })
+    });
+});
+
+router.post('/actUser', (req, res) =>{
+    let nom   = req.body.nom;
+    let email = req.body.email;
+    let area  = req.body.area;
+    
+    conexion.query("UPDATE `users` SET `name`='"+nom+"',`user_rol_id`='"+area+"',`updated_at`= NOW() WHERE `email` = '"+email+"'", function (error, results) {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        });
+    });
+});
+
+router.post('/deleteUser', (req, res) => {
+    let id = req.body.id;
+    conexion.query("DELETE FROM users WHERE `users`.`id` = "+id+"", function (error, results, fields){
+        if (error){
+            throw error;
+        }
+        res.json({
+            "status": '200'
+        })
+    });
+});
+
 router.get('/perfil', (req, res) => {
     let id   = req.query.id;
     //conexion.query('SELECT id, name, user_rol_id, email, created_at, updated_at, if_update, urlPic FROM users WHERE  id = '+id+'', (error, results, fields) => {
@@ -209,8 +251,24 @@ router.get('/perfil', (req, res) => {
     });
     
 });
+
+router.get("/horaOrder", (req, res) => {
+    let idOrder = req.query.idOrder;
+    //console.log(idOrder);
+    conexion.query("SELECT `id`, `startdate`, `updated_at` FROM `orders` WHERE `id` = '"+idOrder+"'", (error, results, fields) => {
+        if (error) {
+          console.error('Error al ejecutar la consulta: ', error);
+          throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
 router.get('/historial', (req, res) => {
-    let orderid   = req.query.orderid;
+    let orderid   = req.query.idOrder;
     //console.log("El order es: ",orderid);
     conexion.query('SELECT * FROM order_record WHERE  order_id = '+orderid+'', (error, results, fields) => {
         if (error) {
@@ -224,6 +282,33 @@ router.get('/historial', (req, res) => {
     });
     
 });//Seguir esta madre
+
+router.get('/solVersion', (req, res) => {
+    conexion.query("SELECT * FROM info WHERE `id` = '1'", function(error,results){
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.get('/actVer', (req, res) => {
+    let id      = req.query.id;
+    let version = req.query.version;
+    conexion.query("UPDATE `users` SET `version` = '"+version+"' WHERE `id` = '"+id+"'", function(error, results){
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status" : 200
+        })
+    });
+});
 
 router.get('/solPedidos', (req,res) => {
     let id   = req.query.id;
@@ -268,7 +353,7 @@ router.get('/solAceptar', (req,res) => { //Solo muestra los que le van a mandar
 });
 
 router.get('/usuarios', (req, res) => {
-    conexion.query('SELECT id, name, user_rol_id FROM users', (error, results, fields) => {
+    conexion.query('SELECT id, name, user_rol_id, email FROM users ORDER BY user_rol_id ASC', (error, results, fields) => {
         if (error) {
           console.error('Error al ejecutar la consulta: ', error);
           throw error;
@@ -307,10 +392,10 @@ router.post('/actualizarPedido',(req, res)=>{
     let area        = req.body.area;
     let numOrder    = req.body.numOrder;
     let idUser      = req.body.idUser;
-    let isOrder     = req.body.isOrder;
+    let idOrder     = req.body.idOrder;
     //console.log("email: "+email+" pass: "+ pass);
     
-    conexion.query(`UPDATE orders SET acepted='0',area_id=?,updated_at=? WHERE id = ?`,[ area, idUser, isOrder], function (error, results, fields) {
+    conexion.query(`UPDATE orders SET acepted='0',area_id=?,updated_at=? WHERE id = ?`,[ area, idUser, idOrder], function (error, results, fields) {
         if(Object.keys(results).length === 0){
             res.json({
                 "status": 500
@@ -574,11 +659,13 @@ router.post('/modificarPed', (req, res) => {
     let acepted        = req.body.acepted;
     let idUser         = req.body.idUser;
     let idOrder        = req.body.idOrder;
+    let cd_area        = req.body.cd_area;
     let company        = req.body.company;    
     let ordernumber    = req.body.ordernumber;
     let oldOrderNumber = req.body.oldOrderNumber;
     let oldCompany     = req.body.oldCompany;
     //console.log("area ",area," acepted ",acepted," idUser ", idUser, " idOrder ",idOrder, " company ",company," ordernumber ",ordernumber," oldOrderNumber ",oldOrderNumber," oldCompany ",oldCompany);
+
 
     conexion.query("SELECT id FROM `orders` WHERE `company` = '"+company+"' AND `ordernumber` = '"+ordernumber+"'", (error, results) => {
         if (error) {
@@ -589,9 +676,10 @@ router.post('/modificarPed', (req, res) => {
                 console.log("Result: ",results.length);
                 res.json({
                     "status":       500,
+                    "msg"   : "El producto <strong>"+company+" "+ordernumber+"</strong> ya existe"
                 })
             }else{
-                conexion.query("UPDATE `orders` SET `company`='"+company+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
+                conexion.query("UPDATE `orders` SET `company`='"+company+"', `cd_area` = '"+cd_area+"',`ordernumber`='"+ordernumber+"' WHERE `id` = '"+idOrder+"'", function (error, results, fields) {
                     if (error) {
                         console.log(error.code);
                         throw error;
@@ -761,13 +849,12 @@ function actHistorial(reqDatos){
 
 router.post('/agregarPed', (req, res) => {
     let area        = req.body.area;
-    let idUser      = req.body.idUser;
+    let idUser      = req.body.userId;
     let numOrder    = req.body.numOrder;
+    let cd_area     = req.body.cd_area;
     let emp         = req.body.emp;
-   //console.log("Area: ",area);
-   //console.log("IdUser: ",idUser);
-   //console.log("numOrder ",numOrder);
-   //
+    console.log("Area: ",area," IdUser: ",idUser," numOrder ",numOrder, " cd_area: ",cd_area," emp", emp);
+    
     conexion.query("SELECT id FROM orders WHERE company = '"+emp+"' AND ordernumber = '"+numOrder+"'", (error, results) => {
         if (error) {
             console.log(error.code);
@@ -778,7 +865,7 @@ router.post('/agregarPed', (req, res) => {
                     "status":       500,
                 })
             }else{
-                conexion.query(`INSERT INTO orders (company, ordernumber, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`');`, function (error, results, fields) {
+                conexion.query(`INSERT INTO orders (company, ordernumber, cd_area, status, acepted, startdate, area_id, user_id, who_id_created, before_area) VALUES ('`+emp+`', '`+numOrder+`', '`+cd_area+`', 'Activo', '1', NOW(), '`+area+`', '`+idUser+`', '`+idUser+`', '`+area+`')`, function (error, results, fields) {
                     /*
                     if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
                         handleDisconnect();                         // lost due to either server restart, or a
@@ -797,6 +884,7 @@ router.post('/agregarPed', (req, res) => {
                             });
                             return;
                         }
+                        console.log("El error es: ", error);
                     }else{
                         
                         const id = results.insertId; // Obtener el ID del nuevo dato agregado
@@ -821,10 +909,191 @@ router.post('/agregarPed', (req, res) => {
                 }); 
             }
         }
-    })
-    
-    
+    })  
 })
+
+async function realizarConsulta() {
+    conexion.query('SELECT nombre, email, area FROM usuarios', function (error, results, fields) {
+        if (error) throw error;
+        
+        // Construir el JSON array para los datos de esta consulta
+        const jsonArray = results.map(user => {
+            return {
+                nombre: user.nombre,
+                email: user.email,
+                area: user.area
+            };
+        });
+      
+        // Agregar el JSON array al JSON de resultados
+        jsonResultados.datos = jsonResultados.datos.concat(jsonArray);
+      
+        // Verificar si se han completado todas las consultas
+        if (jsonResultados.datos.length / 3 === nCon) {
+            // Todas las consultas han sido completadas
+            console.log(jsonResultados); // Mostrar los resultados en la consola
+            return 200;
+        } else {
+          // Todavía hay consultas pendientes, realizar la siguiente consulta
+            realizarConsulta();
+        }
+    });
+}
+
+router.get('/grafArea', async (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let area       = req.query.area;
+    let jOrders;
+    conexion.query("SELECT * FROM orders WHERE area_id = '"+area+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        jOrders = results;
+        conexion.query('SELECT id, name, user_rol_id, email FROM users WHERE user_rol_id = '+area+'', async (error, results, fields) => {
+            if (error) {
+              console.error('Error al ejecutar la consulta: ', error);
+              throw error;
+            }
+            let jRes;
+            var objetos = [];
+            let contador = 0;
+            for(j = 0; j  < results.length; j++){
+                for(i = 0; i < jOrders.length; i++){
+                    if (jOrders[i].user_id === results[j].id) { contador++; }
+                }
+                jRes = '{"cantidad":'+contador+', "name":"'+results[j].name+'"}';
+                var objeto = JSON.parse(jRes);
+                objetos.push(objeto);
+                contador = 0;
+            }
+            res.send(objetos);
+        });
+    });
+});
+
+router.get('/grafPed', (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let company    = req.query.company;
+    conexion.query(
+        "SELECT * FROM orders WHERE company = '"+company+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", 
+        function (error, results) {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+              }
+            var objetos    = [];
+            let jRes;
+            let status =["Activo", "Finalizado", "Parcial", "Cancelado"];
+            
+            for(i = 0; i < status.length; i++){
+                let resu = 0;
+                for(j = 0; j < results.length; j++){
+                    if(results[j].status == status[i]) resu++;
+                }
+                jRes = '{"cantidad":'+resu+', "name":"'+status[i]+'"}';
+                var objeto = JSON.parse(jRes);
+                objetos.push(objeto);
+            }
+            //console.log(objetos);
+            res.send(objetos);
+        }
+    );
+});
+
+router.get('/grafGeneral', (req, res) => {
+    let startDate  = req.query.startDate;
+    let finishDate = req.query.finishDate;
+    let resD = 0;
+    let jRes;
+    var objetos = [];
+    let datos = {
+        status      : 0,
+        ventas      : 0,
+        compras     : 0,
+        almacen     : 0,
+        cyc         : 0,
+        facturacion : 0,
+        sistemas    : 0 
+    }
+    conexion.query(//compras
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '1') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Compras"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.compras = results[0].cantidad;
+            //resD += 1;
+        }
+    );
+    
+    conexion.query(//Sistemas
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '2') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Sistemas"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.sistemas = results[0].cantidad;
+            //resD += 1;
+        }
+    );
+    
+    conexion.query(//Ventas
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Ventas"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.ventas = results[0].cantidad;
+            //resD += 1;
+        }
+    );
+
+    conexion.query(//Almacén
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '4') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Almacén"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.almacen = results[0].cantidad;
+            //resD += 1;
+        }
+    );
+
+    conexion.query(//Facturación
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '5') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"Facturación"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.facturacion = results[0].cantidad;
+            //resD += 1;
+        }
+    );
+
+    conexion.query(//CyC
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        function (error, results, fields) {
+            if (error) throw error;
+            jRes = '{"cantidad":'+results[0].cantidad+', "name":"CyC"}';
+            var objeto = JSON.parse(jRes);
+            objetos.push(objeto);
+            //datos.cyc = results[0].cantidad;
+            //resD += 1;
+            //datos.status = resD;
+            console.log(objetos);
+            res.send(objetos);
+        }
+    );
+    
+});
 
 
 ///////////////////////////////////////////////////////  Apis de adm ///////////////////////////
@@ -954,6 +1223,66 @@ router.post('/agregarPorcen', (req, results) => {
     })
 });
 
+router.get('/listMarcas', (req, res) => {
+    conexion.query("SELECT * FROM `list`", (error, results) =>{
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        // Convertir los resultados en formato JSON
+        const jsonData = JSON.stringify(results);
+        //console.log(jsonData);
+        res.send(jsonData);
+    });
+});
+
+router.post('/nuevProv', (req, res) => {
+    let prov = req.body.proveedor;
+    let list1 = req.body.lista1;
+    let list2 = req.body.lista2;
+    let list3 = req.body.lista3;
+    conexion.query("INSERT INTO `list` (`id`, `nameComp`, `list1`, `list2`, `list3`) VALUES (NULL, '"+prov+"', '"+list1+"', '"+list2+"', '"+list3+"')",  (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status":200
+        })
+    });
+});
+
+router.post('/eliminarProv', (req, res) => {
+    let id = req.body.id;
+    conexion.query("DELETE FROM `list` WHERE `list`.`id` = "+id+"", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status":200
+        })
+    });
+});
+
+router.post('/actProv', (req, res) => {
+    let id    = req.body.id;
+    let prov  = req.body.prov;
+    let list1 = req.body.lista1;
+    let list2 = req.body.lista2;
+    let list3 = req.body.lista3;
+
+    conexion.query("UPDATE `list` SET `nameComp`='"+prov+"',`list1`='"+list1+"',`list2`='"+list2+"',`list3`='"+list3+"' WHERE `id`='"+id+"'", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        res.json({
+            "status": 200
+        });
+    });
+});
+
 /////////////////////////////////// APIs de lista de productos /////////////////////////////
 router.get('/solProductosSearch', (req, res) => {
     let producto   = req.query.producto;
@@ -991,6 +1320,27 @@ router.get('/solCoti', (req, res) =>{
     });
 });
 
+router.get('/sMisCoti', (req, res)  => {
+    let id = req.query.id;
+    conexion.query("SELECT id, nomV, startdate, id_user, razonS, nomAtencion, folio FROM `pedidos` WHERE `id_user` = '"+id+"'", (error, results) => {
+        if(error){
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        if(results.length > 0){
+            const jsonData = JSON.stringify(results);
+            //console.log(jsonData);
+            res.send(jsonData);
+        }else{
+            res.json({
+                "status": 400
+            });
+        }
+    });
+});
+
+
+
 router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
     let productosJ   = req.body.productosJ;
     let nomV         = req.body.nomV;
@@ -1009,8 +1359,8 @@ router.post('/ingCotizacion', (req, res) => {//Ingresar cotización a la bd
         
         folio = (results[0].folio +1) * 1;
         //console.log("folio: ",folio," results: ",results[0].folio);
-        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user) 
-                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`')`;
+        let sQuery = `INSERT INTO pedidos( productosJ,        nomV,      telV,     emailV,     razonS,     nomAtencion,  departamento,            folio, id_user,       startdate) 
+                      VALUES             ('`+productosJ+`','`+nomV+`','`+telV+`','`+emailV+`','`+razon+`','`+atencion+`','`+departamento+`', '`+folio+`', '`+idUser+`', NOW())`;
         conexion.query(sQuery, (error, results) => {
             if (error) {
                 console.error('Error al ejecutar la consulta: ', error);

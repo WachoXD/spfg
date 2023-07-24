@@ -118,9 +118,9 @@
 
   
   <!-- Modal -->
-    <div class="modal" style="background: rgba(255, 255, 255, 0.5);" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal" style="background: rgba(255, 255, 255, 0.5);" id="exampleModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-xl modal-fullscreen" style="background: rgba(255, 255, 255, 0.5);">
-            <div class="modal-content" style="background: rgba(255, 255, 255, 0.2);">
+            <div class="modal-content" style="background: rgba(255, 255, 255, 0.2);" id="modalGen">
                 <div class="modal-header" style="background: rgba(255, 255, 255, 1);">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Busqueda de productos</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="limpiarBusqueda()"></button>
@@ -132,7 +132,7 @@
                                 <div class="col-sm-6 col-md-6">
                                     <div class="input-group ">
                                         <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Código del Producto</span>
-                                        <input type="text" autofocus class="form-control border border-primary me-2" placeholder="Código de producto" id="buscarProd" aria-describedby="inputGroup-sizing-default">
+                                        <input type="text" autofocus class="form-control border border-primary me-2" placeholder="Código de producto" id="buscarProd">
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-5" id="selectProv">
@@ -174,14 +174,28 @@
             </div>
         </div>
     </div>
-  
+    
+    <div class="modal" id="modalMisCoti" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl ">
+            <div class="modal-content" id="modalGen">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mis cotizaciones</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarMisCoti"></button>
+                </div>
+                <div class="modal-body" id="bodyMisCoti">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" >Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/axios.min.js"></script>
     <script src="../js/sweetalert2.all.min.js"></script>
     <script src="../js/jquery.min.js"></script>
-    <script src="./js/pdfmake.min.js"></script>
-    <script src="./js/vfs_fonts.js"></script>
-    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script src="../js/pdfmake.min.js"></script>
+    <script src="../js/vfs_fonts.js"></script>
     <script src="./js/indexLista.js"></script>
 </body>
 </html>
