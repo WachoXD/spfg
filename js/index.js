@@ -1535,13 +1535,14 @@ async function viewEditUser(i){
     sModalVentana = sModalVentana +`</div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                        <button type="button" class="btn btn-primary" onclick="editUser()">Aceptar</button>
+                                        <button type="button" class="btn btn-primary" onclick="editUser(`+jUsuarios[i].id+`)">Aceptar</button>
                                     </div>`;
     document.getElementById('modalInfo').innerHTML = sModalVentana;
 }
 
-async function editUser(){
+async function editUser(id){
     let datos = {
+        id    : id,
         nom   : document.getElementById('inEdNom').value.trim(),
         email : document.getElementById('inEdEmail').value.trim(),
         area  : document.getElementById('selEdArea').value,
@@ -1833,9 +1834,12 @@ async function editarPedView(pos, idUSer){
                         <option selected value="1000">Seleccione el área de envío</option>
                         <option value="Foraneo">Foraneo</option>
                         <option value="Paquetería">Paquetería</option>
+                        <option value="Recoge en almacén">Recoge en almacén</option>
+                        <option value="El Salto">El Salto</option>
+                        <option value="San Pedro Tlaquepaque">San Pedro Tlaquepaque</option>
                         <option value="Tlajomulco de Zuñiga">Tlajomulco de Zuñiga</option>
                         <option value="Zapopan">Zapopan</option>
-                        <option value="El salto">El salto</option>
+                        <option value="Tonalá">Tonalá</option>
                         <option value="Zona industrial">Zona industrial</option>
                     </select>
                     <label for="floatingSelect">Área de envío</label>
@@ -2170,9 +2174,12 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                         <option selected value="1000">Seleccione el área de envío</option>
                                                         <option value="Foraneo">Foraneo</option>
                                                         <option value="Paquetería">Paquetería</option>
+                                                        <option value="Recoge en almacen">Recoge en almacén</option>
+                                                        <option value="El Salto">El Salto</option>
+                                                        <option value="San Pedro Tlaquepaque">San Pedro Tlaquepaque</option>
                                                         <option value="Tlajomulco de Zuñiga">Tlajomulco de Zuñiga</option>
                                                         <option value="Zapopan">Zapopan</option>
-                                                        <option value="El salto">El salto</option>
+                                                        <option value="Tonalá">Tonalá</option>
                                                         <option value="Zona industrial">Zona industrial</option>
                                                     </select>
                                                 </div>
