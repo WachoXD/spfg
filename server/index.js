@@ -209,11 +209,12 @@ router.post('/resetPassUser', (req, res) => {
 });
 
 router.post('/actUser', (req, res) =>{
+    let id    = req.body.id;
     let nom   = req.body.nom;
     let email = req.body.email;
     let area  = req.body.area;
     
-    conexion.query("UPDATE `users` SET `name`='"+nom+"',`user_rol_id`='"+area+"',`updated_at`= NOW() WHERE `email` = '"+email+"'", function (error, results) {
+    conexion.query("UPDATE `users` SET `name`='"+nom+"',`user_rol_id`='"+area+"',`updated_at`= NOW(), `email` = '"+email+"' WHERE `id` = '"+id+"' ", function (error, results) {
         if(error){
             console.error('Error al ejecutar la consulta: ', error);
             throw error;
