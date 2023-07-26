@@ -2,14 +2,16 @@ var URLactual = window.location;
 //var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
 if(URLactual.href.substring(0,28) == 'http://192.168.1.74:81/spfg/'){
     var urlBase     = 'http://192.168.1.74:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://192.168.1.74:81/'
 }
 if(URLactual.href.substring(0,22) == 'http://localhost/spfg/'){
     var urlBase     = 'http://localhost:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://localhost/'
 }
 if(URLactual.href.substring(0,28) == 'http://187.188.181.242:81/spfg/'){
     var urlBase     = 'http://187.188.181.242:5000/api/';//Url donde están las apis 
+    var urlPrin     = 'http://187.188.181.242/'
 }
-
 //const XLSX = require('./xlsx.full.min');
 function comprobarPermiso(){
     loading(1);
