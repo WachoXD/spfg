@@ -73,7 +73,7 @@ function comprobarCookie() {
                                                                         <label for='exampleInputPassword1' class='form-label'>\Password</label>\
                                                                         <div class='input-group mb-3'>\
                                                                             <input type='password' class='form-control' id='inpPass' placeholder='*********'>\
-                                                                            <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                            <span class='input-group-text bi bi-eye' style='cursor:pointer;' onclick='showPass(0)' id='passlogin'>\
                                                                             </span>\
                                                                         </div>\
                                                                     </div>\
@@ -86,6 +86,25 @@ function comprobarCookie() {
         loading(2);
     }
 }
+
+function showPass(opc) {
+    let inp = ['inpPass','newInpPass','newRInpPass'];
+    let btnEye = ['passlogin','btnPass1','btnPass2'];
+    var input = document.getElementById(inp[opc]);
+    var eye   = document.getElementById(btnEye[opc]);
+  
+    if (input.type === 'password') {
+        input.type = 'text';
+        input.placeholder = 'Contraseña';
+        eye.className = '';
+        eye.classList.add('input-group-text', 'bi', 'bi-eye-slash', 'bg-primary-subtle');
+    } else {
+        input.type = 'password';
+        input.placeholder = '*********';
+        eye.className = '';
+        eye.classList.add('input-group-text', 'bi', 'bi-eye');
+    }
+  }
 
 //Para reconocer el enter en el formulario
 window.addEventListener("keydown", (e) => {
@@ -226,7 +245,7 @@ function changePasswordView(newU, id){
                                                                     <label for='exampleInputPassword1' class='form-label'>Nueva contraseña</label>\
                                                                     <div class='input-group mb-3'>\
                                                                         <input type='password' autofocus class='form-control' id='newInpPass' placeholder='*********'>\
-                                                                        <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                        <span class='input-group-text bi bi-eye' id='btnPass1' style='cursor:pointer;' onclick='showPass(1)'>\
                                                                         </span>\
                                                                     </div>\
                                                                 </div>\
@@ -234,7 +253,7 @@ function changePasswordView(newU, id){
                                                                     <label for='exampleInputPassword1' class='form-label'>Repetir nueva contraseña</label>\
                                                                     <div class='input-group mb-3'>\
                                                                         <input type='password' class='form-control' id='newRInpPass' placeholder='*********'>\
-                                                                        <span class='input-group-text bi bi-eye' id='basic-addon1'>\
+                                                                        <span class='input-group-text bi bi-eye' id='btnPass2' style='cursor:pointer;' onclick='showPass(2)'>\
                                                                         </span>\
                                                                     </div>\
                                                                 </div>\
@@ -452,7 +471,7 @@ async function inicio(){
                                     <ul class="dropdown-menu" id="dropPerfil">
                                         <li><a class="dropdown-item" data-bs-target="#modalTotal" data-bs-toggle="modal" onclick='modalView(`+jUsuario.id+`,0, 4)'> <i class="bi bi-person-bounding-box mr-2"></i> Perfil</a></li>
                                         <li><a class="dropdown-item" onclick="recPag()"><i class="bi bi-box-arrow-left"></i> Cerrar sesion</a></li>
-                                        <li><a class="dropdown-item" onclick="recPag()"><i class="bi bi-git"></i> <span id="versionT">v `+jUsuario.version+`</span></a></li>
+                                        <li><a class="dropdown-item" onclick='infoVers(`+jUsuario.id+`, "`+jUsuario.version+`")'><i class="bi bi-git"></i> <span id="versionT">v `+jUsuario.version+`</span></a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -460,6 +479,46 @@ async function inicio(){
                     </nav><!--Fin del nav-->`;
     document.getElementById('navIni').innerHTML = sVentanaNav;
     await home()
+}
+
+async function infoVers(id, oldVersion){
+    let datos = {oldVersion : oldVersion};
+    let jResVer = await apiMasterGET(datos, 'solInfoVersion');
+    Swal.fire({
+        title   : '<strong><i class="bi bi-git"></i> <u>'+jResVer[0].nVers+'</u></strong>',
+        icon    : 'info',
+        html    : '<p class="text-break text-justify">'+jResVer[0].details+'</p>',
+        showCloseButton   : true,
+        showCancelButton  : true,
+        focusConfirm      : false,
+        confirmButtonText : 'Buscar actualización',
+        cancelButtonText  : 'Cancelar'
+    }).then(async (result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+            let resVer = await apiMasterGET(datos, 'solVersion');
+            let resComp = compVers(resVer[0].version, jResVer[0].nVers);
+            if(resComp > 0){
+                //console.log('El usuario aceptó la alerta');
+                let datosActVer = {
+                    id      : id,
+                    version : resVer[0].version
+                }
+                let resActVer = await apiMasterGET(datosActVer, 'actVer');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Se actualizó a la versión '+datos.version,
+                    text: "Será necesario iniciar sesión",
+                    showConfirmButton: false,
+                    timer: 3500
+                }).then(function() {
+                    recPag();
+                });
+            }else{
+                Swal.fire('Ya tienes la versión actualizada', '', 'info');
+            }
+        }
+    })
 }
 
 async function home(){
@@ -1244,6 +1303,17 @@ async function viewGrafica(opc){
                                                 <input type="date" id="finishDate" name="trip-start"
                                                     value="`+hoy+`"
                                                     min="2023-01-01" max="`+hoy+`">`;
+    if(opc == 0){
+        sModalVentana = sModalVentana + `
+                                                <div class="form-check form-check-inline ms-2">
+                                                    <input class="form-check-input" type="radio" name="rAceptados" id="rAceptados1" value="1" checked>
+                                                    <label class="form-check-label" for="rAceptados1">Aceptados</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="rAceptados" id="rAceptados2" value="0">
+                                                    <label class="form-check-label" for="rAceptados2">Sin aceptar</label>
+                                                </div>`;
+    }
     if(opc ==  1){
         sModalVentana = sModalVentana + `
                                                 <select class="form-select border border-black" style="width: 200px; display: inline" id="seAreaChart">
@@ -1285,7 +1355,20 @@ async function genGraf(opc){
         startDate  : document.getElementById('startDate').value.trim(),
         finishDate : document.getElementById('finishDate').value.trim() + " 23:59:59"
     }
-    if(opc == 1) _datos.area    = document.getElementById('seAreaChart').value;
+    if(opc == 0){
+        var x = document.getElementsByName("rAceptados");
+        let resCheck;
+        for (i = 0; i < x.length; i++) {
+            if(x[i].checked == true ){
+                resCheck = x[i].value;
+            }
+        }
+        _datos.acepted = resCheck;
+    }
+    if(opc == 1) {
+        _datos.area    = document.getElementById('seAreaChart').value;
+        
+    }
     if(opc == 2) {
         var x = document.getElementsByName("rEmpresaM");
         let resCheck = '';
@@ -1450,7 +1533,7 @@ async function imprimirGraf(opc){
             [
                 /*{
                     text: 'Ventas', fillColor: '#ff6384'
-                },
+                },*/
             ],
             [
                 /*'resChart.ventas,*/
@@ -1919,7 +2002,7 @@ async function pestanaNva(opc){
             window.open(url, '_blank');
             break;
         case 2:
-            location.href = urlPrin + "/spfg/adm/?data=" + jEncode + "";
+            location.href = urlPrin + "spfg/adm/?data=" + jEncode + "";
             break;
     }
     
@@ -2207,18 +2290,18 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                             </div>
                                             <div class="modal-body">
                                                 <div class="container">
-                                                    <img src="`+jUser[0].urlPic+`" class="rounded mx-auto d-block mb-3" alt="..." style="max-width: 300px;">
+                                                    <img src="`+jUser[0].urlPic+`" class="rounded mx-auto d-block mb-3" style="max-width: 300px;">
                                                     <div class="row g-0 ">
                                                         <div class="col-sm-6 col-md-6">
                                                             <div class="input-group mb-3 me-2">
-                                                                <span class="input-group-text" id="inputGroup-sizing-default">Nombre</span>
-                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].name+`">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default" style="width: 150px">Nombre</span>
+                                                                <input type="text" class="form-control me-2" disabled value="`+jUser[0].name+`">
                                                             </div>
                                                         </div>
                                                         <div class="col-6 col-md-6">
                                                             <div class="input-group mb-3 me-2">
-                                                                <span class="input-group-text" id="inputGroup-sizing-default">Correo</span>
-                                                                <input id="emailProf" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+jUser[0].email+`">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default" style="width: 150px">Correo</span>
+                                                                <input id="emailProf" type="text" class="form-control" disabled value="`+jUser[0].email+`">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2227,18 +2310,46 @@ async function modalView(idOrder, orderNumber, opc, userId){
                                                     <div class="row g-0 ">
                                                         <div class="col-sm-6 col-md-6">
                                                             <div class="input-group mb-3 me-2">
-                                                                <span class="input-group-text" id="inputGroup-sizing-default">Área</span>
-                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+area+`">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default" style="width: 150px">Área</span>
+                                                                <input type="text" class="form-control me-2" disabled value="`+area+`">
                                                             </div>
                                                         </div>
                                                         <div class="col-6 col-md-6">
                                                             <div class="input-group mb-3 me-2">
-                                                                <span class="input-group-text" id="inputGroup-sizing-default">Fecha de creación</span>
-                                                                <input type="text" class="form-control me-2" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" disabled value="`+new Date(jUser[0].updated_at).toLocaleDateString()+`">
+                                                                <span class="input-group-text" id="inputGroup-sizing-default" style="width: 150px">Fecha de creación</span>
+                                                                <input type="text" class="form-control me-2" disabled value="`+new Date(jUser[0].updated_at).toLocaleDateString()+`">
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>`;
+                if(jUser[0].user_rol_id == 0){
+                    sModalVentana = sModalVentana + `
+                                                <div class="container border-top border-2 border-black" style="max-height: 220px;">
+                                                    <div class="row g-0 text-center mt-3 mb-3">
+                                                        <div class="col-sm-6 col-md-10">
+                                                            <div class="row g-0 text-center">
+                                                                <div class="col-sm-6 col-md-4">
+                                                                    <div class="input-group mb-3 me-2">
+                                                                        <span class="input-group-text border border-primary" id="inputGroup-sizing-default">Versión</span>
+                                                                        <input type="text" class="form-control me-2 border border-primary" id="inVersion" value="`+jUser[0].version+`" onKeypress="if (event.keyCode < 45 || event.keyCode > 57) event.returnValue = false;">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-md-8">
+                                                                    <div class="form-floating">
+                                                                        <textarea class="form-control border border-primary" placeholder="Versión" id="txtDatos" style="max-height: 200px; min-height:50px;"></textarea>
+                                                                        <label for="floatingTextarea">Datos de versión</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 col-md-2">
+                                                            <button type="button" class="btn btn-primary" onclick='actVers("`+jUser[0].version+`", `+jUser[0].id+`)'>Actualizar versión</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                    `;
+                }
+                    sModalVentana = sModalVentana +`
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
@@ -2309,6 +2420,63 @@ async function modalView(idOrder, orderNumber, opc, userId){
     document.getElementById('modalInfo').innerHTML = sModalVentana;
     if(opc == 3){
         document.getElementById('nuevoPedidoInput').focus();
+    }
+}
+
+function compVers(nVer, oVer) {
+    const v1 = nVer.split('.').map(Number);
+    const v2 = oVer.split('.').map(Number);
+    //console.log("v1: ",v1," v2: ",v2);
+  
+    for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+      const num1 = i < v1.length ? v1[i] : 0;
+      const num2 = i < v2.length ? v2[i] : 0;
+  
+      if (num1 > num2) {
+        return 1; // nVer es mayor que oVer
+      } else if (num1 < num2) {
+        return -1; // nVer es menor que oVer
+      }
+    }
+  
+    return 0; // versiones son iguales
+  }
+
+async function actVers(versOrld, id){
+    let datos = {
+        version : document.getElementById("inVersion").value.trim(),
+        datosV  : document.getElementById("txtDatos").value.trim(),
+    }
+    if(datos.version != '' && datos.datosV != ''){
+        let resV = compVers(datos.version, versOrld);
+        console.log("resV: ",resV);
+        if(resV == 1){
+            let res = await apiMasterPost(datos, 'actVersion');
+            console.log(res);
+            if(res.status == 200){
+                let datosActVer = {
+                    id      : id,
+                    version : datos.version
+                }
+                let resActVer = await apiMasterGET(datosActVer, 'actVer');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Se actualizó a la versión '+datos.version,
+                    text: "Será necesario iniciar sesión",
+                    showConfirmButton: false,
+                    timer: 3500
+                }).then(function() {
+                    location.reload();
+                });
+            }
+        }else{
+            Swal.fire({
+                icon: 'warning',
+                title: 'La versión debe ser mayor a la actual',
+                showConfirmButton: false,
+                timer: 3500
+            })
+        }
     }
 }
 

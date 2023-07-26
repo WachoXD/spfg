@@ -249,8 +249,21 @@ router.get('/perfil', (req, res) => {
         const jsonData = JSON.stringify(results);
         //console.log(jsonData);
         res.send(jsonData);
+    }); 
+});
+
+router.get('/solInfoVersion', (req, res) => {
+    let oldVersion = req.query.oldVersion;
+    conexion.query("SELECT * FROM `versions` WHERE `nVers` = '"+oldVersion+"' ", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+          }
+          // Convertir los resultados en formato JSON
+          const jsonData = JSON.stringify(results);
+          //console.log(jsonData);
+          res.send(jsonData);
     });
-    
 });
 
 router.get("/horaOrder", (req, res) => {
@@ -388,6 +401,26 @@ router.get('/area', (req, res) => {
         res.send(jsonData);
     });
 })
+
+router.post('/actVersion', (req, res) => {
+    let version = req.body.version;
+    let datosV  = req.body.datosV;
+    conexion.query("INSERT INTO `versions`(`nVers`, `details`) VALUES ('"+version+"','"+datosV+"')", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        conexion.query("UPDATE `info` SET `version`='"+version+"',`update_at`=NOW() WHERE `id` = '1'", (error, results) => {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+            }
+            res.json({
+                "status":200
+            })
+        });
+    });
+});
 
 router.post('/actualizarPedido',(req, res)=>{
     let area        = req.body.area;
@@ -945,8 +978,11 @@ router.get('/grafArea', async (req, res) => {
     let startDate  = req.query.startDate;
     let finishDate = req.query.finishDate;
     let area       = req.query.area;
+    
     let jOrders;
-    conexion.query("SELECT * FROM orders WHERE area_id = '"+area+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ", (error, results) => {
+    let query = "SELECT * FROM orders WHERE area_id = '"+area+"' AND startdate BETWEEN '"+startDate+"' AND '"+finishDate+"' ";
+    console.log(query);
+    conexion.query(query, (error, results) => {
         if (error) {
             console.error('Error al ejecutar la consulta: ', error);
             throw error;
@@ -1007,7 +1043,8 @@ router.get('/grafPed', (req, res) => {
 router.get('/grafGeneral', (req, res) => {
     let startDate  = req.query.startDate;
     let finishDate = req.query.finishDate;
-    let resD = 0;
+    let acepted    = req.query.acepted;
+    /*let resD = 0;
     let jRes;
     var objetos = [];
     let datos = {
@@ -1018,9 +1055,39 @@ router.get('/grafGeneral', (req, res) => {
         cyc         : 0,
         facturacion : 0,
         sistemas    : 0 
-    }
-    conexion.query(//compras
-        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '1') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+    }*/
+    let jOrders;
+    conexion.query("SELECT * FROM orders WHERE (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')", (error, results) => {
+        if (error) {
+            console.error('Error al ejecutar la consulta: ', error);
+            throw error;
+        }
+        jOrders = results;
+        conexion.query("SELECT id, name FROM role", (error, results) => {
+            if (error) {
+                console.error('Error al ejecutar la consulta: ', error);
+                throw error;
+            }
+            let jRes;
+            var objetos = [];
+            let contador = 0;
+            for(j = 0; j  < results.length; j++){
+                if(results[j].id != 100 && results[j].id != 101){
+                    for(i = 0; i < jOrders.length; i++){
+                        if (jOrders[i].area_id === results[j].id) { contador++; }
+                    }
+                    jRes = '{"cantidad":'+contador+', "name":"'+results[j].name+'"}';
+                    var objeto = JSON.parse(jRes);
+                    objetos.push(objeto);
+                    contador = 0;
+                }
+            }
+            res.send(objetos);
+        });
+    });
+
+    /*conexion.query(//compras
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '1') AND (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
             jRes = '{"cantidad":'+results[0].cantidad+', "name":"Compras"}';
@@ -1032,7 +1099,7 @@ router.get('/grafGeneral', (req, res) => {
     );
     
     conexion.query(//Sistemas
-        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '2') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '2') AND (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
             jRes = '{"cantidad":'+results[0].cantidad+', "name":"Sistemas"}';
@@ -1044,7 +1111,7 @@ router.get('/grafGeneral', (req, res) => {
     );
     
     conexion.query(//Ventas
-        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '3') AND (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
             jRes = '{"cantidad":'+results[0].cantidad+', "name":"Ventas"}';
@@ -1056,7 +1123,7 @@ router.get('/grafGeneral', (req, res) => {
     );
 
     conexion.query(//Almacén
-        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '4') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '4') AND (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
             jRes = '{"cantidad":'+results[0].cantidad+', "name":"Almacén"}';
@@ -1068,7 +1135,7 @@ router.get('/grafGeneral', (req, res) => {
     );
 
     conexion.query(//Facturación
-        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '5') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
+        "SELECT COUNT(*) AS cantidad FROM orders WHERE (area_id = '5') AND (acepted = '"+acepted+"') AND (startdate BETWEEN '"+startDate+"' AND '"+finishDate+"')",
         function (error, results, fields) {
             if (error) throw error;
             jRes = '{"cantidad":'+results[0].cantidad+', "name":"Facturación"}';
@@ -1092,7 +1159,7 @@ router.get('/grafGeneral', (req, res) => {
             console.log(objetos);
             res.send(objetos);
         }
-    );
+    );*/
     
 });
 
